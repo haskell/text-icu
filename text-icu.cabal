@@ -1,0 +1,17 @@
+Name: text-icu
+Version: 0.0
+License: BSD3
+License-file: LICENSE
+Build-Type: Simple
+Cabal-Version: >= 1.2
+
+library
+  build-depends:     base < 5, bytestring, text
+  if impl(ghc >= 6.10)
+    build-depends:   base >= 4
+
+  exposed-modules:
+      Data.Text.ICU.Conversion
+      Data.Text.ICU.Converter
+  c-sources: cbits/text_icu.c
+  extra-libraries: icui18n icuuc icudata
