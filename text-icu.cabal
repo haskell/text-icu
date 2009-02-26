@@ -1,9 +1,16 @@
-Name: text-icu
-Version: 0.0
-License: BSD3
-License-file: LICENSE
-Build-Type: Simple
-Cabal-Version: >= 1.2
+name:           text-icu
+version:        0.0
+synopsis:       Bindings to the ICU library
+description:    Haskell bindings to the International Components for
+                Unicode (ICU) libraries.  These libraries provide
+                robust and full-featured Unicode services on a wide
+                variety of platforms.
+copyright:      2009 Bryan O'Sullivan
+category:       Data, Text
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+cabal-version:  >= 1.2
 
 library
   build-depends:     base < 5, bytestring, text
@@ -19,3 +26,7 @@ library
       Data.Text.ICU.Error.Internal
   c-sources: cbits/text_icu.c
   extra-libraries: icui18n icuuc icudata
+
+  ghc-options: -Wall -O
+  if impl(ghc >= 6.8)
+    ghc-options: -fwarn-tabs

@@ -173,6 +173,3 @@ foreign import ccall unsafe "unicode/ucnv.h ucnv_getDefaultName_4_0" ucnv_getDef
 
 foreign import ccall unsafe "unicode/ucnv.h ucnv_setDefaultName_4_0" ucnv_setDefaultName
     :: CString -> IO ()
-
-foreign import ccall unsafe "unicode/ucnv.h ucnv_reset_4_0" ucnv_reset
-    :: IO ()
