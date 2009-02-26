@@ -13,5 +13,9 @@ library
   exposed-modules:
       Data.Text.ICU.Conversion
       Data.Text.ICU.Converter
+      Data.Text.ICU.Error
+  other-modules:
+      Data.Text.ICU.ErrorCode
+      Data.Text.ICU.Error.Internal
   c-sources: cbits/text_icu.c
   extra-libraries: icui18n icuuc icudata
