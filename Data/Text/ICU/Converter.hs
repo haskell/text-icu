@@ -5,21 +5,27 @@ module Data.Text.ICU.Converter
       Converter
     -- ** Basic functions
     , open
-    , decode
-    , encode
+    , fromUnicode
+    , toUnicode
     -- ** Miscellaneous functions
     , getName
+    , usesFallback
+    , setFallback
+    , isAmbiguous
     -- * Global behavior
     , getDefaultName
     , setDefaultName
     -- * Miscellaneous functions
     , compareNames
+    , aliases
+    -- * Data
     , converterNames
+    , standardNames
     ) where
 
 import Data.ByteString.Internal (ByteString, createAndTrim)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
-import Data.Int (Int32)
+import Data.Int (Int8, Int32)
 import Data.Text (Text)
 import Data.Text.Foreign (fromPtr, lengthWord16, useAsPtr)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
@@ -32,6 +38,7 @@ import Foreign.Marshal.Array (allocaArray)
 import Foreign.Ptr (FunPtr, Ptr, castPtr, nullPtr)
 import System.IO.Unsafe (unsafePerformIO)
 
+type UBool = Int8
 type UChar = Word16
 
 data UConverter
@@ -106,8 +113,8 @@ open name =
 
 -- | Convert the Unicode string into a codepage string using the given
 -- converter.
-encode :: Converter -> Text -> IO ByteString
-encode cnv t =
+fromUnicode :: Converter -> Text -> IO ByteString
+fromUnicode cnv t =
   useAsPtr t $ \tptr tlen ->
     withConverter cnv $ \cptr -> do
       let capacity = fromIntegral . max_bytes_for_string cptr . fromIntegral $
@@ -118,8 +125,8 @@ encode cnv t =
 
 -- | Convert the codepage string into a Unicode string using the given
 -- converter.
-decode :: Converter -> ByteString -> IO Text
-decode cnv bs =
+toUnicode :: Converter -> ByteString -> IO Text
+toUnicode cnv bs =
   unsafeUseAsCStringLen bs $ \(sptr, slen) ->
     withConverter cnv $ \cptr -> do
       let capacity = slen * 2
@@ -128,11 +135,31 @@ decode cnv bs =
                           ucnv_toUChars cptr tptr (fromIntegral capacity) sptr
                                         (fromIntegral slen))
 
+-- | Determines whether the converter uses fallback mappings or not.
+-- This flag has restrictions; see 'setFallback'.
+usesFallback :: Converter -> IO Bool
+usesFallback cnv = (/=0) `fmap` withConverter cnv ucnv_usesFallback
+
+-- | Sets the converter to use fallback mappings or not.  Regardless
+-- of this flag, the converter will always use fallbacks from Unicode
+-- Private Use code points, as well as reverse fallbacks (to Unicode).
+-- For details see \".ucm File Format\" in the Conversion Data chapter
+-- of the ICU User Guide:
+-- <http://www.icu-project.org/userguide/conversion-data.html#ucmformat>
+setFallback :: Converter -> Bool -> IO ()
+setFallback cnv flag =
+  withConverter cnv $ \p -> (ucnv_setFallback p (fromIntegral (fromEnum flag)))
+
 -- | Returns the current default converter name. If you want to 'open'
 -- a default converter, you do not need to use this function.  It is
 -- faster to pass the empty string to 'open' the default converter.
 getDefaultName :: IO String
 getDefaultName = peekCString =<< ucnv_getDefaultName
+
+-- | Indicates whether the converter contains ambiguous mappings of
+-- the same character or not.
+isAmbiguous :: Converter -> Bool
+isAmbiguous cnv = (/=0) . unsafePerformIO $ withConverter cnv ucnv_isAmbiguous
 
 -- | Sets the current default converter name. If this function needs
 -- to be called, it should be called during application
@@ -151,6 +178,20 @@ converterNames :: [String]
 {-# NOINLINE converterNames #-}
 converterNames = unsafePerformIO $
   mapM ((peekCString =<<) . ucnv_getAvailableName) [0..ucnv_countAvailable-1]
+
+-- | The list of supported standard names.
+standardNames :: [String]
+{-# NOINLINE standardNames #-}
+standardNames = filter (not . null) . unsafePerformIO $
+  mapM ((peekCString =<<) . handleError . ucnv_getStandard) [0..ucnv_countStandards-1]
+
+-- | Return the aliases for a given converter or alias name.
+aliases :: String -> [String]
+aliases name = unsafePerformIO . withCString name $ \ptr -> do
+  count <- ucnv_countAliases ptr
+  if count == 0
+    then return []
+    else mapM ((peekCString =<<) . handleError . ucnv_getAlias ptr) [0..count-1]
 
 foreign import ccall unsafe "unicode/ucnv.h ucnv_open_4_0" ucnv_open
     :: CString -> Ptr UErrorCode -> IO (Ptr UConverter)
@@ -186,3 +227,24 @@ foreign import ccall unsafe "unicode/ucnv.h ucnv_countAvailable_4_0" ucnv_countA
 
 foreign import ccall unsafe "unicode/ucnv.h ucnv_getAvailableName_4_0" ucnv_getAvailableName
     :: Int32 -> IO CString
+
+foreign import ccall unsafe "unicode/ucnv.h ucnv_countAliases_4_0" ucnv_countAliases
+    :: CString -> IO Word16
+
+foreign import ccall unsafe "unicode/ucnv.h ucnv_getAlias_4_0" ucnv_getAlias
+    :: CString -> Word16 -> Ptr UErrorCode -> IO CString
+
+foreign import ccall unsafe "unicode/ucnv.h ucnv_countStandards_4_0" ucnv_countStandards
+    :: Word16
+
+foreign import ccall unsafe "unicode/ucnv.h ucnv_getStandard_4_0" ucnv_getStandard
+    :: Word16 -> Ptr UErrorCode -> IO CString
+
+foreign import ccall unsafe "unicode/ucnv.h ucnv_usesFallback_4_0" ucnv_usesFallback
+    :: Ptr UConverter -> IO UBool
+
+foreign import ccall unsafe "unicode/ucnv.h ucnv_setFallback_4_0" ucnv_setFallback
+    :: Ptr UConverter -> UBool -> IO ()
+
+foreign import ccall unsafe "unicode/ucnv.h ucnv_isAmbiguous_4_0" ucnv_isAmbiguous
+    :: Ptr UConverter -> IO UBool
