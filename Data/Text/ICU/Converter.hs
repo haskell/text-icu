@@ -14,6 +14,7 @@ module Data.Text.ICU.Converter
     , setDefaultName
     -- * Miscellaneous functions
     , compareNames
+    , converterNames
     ) where
 
 import Data.ByteString.Internal (ByteString, createAndTrim)
@@ -145,6 +146,12 @@ getDefaultName = peekCString =<< ucnv_getDefaultName
 setDefaultName :: String -> IO ()
 setDefaultName s = withCString s $ ucnv_setDefaultName
 
+-- | A list of the canonical names of all available converters.
+converterNames :: [String]
+{-# NOINLINE converterNames #-}
+converterNames = unsafePerformIO $
+  mapM ((peekCString =<<) . ucnv_getAvailableName) [0..ucnv_countAvailable-1]
+
 foreign import ccall unsafe "unicode/ucnv.h ucnv_open_4_0" ucnv_open
     :: CString -> Ptr UErrorCode -> IO (Ptr UConverter)
 
@@ -173,3 +180,9 @@ foreign import ccall unsafe "unicode/ucnv.h ucnv_getDefaultName_4_0" ucnv_getDef
 
 foreign import ccall unsafe "unicode/ucnv.h ucnv_setDefaultName_4_0" ucnv_setDefaultName
     :: CString -> IO ()
+
+foreign import ccall unsafe "unicode/ucnv.h ucnv_countAvailable_4_0" ucnv_countAvailable
+    :: Int32
+
+foreign import ccall unsafe "unicode/ucnv.h ucnv_getAvailableName_4_0" ucnv_getAvailableName
+    :: Int32 -> IO CString
