@@ -1,4 +1,18 @@
-{-# LANGUAGE CPP, EmptyDataDecls, ForeignFunctionInterface, DeriveDataTypeable #-}
+{-# LANGUAGE CPP, EmptyDataDecls, ForeignFunctionInterface,
+    DeriveDataTypeable #-}
+-- |
+-- Module      : Data.Text.ICU.Converter
+-- Copyright   : (c) Bryan O'Sullivan 2009
+--
+-- License     : BSD-style
+-- Maintainer  : bos@serpentine.com
+-- Stability   : experimental
+-- Portability : GHC
+--
+-- Character set conversion functions for Unicode, implemented as
+-- bindings to the International Components for Unicode (ICU)
+-- libraries.
+
 module Data.Text.ICU.Converter
     (
     -- * Character set conversion
@@ -7,18 +21,18 @@ module Data.Text.ICU.Converter
     , open
     , fromUnicode
     , toUnicode
-    -- ** Miscellaneous functions
+    -- ** Converter metadata
     , getName
     , usesFallback
     , setFallback
     , isAmbiguous
-    -- * Global behavior
+    -- * Functions for controlling global behavior
     , getDefaultName
     , setDefaultName
     -- * Miscellaneous functions
     , compareNames
     , aliases
-    -- * Data
+    -- * Metadata
     , converterNames
     , standardNames
     ) where
