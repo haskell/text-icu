@@ -1,5 +1,4 @@
-{-# LANGUAGE CPP, EmptyDataDecls, ForeignFunctionInterface,
-    DeriveDataTypeable #-}
+{-# LANGUAGE CPP, ForeignFunctionInterface #-}
 -- |
 -- Module      : Data.Text.ICU.Converter
 -- Copyright   : (c) Bryan O'Sullivan 2009
@@ -39,41 +38,19 @@ module Data.Text.ICU.Converter
 
 import Data.ByteString.Internal (ByteString, createAndTrim)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
-import Data.Int (Int8, Int32)
+import Data.Int (Int32)
 import Data.Text (Text)
 import Data.Text.Foreign (fromPtr, lengthWord16, useAsPtr)
+import Data.Text.ICU.Converter.Internal
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
-import Data.Typeable (Typeable)
 import Data.Word (Word16)
 import Foreign.C.String (CString, peekCString, withCString)
 import Foreign.C.Types (CInt)
-import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, withForeignPtr)
+import Foreign.ForeignPtr (newForeignPtr)
 import Foreign.Marshal.Array (allocaArray)
 import Foreign.Ptr (FunPtr, Ptr, castPtr, nullPtr)
 import System.IO.Unsafe (unsafePerformIO)
-
-type UBool = Int8
-type UChar = Word16
-
-data UConverter
-
--- | Character set converter type.  /Note/: this structure is not
--- thread safe. It is /not/ safe to use value of this type
--- simultaneously from multiple threads.
-data Converter = Converter {-# UNPACK #-} !(ForeignPtr UConverter)
-                 deriving (Eq, Typeable)
-
-instance Show Converter where
-    show c = "Converter " ++ show (getName c)
-
-withConverter :: Converter -> (Ptr UConverter -> IO a) -> IO a
-withConverter (Converter cnv) action = withForeignPtr cnv action
-
--- | Gets the internal, canonical name of the converter.
-getName :: Converter -> String
-getName cnv = unsafePerformIO .
-  withConverter cnv $ \ptr ->
-    peekCString =<< handleError (ucnv_getName ptr)
+import Data.Text.ICU.Internal (UBool, UChar, asBool, asOrdering)
 
 -- | Do a fuzzy compare of two converter/alias names.  The comparison
 -- is case-insensitive, ignores leading zeroes if they are not
@@ -85,10 +62,7 @@ getName cnv = unsafePerformIO .
 compareNames :: String -> String -> Ordering
 compareNames a b =
   unsafePerformIO . withCString a $ \aptr ->
-    withCString b $ return . ord . ucnv_compareNames aptr
-  where ord i | i < 0     = LT
-              | i == 0    = EQ
-              | otherwise = GT
+    fmap asOrdering . withCString b $ ucnv_compareNames aptr
 
 -- | Create a 'Converter' with the name of a coded character set
 -- specified as a string.  The actual name will be resolved with the
@@ -152,7 +126,7 @@ toUnicode cnv bs =
 -- | Determines whether the converter uses fallback mappings or not.
 -- This flag has restrictions; see 'setFallback'.
 usesFallback :: Converter -> IO Bool
-usesFallback cnv = (/=0) `fmap` withConverter cnv ucnv_usesFallback
+usesFallback cnv = asBool `fmap` withConverter cnv ucnv_usesFallback
 
 -- | Sets the converter to use fallback mappings or not.  Regardless
 -- of this flag, the converter will always use fallbacks from Unicode
@@ -173,7 +147,7 @@ getDefaultName = peekCString =<< ucnv_getDefaultName
 -- | Indicates whether the converter contains ambiguous mappings of
 -- the same character or not.
 isAmbiguous :: Converter -> Bool
-isAmbiguous cnv = (/=0) . unsafePerformIO $ withConverter cnv ucnv_isAmbiguous
+isAmbiguous cnv = asBool . unsafePerformIO $ withConverter cnv ucnv_isAmbiguous
 
 -- | Sets the current default converter name. If this function needs
 -- to be called, it should be called during application
@@ -210,9 +184,6 @@ aliases name = unsafePerformIO . withCString name $ \ptr -> do
 foreign import ccall unsafe "unicode/ucnv.h ucnv_open_4_0" ucnv_open
     :: CString -> Ptr UErrorCode -> IO (Ptr UConverter)
 
-foreign import ccall unsafe "unicode/ucnv.h ucnv_getName_4_0" ucnv_getName
-    :: Ptr UConverter -> Ptr UErrorCode -> IO CString
-
 foreign import ccall unsafe "unicode/ucnv.h &ucnv_close_4_0" ucnv_close
     :: FunPtr (Ptr UConverter -> IO ())
 
@@ -228,7 +199,7 @@ foreign import ccall unsafe "unicode/ucnv.h ucnv_fromUChars_4_0" ucnv_fromUChars
     -> Ptr UErrorCode -> IO Int32
 
 foreign import ccall unsafe "unicode/ucnv.h ucnv_compareNames_4_0" ucnv_compareNames
-    :: CString -> CString -> CInt
+    :: CString -> CString -> IO CInt
 
 foreign import ccall unsafe "unicode/ucnv.h ucnv_getDefaultName_4_0" ucnv_getDefaultName
     :: IO CString

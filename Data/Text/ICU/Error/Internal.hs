@@ -12,6 +12,7 @@ module Data.Text.ICU.Error.Internal
     , errorName
     , handleError
     , throwOnError
+    , withError
     ) where
 
 import Control.Exception
@@ -53,6 +54,14 @@ throwOnError code = do
   if isFailure err
     then throw err
     else return ()
+
+withError :: (Ptr UErrorCode -> IO a) -> IO (ErrorCode, a)
+{-# INLINE withError #-}
+withError action = alloca $ \errPtr -> do
+                     poke errPtr 0
+                     ret <- action errPtr
+                     err <- peek errPtr
+                     return (ErrorCode err, ret)
 
 handleError :: (Ptr UErrorCode -> IO a) -> IO a
 {-# INLINE handleError #-}

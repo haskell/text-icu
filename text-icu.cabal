@@ -20,9 +20,11 @@ library
   exposed-modules:
       Data.Text.ICU.Converter
       Data.Text.ICU.Error
+      Data.Text.ICU.Normalizer
   other-modules:
-      Data.Text.ICU.ErrorCode
+      Data.Text.ICU.Converter.Internal
       Data.Text.ICU.Error.Internal
+      Data.Text.ICU.Internal
   c-sources: cbits/text_icu.c
   extra-libraries: icui18n icuuc icudata
 
