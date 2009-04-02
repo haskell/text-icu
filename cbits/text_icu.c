@@ -1,6 +1,6 @@
-#include "unicode/ucnv.h"
+/*#include <stdint.h>*/
 
-#include <stdint.h>
+#include "unicode/ucnv.h"
 
 int __get_max_bytes_for_string(UConverter *cnv, int src_length)
 {

@@ -66,14 +66,14 @@ import Data.Bits ((.|.))
 -- \"composed\" form):
 --
 -- @
---      00C1    LATIN CAPITAL LETTER A WITH ACUTE
+--      &#x00C1;   00C1    LATIN CAPITAL LETTER A WITH ACUTE
 -- @
 --
 -- or as two separate characters (the \"decomposed\" form):
 --
 -- @
---      0041    LATIN CAPITAL LETTER A
---      0301    COMBINING ACUTE ACCENT
+--      &#x0041;   0041    LATIN CAPITAL LETTER A
+--      &#x0301;    0301    COMBINING ACUTE ACCENT
 -- @
 --
 -- To a user of your program, however, both of these sequences should
@@ -88,15 +88,15 @@ import Data.Bits ((.|.))
 -- Similarly, the string \"ffi\" can be encoded as three separate letters:
 --
 -- @
---      0066    LATIN SMALL LETTER F
---      0066    LATIN SMALL LETTER F
---      0069    LATIN SMALL LETTER I
+--      f   0066    LATIN SMALL LETTER F
+--      f   0066    LATIN SMALL LETTER F
+--      i   0069    LATIN SMALL LETTER I
 -- @
 --
 -- or as the single character
 --
 -- @
---      FB03    LATIN SMALL LIGATURE FFI
+--      &#xFB03;   FB03    LATIN SMALL LIGATURE FFI
 -- @
 --
 -- The \"ffi\" ligature is not a distinct semantic character, and
