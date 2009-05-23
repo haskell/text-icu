@@ -59,10 +59,7 @@ library
       Data.Text.ICU.Internal
       Data.Text.ICU.EitherHelpers
   c-sources: cbits/text_icu.c
-  if !os(windows)
-    extra-libraries: icui18n icuuc icudata
-  else
-    extra-libraries: icuin40 icuuc40 icudt40
+  extra-libraries: icui18n icuuc icudata
 
   ghc-options: -Wall
   if impl(ghc >= 6.8)

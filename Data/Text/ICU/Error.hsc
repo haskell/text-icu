@@ -145,6 +145,10 @@ module Data.Text.ICU.Error
      u_IDNA_DOMAIN_NAME_TOO_LONG_ERROR
     ) where
 
+#ifdef mingw32_HOST_OS
+#define U_HAVE_INTTYPES_H 1
+#endif
+
 #include <unicode/utypes.h>
 
 import Data.Text.ICU.Error.Internal

@@ -32,6 +32,10 @@ module Data.Text.ICU.Normalizer
     , compare
     ) where
 
+#ifdef mingw32_HOST_OS
+#define U_HAVE_INTTYPES_H 1
+#endif
+
 #include <unicode/unorm.h>
 
 import Control.Exception (throw)
