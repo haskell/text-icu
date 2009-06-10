@@ -21,9 +21,9 @@
 -- yield: @Right \"1 avril 2009 20:40:05 UTC+00:00\"@ and \"ru\" produces
 -- @Right \"1 &#1072;&#1087;&#1088;&#1077;&#1083;&#1103; &#2009; &#1075;. 20:40:05 GMT+00:00\"@.
 module Data.Text.ICU.DateTimeFormat
-    (DateFormatStyle(..),dfsFull,dfsLong,dfsMedium,dfsShort,dfsDefault,dfsRelative,
+    (DateFormatStyle,dfsFull,dfsLong,dfsMedium,dfsShort,dfsDefault,dfsRelative,
      dfsFullRelative,dfsLongRelative,dfsMediumRelative,dfsShortRelative,dfsNone,dfsIgnore,
-     DateFormatField(..),dffEraField,dffYearField,dffMonthField,dffDateField,dffHourOfDay1Field,
+     DateFormatField,dffEraField,dffYearField,dffMonthField,dffDateField,dffHourOfDay1Field,
      dffFourOfDay0Field,dffMinuteField,dffSecondField,dffFractionalSecondField,dffDayOfWeekField,
      dffDayOfYearField,dffDayOfweekInMonthField,dffWeekOfYearField,dffWeekOfMonthField,
      dffAmPmField,dffHour1Field,dffHour0Field,dffTimeZoneField,dffYearWOYField,dffDOWLocalField,
@@ -73,9 +73,8 @@ newtype DateFormatStyle = DateFormatStyle {
        dfsIgnore = UDAT_IGNORE}
 
 -- |'FieldPosition' selectors for format fields defined by 'DateFormat'.
-newtype DateFormatField = DateFormatField {
-      fromDateFormatField :: Word32
-    } deriving (Eq,Typeable,Show)
+newtype DateFormatField = DateFormatField Word32
+    deriving (Eq,Typeable,Show)
 
 #{enum DateFormatField,DateFormatField,
        dffEraField = UDAT_ERA_FIELD,
