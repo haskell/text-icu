@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP, DeriveDataTypeable, ForeignFunctionInterface,
-    GeneralizedNewtypeDeriving,EmptyDataDecls #-}
+    GeneralizedNewtypeDeriving,EmptyDataDecls,StandaloneDeriving #-}
 -- |The Calendars module is used for converting between a 'Date' and a set of 'Int'
 -- fields such as 'year', 'month', 'day', 'hour', and so on. A Date 
 -- represents a specific instant in time with millisecond precision. See 'Date' 
@@ -83,21 +83,28 @@ module Data.Text.ICU.Calendars
 -- *Date
      Date(..),UDate,getNow,
 -- *Calendar creation and manipulation
-     Calendar,openCalendar,cloneCalendar,
+     Calendar(..),openCalendar,makeCalendar,makeCleanCalendar,cloneCalendar,
      getMillis,setMillis,
-     getCalendar,setCalendar,updateCalendar,
+     getCalendar,setCalendar,updateCalendar,clearCalendar,
 -- *Time zones
      openTimeZones,timeZones,openCountryTimeZones,countryTimeZones,getDefaultTimeZone,
-     setDefaultTimeZone,getCanonicalTimeZoneID
+     setDefaultTimeZone,getCanonicalTimeZoneID,
+-- *Equivalence
+     equivalent
     )
     where
 
 #include <unicode/ucal.h>
 
+--import Control.Applicative ((<$>))
+import Control.Exception (throw)
+import Control.Monad (when)
+import Data.Data (Data(..))
 import Data.Maybe (Maybe,fromMaybe)
+import Data.Ord (Ord(..))
 import Data.Text (Text,empty)
 import Data.Text.Foreign (useAsPtr,fromPtr)
-import Data.Text.ICU.Error.Internal (ErrorCode,UErrorCode,isSuccess,withError)
+import Data.Text.ICU.Error.Internal (UErrorCode,isFailure,withError)
 import Data.Text.ICU.Internal (UChar)
 import Data.Text.ICU.Enumeration (Enumeration,UEnumeration,enumerationFinalizer,enumerationTexts)
 import Data.Typeable (Typeable)
@@ -118,7 +125,7 @@ import System.IO.Unsafe (unsafePerformIO)
 newtype CalendarType = CalendarType {
       fromCalendarType :: Word32
     }
-    deriving (Eq,Typeable,Show)
+    deriving (Eq,Typeable,Data,Show)
 
 #{enum CalendarType,CalendarType,
   traditional = UCAL_TRADITIONAL,
@@ -215,7 +222,7 @@ newtype CalendarType = CalendarType {
 newtype CalendarDateFields = CalendarDateFields {
       fromCalendarDateFields :: Word32
     }
-    deriving (Eq,Typeable,Show)
+    deriving (Eq,Typeable,Data,Show)
 
 #{enum CalendarDateFields,CalendarDateFields,
        era = UCAL_ERA, 
@@ -248,7 +255,7 @@ dayOfMonth = CalendarDateFields (#const UCAL_DATE)
 newtype CalendarDaysOfWeek = CalendarDaysOfWeek {
       fromCalendarDaysOfWeek :: Word32
     }
-    deriving (Eq,Typeable,Show)
+    deriving (Eq,Typeable,Data,Show)
 
 #{enum CalendarDaysOfWeek,CalendarDaysOfWeek,
        sunday = UCAL_SUNDAY,
@@ -262,7 +269,7 @@ newtype CalendarDaysOfWeek = CalendarDaysOfWeek {
 newtype CalendarMonths = CalendarMonths {
       fromCalendarMonths :: Word32
     }
-    deriving (Eq,Typeable,Show)
+    deriving (Eq,Typeable,Data,Show)
 
 #{enum CalendarMonths,CalendarMonths,
        january = UCAL_JANUARY, 
@@ -282,7 +289,7 @@ newtype CalendarMonths = CalendarMonths {
 newtype CalendarAMPMs = CalendarAMPMs {
       fromCalendarAMPMs :: Word32
     }
-    deriving (Eq,Typeable,Show)
+    deriving (Eq,Typeable,Data,Show)
 
 #{enum CalendarAMPMs,CalendarAMPMs,
        am = UCAL_AM, 
@@ -291,7 +298,7 @@ newtype CalendarAMPMs = CalendarAMPMs {
 newtype CalendarDisplayNameType = CalendarDisplayNameType {
       fromCalendarDisplayNameType :: Word32
     }
-    deriving (Eq,Typeable,Show)
+    deriving (Eq,Typeable,Data,Show)
 
 #{enum CalendarDisplayNameType,CalendarDisplayNameType,
        standard = UCAL_STANDARD, 
@@ -302,18 +309,17 @@ newtype CalendarDisplayNameType = CalendarDisplayNameType {
 newtype CalendarAttribute = CalendarAttribute {
       fromCalendarAttribute :: Word32
     }
-    deriving (Eq,Typeable,Show)
+    deriving (Eq,Typeable,Data,Show)
 
 #{enum CalendarAttribute,CalendarAttribute,
        lenient = UCAL_LENIENT, 
        firstDayOfWeek = UCAL_FIRST_DAY_OF_WEEK, 
        minimalDaysInFirstWeek = UCAL_MINIMAL_DAYS_IN_FIRST_WEEK}
 
-
 newtype CalendarLimitType = CalendarLimitType {
       fromCalendarLimitType :: Word32
     }
-    deriving (Eq,Typeable,Show)
+    deriving (Eq,Typeable,Data,Show)
 
 #{enum CalendarLimitType,CalendarLimitType,
        cltMin = UCAL_MINIMUM, 
@@ -323,11 +329,42 @@ newtype CalendarLimitType = CalendarLimitType {
        actualMinimum = UCAL_ACTUAL_MINIMUM, 
        actualMaximum = UCAL_ACTUAL_MAXIMUM}
 
-data UCalendar
-type Calendar = ForeignPtr UCalendar
+data UCalendar deriving Typeable
+data Calendar = Calendar {
+      uCalendar :: ForeignPtr UCalendar,
+      typ :: CalendarType,
+      locale :: String,
+      mZoneID :: Maybe Text
+    }
+                deriving (Typeable)
+
+instance Show Calendar where
+    show cal = unsafePerformIO $ do
+                         let era' = getCalendar cal era :: Int
+                         let year' = getCalendar cal year :: Int
+                         let month' = getCalendar cal month :: Int
+                         let date' = getCalendar cal date :: Int
+                         let hourOfDay' = getCalendar cal hourOfDay :: Int
+                         let minute' = getCalendar cal minute :: Int
+                         let second' = getCalendar cal second :: Int
+                         let milliSecond' = getCalendar cal milliSecond :: Int
+                         let zoneOffset' = getCalendar cal zoneOffset :: Int
+                         let dstOffset' = getCalendar cal dstOffset :: Int
+                         return ("Calendar {"
+                                 ++"era="++show era'
+                                 ++",year="++show year'
+                                 ++",month="++show month'
+                                 ++",day="++show date'
+                                 ++",hour="++show hourOfDay'
+                                 ++",minute="++show minute'
+                                 ++",second="++show second'
+                                 ++",milliSecond="++show milliSecond'
+                                 ++",zoneOffset="++show zoneOffset'
+                                 ++",dstOffset="++show dstOffset'
+                                 ++"}")
 
 type UDate = CDouble
-data Date = Date {fromDate :: Double} deriving (Eq,Ord,Show,Typeable)
+data Date = Date {fromDate :: Double} deriving (Eq,Ord,Show,Typeable,Data)
 
 -- |Get the current date and time. The value returned is represented as 
 -- milliseconds from the epoch.
@@ -343,149 +380,152 @@ getNow = do
 -- locale 	The desired locale.
 -- type 	The type of UCalendar to open.
 -- Returns:
--- Either a Calendar or an error.
-openCalendar :: Maybe Text -> String -> CalendarType -> Either ErrorCode Calendar
-openCalendar mZoneID locale typ = unsafePerformIO $ do
-  useAsPtr (fromMaybe empty mZoneID) $ (\ zoneID' l -> do
-    withCAString locale $ (\locale' -> do
-      (err,cal) <- withError $ ucal_open zoneID' (fromIntegral l) locale' typ
-      if isSuccess err
-         then do
-           cal' <- newForeignPtr ucal_close cal
-           return $ Right cal'
-         else return $ Left err))
+-- A Calendar or 'throw's an exception.
+openCalendar :: Maybe Text -> String -> CalendarType -> IO Calendar
+openCalendar mz loc t = do
+  useAsPtr (fromMaybe empty mz) $ \zoneID' l -> do
+    withCAString loc $ \locale' -> do
+      (err,cal) <- withError $ ucal_open zoneID' (fromIntegral l) locale' t
+      when (isFailure err) (throw err)
+      ucal <- newForeignPtr ucal_close cal
+      return (Calendar ucal t loc mz)
+
+makeCalendar :: Maybe Text -> String -> CalendarType -> Date -> Calendar
+makeCalendar mzid loc t ms = unsafePerformIO $ do
+  c <- openCalendar mzid loc t
+  setMillis c ms
+  return c
+
+makeCleanCalendar :: Calendar
+makeCleanCalendar = unsafePerformIO $ do
+  c <- openCalendar Nothing "" gregorian
+  clearCalendar c
+  return c
 
 -- |Open a copy of a Calendar. This function performs a deep copy.
-cloneCalendar :: Calendar -> IO (Either ErrorCode Calendar)
-cloneCalendar cal = do
-  withForeignPtr cal $ (\cal' -> do
-    (err,newCal) <- withError $ ucal_clone cal'
-    if isSuccess err
-       then do
-           newCal' <- newForeignPtr ucal_close newCal
-           return $ Right newCal'
-       else return $ Left err)
+cloneCalendar :: Calendar -> IO Calendar
+cloneCalendar (Calendar ucal t loc mz) = do
+  withForeignPtr ucal $ \ucal' -> do
+    (err,newCal) <- withError $ ucal_clone ucal'
+    when (isFailure err) (throw err)
+    newucal <- newForeignPtr ucal_close newCal
+    return (Calendar newucal t loc mz)
 
 -- |Get a 'Calendar'\'s current time in millis as a 'Date'. The time is represented as 
 -- milliseconds from the epoch.
-getMillis :: Calendar -> Either ErrorCode Date
+getMillis :: Calendar -> Date
 getMillis cal = unsafePerformIO $ do
-  withForeignPtr cal $ (\cal' -> do
+  withForeignPtr (uCalendar cal) $ \cal' -> do
     (err,d) <- withError $ ucal_getMillis cal'
-    if isSuccess err
-       then return $ Right (Date (fromRational (toRational d)))
-       else return $ Left err)
+    when (isFailure err) (throw err)
+    return (Date (fromRational (toRational d)))
 
 -- |Set a 'Calendar'\'s current time in millis from a 'Date'. The time is represented as 
 -- milliseconds from the epoch.
-setMillis :: Calendar -> Date -> IO (Maybe ErrorCode)
+setMillis :: Calendar -> Date -> IO ()
 setMillis cal d = do
-  withForeignPtr cal $ (\cal' -> do
+  withForeignPtr (uCalendar cal) $ \cal' -> do
     (err,_) <- withError $ ucal_setMillis cal' (fromRational (toRational (fromDate d)))
-    if isSuccess err
-       then return Nothing
-       else return $ Just err)
+    when (isFailure err) (throw err)
 
 -- |Get the value of a field in a Calendar. All fields are represented as 32-bit integers.
-getCalendar :: (Integral a) => Calendar -> CalendarDateFields -> Either ErrorCode a
+getCalendar :: (Integral a) => Calendar -> CalendarDateFields -> a
 getCalendar cal field = unsafePerformIO $ do
-  withForeignPtr cal $ (\cal' -> do
+  withForeignPtr (uCalendar cal) $ \cal' -> do
     (err,x) <- withError $ ucal_get cal' (fromCalendarDateFields field)
-    if isSuccess err
-       then return $ Right (fromIntegral x)
-       else return $ Left err)
+    when (isFailure err) (throw err)
+    return (fromIntegral x)
 
 -- |Set the value of a field in a Calendar. All fields are represented as 32-bit integers.
 updateCalendar :: (Integral a) => Calendar -> CalendarDateFields -> a -> IO ()
 updateCalendar cal field x = do
-  withForeignPtr cal $ (\cal' -> do
-    ucal_set cal' (fromCalendarDateFields field) (fromIntegral x))
+  withForeignPtr (uCalendar cal) $ \cal' -> do
+    ucal_set cal' (fromCalendarDateFields field) (fromIntegral x)
+
+-- |Clear all fields in a 'Calendar'.
+clearCalendar :: Calendar -> IO ()
+clearCalendar cal = do
+  withForeignPtr (uCalendar cal) $ \cal' -> do
+    ucal_clear cal'
 
 -- |Set the value of a field in a Calendar. All fields are represented as 32-bit integers. The
 -- 'Calendar' is cloned before the set operation.
-setCalendar :: (Integral a) => Calendar -> CalendarDateFields -> a -> Either ErrorCode Calendar
+setCalendar :: (Integral a) => Calendar -> CalendarDateFields -> a -> Calendar
 setCalendar cal field x = unsafePerformIO $ do
-  ecal' <- cloneCalendar cal
-  case ecal' of
-    l@(Left _) -> return l
-    Right cal' -> do
-                    updateCalendar cal' field x
-                    return $ Right cal'
+  cal' <- cloneCalendar cal
+  updateCalendar cal' field x
+  return cal'
 
 -- |Create an 'Enumeration' over all time zones.
-openTimeZones :: IO (Either ErrorCode Enumeration)
+openTimeZones :: IO Enumeration
 openTimeZones = do
   (err,e) <- withError ucal_openTimeZones
-  if isSuccess err
-     then do
-       e' <- enumerationFinalizer e
-       return $ Right e'
-     else return $ Left err
+  when (isFailure err) (throw err)
+  enumerationFinalizer e
 
 -- |Create an list of all time zones.
-timeZones :: Either ErrorCode [Text]
+timeZones :: [Text]
 timeZones = unsafePerformIO $ do
-  etzs <- openTimeZones
-  case etzs of
-    Right tzs -> return $ enumerationTexts tzs
-    Left err -> return $ Left err
+  tzs <- openTimeZones
+  enumerationTexts tzs
 
 -- |Create an 'Enumeration' over all time zones for a country. The country is specified as String 
 -- like e.g. \"de\" for Germany or \"us\" for the US.
-openCountryTimeZones :: String -> IO (Either ErrorCode Enumeration)
+openCountryTimeZones :: String -> IO Enumeration
 openCountryTimeZones ctry = do
-  withCAString ctry $ (\ctry' -> do
+  withCAString ctry $ \ctry' -> do
     (err,e) <- withError $ ucal_openCountryTimeZones ctry'
-    if isSuccess err
-       then do
-         e' <- enumerationFinalizer e
-         return $ Right e'
-       else return $ Left err)
+    when (isFailure err) (throw err)
+    enumerationFinalizer e
 
 -- |Create a list of all time zones for a country. The country is specified as String like e.g.
 -- \"de\" for Germany or \"us\" for the US.
-countryTimeZones :: String -> Either ErrorCode [Text]
+countryTimeZones :: String -> [Text]
 countryTimeZones ctry = unsafePerformIO $ do
-  etzs <- openCountryTimeZones ctry
-  case etzs of
-    Right tzs -> return $ enumerationTexts tzs
-    Left err -> return $ Left err
+  tzs <- openCountryTimeZones ctry
+  enumerationTexts tzs
 
 -- |Return the default time zone. The default is determined initially by querying the host 
 -- operating system. It may be changed with 'setDefaultTimeZone'.
-getDefaultTimeZone :: IO (Either ErrorCode Text)
+getDefaultTimeZone :: IO Text
 getDefaultTimeZone = do
   allocaArray 256 $ \pt -> do
     (err,n) <- withError $ ucal_getDefaultTimeZone pt 256
-    if isSuccess err
-        then do
-          t <- fromPtr pt (fromIntegral n)
-          return $ Right t
-        else return $ Left err
+    when (isFailure err) (throw err)
+    fromPtr pt (fromIntegral n)
 
 -- |Set the default time zone.
-setDefaultTimeZone :: Text -> IO (Maybe ErrorCode)
+setDefaultTimeZone :: Text -> IO ()
 setDefaultTimeZone tz = do
   useAsPtr tz $ \tz' _ -> do
     (err,_) <- withError $ ucal_setDefaultTimeZone tz'
-    if isSuccess err
-        then return Nothing
-        else return (Just err)
+    when (isFailure err) (throw err)
 
 -- |Returns the canonical system timezone ID or the normalized custom time zone ID for the given 
 -- time zone ID.
-getCanonicalTimeZoneID :: Text -> Either ErrorCode (Text,Bool)
+getCanonicalTimeZoneID :: Text -> (Text,Bool)
 getCanonicalTimeZoneID tz = unsafePerformIO $ do
   useAsPtr tz $ \pstz lstz -> do
     allocaArray 256 $ \pdtz -> do
       alloca $ \pIsSystemID -> do
         (err,n) <- withError $ ucal_getCanonicalTimeZoneID pstz (fromIntegral lstz) pdtz 256 pIsSystemID
-        if isSuccess err
-             then do
-               dtz <- fromPtr pdtz (fromIntegral n)
-               isSystemID <- peek pIsSystemID
-               return $ Right (dtz,isSystemID/=0)
-             else return $ Left err
+        when (isFailure err) (throw err)
+        dtz <- fromPtr pdtz (fromIntegral n)
+        isSystemID <- peek pIsSystemID
+        return (dtz,isSystemID/=0)
+
+instance Eq Calendar where
+    (==) = equivalent
+
+equivalent :: Calendar -> Calendar -> Bool
+equivalent cal1 cal2 = unsafePerformIO $ do
+  withForeignPtr (uCalendar cal1) $ \cal1' -> do
+    withForeignPtr (uCalendar cal2) $ \cal2' -> do
+      eq <- ucal_equivalentTo cal1' cal2'
+      return (eq/=0)
+
+instance Ord Calendar where
+    cal1 <= cal2 = (getMillis cal1) <= (getMillis cal2)
 
 type UBool = Word8        
 
@@ -515,3 +555,11 @@ foreign import ccall unsafe "unicode/ucal.h ucal_setDefaultTimeZone_4_0" ucal_se
     :: Ptr UChar -> Ptr UErrorCode -> IO ()
 foreign import ccall unsafe "unicode/ucal.h ucal_getCanonicalTimeZoneID_4_0" ucal_getCanonicalTimeZoneID
     :: Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> Ptr UBool -> Ptr UErrorCode -> IO Int32
+foreign import ccall unsafe "unicode/ucal.h ucal_equivalentTo_4_0" ucal_equivalentTo
+    :: Ptr UCalendar -> Ptr UCalendar -> IO UBool
+foreign import ccall unsafe "unicode/ucal.h ucal_getAttribute_4_0" ucal_getAttribute
+    :: Ptr UCalendar -> Word32 -> IO Int32
+foreign import ccall unsafe "unicode/ucal.h ucal_setAttribute_4_0" ucal_setAttribute
+    :: Ptr UCalendar -> Word32 -> Int32 -> IO ()
+foreign import ccall unsafe "unicode/ucal.h ucal_clear_4_0" ucal_clear
+    :: Ptr UCalendar -> IO ()

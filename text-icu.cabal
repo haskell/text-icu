@@ -1,5 +1,5 @@
 name:           text-icu
-version:        0.2
+version:        0.2.1
 synopsis:       Bindings to the ICU library
 description:    Haskell bindings to the International Components for
                 Unicode (ICU) libraries version 4.0.1.  These libraries provide
@@ -20,10 +20,18 @@ build-type:     Simple
 cabal-version:  >= 1.2
 extra-source-files: README
 
+Flag Happstack
+  Description: Enable Happstack serialization. If this is enabled compilation depends on happstack-data and happstack-state (among others).
+  Default:     False
+
+Flag StringTemplate
+  Description: Enable StringTemplate instances. If this is enabled compilation depends on HStringTemplate (among others).
+  Default:     False
+
 library
-  build-depends:     base < 5, bytestring, text
+  build-depends:     base<5,bytestring,text,containers
   if impl(ghc >= 6.10)
-    build-depends:   base >= 4
+    build-depends:   base>=4
 
   exposed-modules:
       Data.Text.ICU
@@ -37,10 +45,19 @@ library
       Data.Text.ICU.DateTimeFormatting
       Data.Text.ICU.FieldPosition
       Data.Text.ICU.Formatting
+  if flag(Happstack)
+      build-depends: happstack-data,happstack-state,monads-fd,binary
+      exposed-modules:
+          Data.Text.ICU.Happstack
+  if flag(StringTemplate)
+      build-depends: HStringTemplate
+      exposed-modules:
+          Data.Text.ICU.StringTemplate
   other-modules:
       Data.Text.ICU.Converter.Internal
       Data.Text.ICU.Error.Internal
       Data.Text.ICU.Internal
+      Data.Text.ICU.EitherHelpers
   c-sources: cbits/text_icu.c
   if !os(windows)
     extra-libraries: icui18n icuuc icudata

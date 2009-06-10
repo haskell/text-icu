@@ -11,9 +11,11 @@ module Data.Text.ICU.NumberFormatting
 
 #include <unicode/unum.h>
 
+import Control.Exception (throw)
+import Control.Monad (when)
 import Data.Text (Text)
 import Data.Text.Foreign (fromPtr)
-import Data.Text.ICU.Error.Internal (ErrorCode,UErrorCode,isSuccess,withError)
+import Data.Text.ICU.Error.Internal (ErrorCode,UErrorCode,isFailure,withError)
 import Data.Text.ICU.Internal (UChar)
 import Data.Typeable (Typeable)
 import Data.Int (Int32)
@@ -78,37 +80,28 @@ instance Storable ParseError where
 data UNumberFormat
 type NumberFormat = ForeignPtr UNumberFormat
 
-openNumberFormat :: NumberFormatStyle -> String -> Either ErrorCode NumberFormat
+openNumberFormat :: NumberFormatStyle -> String -> NumberFormat
 openNumberFormat style locale = unsafePerformIO $ do
-  withCAString locale $ (\locale' -> do
+  withCAString locale $ \locale' -> do
     (err,nf) <- withError $ unum_open (fromNumberFormatStyle style) nullPtr 0 locale' nullPtr
-    if isSuccess err 
-       then do
-         nf' <- newForeignPtr unum_close nf
-         return $ Right nf'
-       else return $ Left err)
+    when (isFailure err) (throw err)
+    newForeignPtr unum_close nf
 
-formatIntegral :: (Integral a) => NumberFormat -> a -> Either ErrorCode Text
+formatIntegral :: (Integral a) => NumberFormat -> a -> Text
 formatIntegral nf x = unsafePerformIO $ do
   allocaArray 256 $ \dptr -> do
-    withForeignPtr nf $ \pnf -> (do
+    withForeignPtr nf $ \pnf -> do
       (err,l) <- withError $ unum_format pnf (fromIntegral x) dptr 256 nullPtr
-      if isSuccess err
-        then do
-          t <- fromPtr dptr (fromIntegral l)
-          return $ Right t
-        else return $ Left err)
+      when (isFailure err) (throw err)
+      fromPtr dptr (fromIntegral l)
 
-formatRealFrac :: (RealFrac a) => NumberFormat -> a -> Either ErrorCode Text
+formatRealFrac :: (RealFrac a) => NumberFormat -> a -> Text
 formatRealFrac nf x = unsafePerformIO $ do
   allocaArray 256 $ \dptr -> do
-    withForeignPtr nf $ \pnf -> (do
+    withForeignPtr nf $ \pnf -> do
       (err,l) <- withError $ unum_formatDouble pnf (fromRational (toRational x)) dptr 256 nullPtr
-      if isSuccess err
-        then do
-          t <- fromPtr dptr (fromIntegral l)
-          return $ Right t
-        else return $ Left err)
+      when (isFailure err) (throw err)
+      fromPtr dptr (fromIntegral l)
 
 foreign import ccall unsafe "unicode/unum.h unum_open_4_0" unum_open
     :: Word32 -> Ptr UChar -> Int32 -> CString -> Ptr ParseError -> Ptr UErrorCode -> IO (Ptr UNumberFormat)

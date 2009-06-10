@@ -36,10 +36,12 @@ module Data.Text.ICU.DateTimeFormatting
 
 #include <unicode/udat.h>
 
+import Control.Exception (throw)
+import Control.Monad (when)
 import Data.Text (Text)
 import Data.Text.Foreign (useAsPtr,fromPtr)
 import Data.Text.ICU.Calendars (Date,fromDate,UDate)
-import Data.Text.ICU.Error.Internal (ErrorCode,UErrorCode,isSuccess,withError)
+import Data.Text.ICU.Error.Internal (UErrorCode,isFailure,withError)
 import Data.Text.ICU.FieldPosition (FieldPosition)
 import Data.Text.ICU.Internal (UChar)
 import Data.Typeable (Typeable)
@@ -117,29 +119,23 @@ type DateFormat = ForeignPtr UDateFormat
 
 -- |Open a new 'DateFormat' for formatting and parsing dates and times. A 'DateFormat' may be 
 -- used to format dates in calls to 'formatDate', and to parse dates in calls to 'parseDate'.
-openDateFormat :: DateFormatStyle -> DateFormatStyle -> String -> Text -> Either ErrorCode DateFormat
+openDateFormat :: DateFormatStyle -> DateFormatStyle -> String -> Text -> DateFormat
 openDateFormat timeStyle dateStyle locale tzID = unsafePerformIO $ do
   withCAString locale $ \locale' -> do
     useAsPtr tzID $ \tzID' lTzID -> do
       (err,df) <- withError $ udat_open (fromDateFormatStyle timeStyle) (fromDateFormatStyle dateStyle) locale' tzID' (fromIntegral lTzID) nullPtr 0
-      if isSuccess err 
-         then do
-           df' <- newForeignPtr udat_close df
-           return $ Right df'
-         else return $ Left err
+      when (isFailure err) (throw err)
+      newForeignPtr udat_close df
 
 -- |Format a date using a 'DateFormat'. The date will be formatted using the conventions 
 -- specified in 'openDateFormat'.
-formatDate :: DateFormat -> Date -> Either ErrorCode Text
+formatDate :: DateFormat -> Date -> Text
 formatDate df date = unsafePerformIO $ do
   allocaArray 256 $ \dptr -> do
-    withForeignPtr df $ \pdf -> (do
+    withForeignPtr df $ \pdf -> do
       (err,l) <- withError $ udat_format pdf (fromRational . toRational . fromDate $ date) dptr 256 nullPtr
-      if isSuccess err
-        then do
-          t <- fromPtr dptr (fromIntegral l)
-          return $ Right t
-        else return $ Left err)
+      when (isFailure err) (throw err)
+      fromPtr dptr (fromIntegral l)
 
 foreign import ccall unsafe "unicode/unorm.h udat_open_4_0" udat_open
     :: Word32 -> Word32 -> CString -> Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> Ptr UErrorCode -> IO (Ptr UDateFormat)
