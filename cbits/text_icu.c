@@ -1,6 +1,10 @@
-#include "unicode/ucnv.h"
+#ifdef WIN32
+#define U_HAVE_INTTYPES_H 1
+#endif
 
 #include "unicode/ucnv.h"
+
+#include <stdint.h>
 
 int __get_max_bytes_for_string(UConverter *cnv, int src_length)
 {
