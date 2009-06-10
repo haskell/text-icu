@@ -38,21 +38,13 @@ library
       Data.Text.ICU.Converter
       Data.Text.ICU.Error
       Data.Text.ICU.Normalizer
-      Data.Text.ICU.Locales
-      Data.Text.ICU.NumberFormatting
-      Data.Text.ICU.Calendars
+      Data.Text.ICU.Locale
+      Data.Text.ICU.NumberFormat
+      Data.Text.ICU.Calendar
       Data.Text.ICU.Enumeration
-      Data.Text.ICU.DateTimeFormatting
+      Data.Text.ICU.DateTimeFormat
       Data.Text.ICU.FieldPosition
       Data.Text.ICU.Formatting
-  if flag(Happstack)
-      build-depends: happstack-data,happstack-state,monads-fd,binary
-      exposed-modules:
-          Data.Text.ICU.Happstack
-  if flag(StringTemplate)
-      build-depends: HStringTemplate
-      exposed-modules:
-          Data.Text.ICU.StringTemplate
   other-modules:
       Data.Text.ICU.Converter.Internal
       Data.Text.ICU.Error.Internal

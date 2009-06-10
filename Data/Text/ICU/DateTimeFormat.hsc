@@ -20,7 +20,7 @@
 -- This gives: @Right \"1. April 2009 20:40:05 GMT+00:00\"@ using the locale \"fr\" instead would 
 -- yield: @Right \"1 avril 2009 20:40:05 UTC+00:00\"@ and \"ru\" produces
 -- @Right \"1 &#1072;&#1087;&#1088;&#1077;&#1083;&#1103; &#2009; &#1075;. 20:40:05 GMT+00:00\"@.
-module Data.Text.ICU.DateTimeFormatting
+module Data.Text.ICU.DateTimeFormat
     (DateFormatStyle(..),dfsFull,dfsLong,dfsMedium,dfsShort,dfsDefault,dfsRelative,
      dfsFullRelative,dfsLongRelative,dfsMediumRelative,dfsShortRelative,dfsNone,dfsIgnore,
      DateFormatField(..),dffEraField,dffYearField,dffMonthField,dffDateField,dffHourOfDay1Field,
@@ -40,7 +40,7 @@ import Control.Exception (throw)
 import Control.Monad (when)
 import Data.Text (Text)
 import Data.Text.Foreign (useAsPtr,fromPtr)
-import Data.Text.ICU.Calendars (Date,fromDate,UDate)
+import Data.Text.ICU.Calendar (Date,fromDate,UDate)
 import Data.Text.ICU.Error.Internal (UErrorCode,isFailure,withError)
 import Data.Text.ICU.FieldPosition (FieldPosition)
 import Data.Text.ICU.Internal (UChar)

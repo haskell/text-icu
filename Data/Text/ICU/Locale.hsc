@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP, DeriveDataTypeable, ForeignFunctionInterface,GeneralizedNewtypeDeriving #-}
-module Data.Text.ICU.Locales
+module Data.Text.ICU.Locale
     (availableLocales,getDefaultLocale,setDefaultLocale,getLocaleName)
 where
 

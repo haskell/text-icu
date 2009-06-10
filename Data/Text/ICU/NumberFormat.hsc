@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP, DeriveDataTypeable, ForeignFunctionInterface,
     GeneralizedNewtypeDeriving,EmptyDataDecls #-}
-module Data.Text.ICU.NumberFormatting
+module Data.Text.ICU.NumberFormat
     (NumberFormatStyle(..),
      nfsPatternDecimal,nfsDecimal,nfsCurrency,nfsPercent,nfsScientific,
      nfsSpellOut,nfsOrdinal,nfsDuration,nfsPatternRuleBased,

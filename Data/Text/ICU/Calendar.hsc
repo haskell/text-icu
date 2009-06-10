@@ -58,7 +58,7 @@
 -- specified (signed) amount of time to a particular time field. For
 -- example, subtracting 5 days from the date September 12, 1996 results
 -- in September 7, 1996.
-module Data.Text.ICU.Calendars
+module Data.Text.ICU.Calendar
     (
 -- *Calendar description
 -- **CalendarType

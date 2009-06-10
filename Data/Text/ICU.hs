@@ -2,20 +2,20 @@
 -- them. See the individual modules for further information.
 module Data.Text.ICU (
   module Data.Text,
-  module Data.Text.ICU.Calendars,
-  module Data.Text.ICU.NumberFormatting,
+  module Data.Text.ICU.Calendar,
+  module Data.Text.ICU.NumberFormat,
   module Data.Text.ICU.Normalizer,
-  module Data.Text.ICU.DateTimeFormatting,
-  module Data.Text.ICU.Locales,
+  module Data.Text.ICU.DateTimeFormat,
+  module Data.Text.ICU.Locale,
   module Data.Text.ICU.Error,
-  module Data.Text.ICU.Formatting)
+  module Data.Text.ICU.Format)
 where
 
 import Data.Text
-import Data.Text.ICU.Calendars
-import Data.Text.ICU.NumberFormatting
+import Data.Text.ICU.Calendar
+import Data.Text.ICU.NumberFormat
 import Data.Text.ICU.Normalizer
-import Data.Text.ICU.DateTimeFormatting
-import Data.Text.ICU.Locales
+import Data.Text.ICU.DateTimeFormat
+import Data.Text.ICU.Locale
 import Data.Text.ICU.Error
 import Data.Text.ICU.Formatting
