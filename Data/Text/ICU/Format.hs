@@ -20,6 +20,7 @@ import Data.Text (Text)
 import Data.Text.ICU.Calendar (Date(..),Calendar,getMillis)
 import Data.Text.ICU.NumberFormat (NumberFormat,NumberFormatStyle,formatIntegral,formatRealFrac,openNumberFormat)
 import Data.Text.ICU.DateTimeFormat (DateFormat,DateFormatStyle,formatDate,openDateFormat)
+import System.IO.Unsafe (unsafePerformIO)
 
 class Formattable formatSpec dat where
     format :: formatSpec -> dat -> Text
@@ -55,7 +56,7 @@ instance Formattable (DateFormatStyle,DateFormatStyle,String,Text) Date where
     format (tfs,dfs,loc,tzID) dt = formatDate (openDateFormat tfs dfs loc tzID) dt
 
 instance Formattable DateFormat Calendar where
-    format df cal = formatDate df (getMillis cal)
+    format df cal = formatDate df (unsafePerformIO $ getMillis cal)
 
 instance Formattable (DateFormatStyle,DateFormatStyle,String,Text) Calendar where
     format (tfs,dfs,loc,tzID) cal = format (openDateFormat tfs dfs loc tzID) cal
