@@ -1,5 +1,5 @@
-{-# LANGUAGE CPP, DeriveDataTypeable, ForeignFunctionInterface,
-    GeneralizedNewtypeDeriving,EmptyDataDecls,StandaloneDeriving #-}
+{-# LANGUAGE CPP, DeriveDataTypeable, EmptyDataDecls, ForeignFunctionInterface,
+    GeneralizedNewtypeDeriving, OverloadedStrings, StandaloneDeriving #-}
 -- | The Calendars module is used for converting between a 'Date' and a
 -- set of 'Int' fields such as 'year', 'month', 'day', 'hour', and so
 -- on. A Date represents a specific instant in time with millisecond
@@ -87,7 +87,7 @@ module Data.Text.ICU.Calendar
      -- * Date
      Date(..),UDate,getNow,
      -- * Calendar creation and manipulation
-     Calendar(..),openCalendar,makeCalendar,makeCleanCalendar,cloneCalendar,
+     Calendar,calendarType,calendarLocale,calendarZoneID,openCalendar,makeCalendar,makeCleanCalendar,cloneCalendar,
      getMillis,setMillis,
      getCalendar,setCalendar,updateCalendar,clearCalendar,
      -- * Time zones
@@ -100,13 +100,12 @@ module Data.Text.ICU.Calendar
 
 #include <unicode/ucal.h>
 
---import Control.Applicative ((<$>))
+import Control.Applicative ((<$>))
 import Control.Exception (throw)
 import Control.Monad (when)
 import Data.Data (Data(..))
-import Data.Maybe (Maybe,fromMaybe)
 import Data.Ord (Ord(..))
-import Data.Text (Text,empty)
+import Data.Text (Text)
 import Data.Text.Foreign (useAsPtr,fromPtr)
 import Data.Text.ICU.Error.Internal (UErrorCode,isFailure,withError)
 import Data.Text.ICU.Internal (UChar)
@@ -357,10 +356,10 @@ newtype CalendarLimitType = CalendarLimitType {
 
 data UCalendar deriving Typeable
 data Calendar = Calendar {
-      uCalendar :: ForeignPtr UCalendar,
-      typ :: CalendarType,
-      locale :: String,
-      mZoneID :: Maybe Text
+      calendarType :: CalendarType,
+      calendarLocale :: String,
+      calendarZoneID :: Text,
+      uCalendar :: ForeignPtr UCalendar
     }
                 deriving (Typeable)
 
@@ -401,38 +400,36 @@ getNow = do
 
 -- |Open a 'Calendar'. A 'Calendar' may be used to convert a
 -- millisecond value to a year, month, and day.
-openCalendar :: Maybe Text      -- ^ The desired TimeZone ID. If Nothing, use the default time zone.
+openCalendar :: Text      -- ^ The desired TimeZone ID. If empty, use the default time zone.
              -> String          -- ^ The desired locale.
              -> CalendarType    -- ^ The type of calendar to open.
              -> IO Calendar
-openCalendar mz loc t = do
-  useAsPtr (fromMaybe empty mz) $ \zoneID' l -> do
+openCalendar z loc t = do
+  useAsPtr z $ \zoneID' l -> do
     withCAString loc $ \locale' -> do
       (err,cal) <- withError $ ucal_open zoneID' (fromIntegral l) locale' t
       when (isFailure err) (throw err)
-      ucal <- newForeignPtr ucal_close cal
-      return (Calendar ucal t loc mz)
+      Calendar t loc z <$> newForeignPtr ucal_close cal
 
-makeCalendar :: Maybe Text -> String -> CalendarType -> Date -> Calendar
-makeCalendar mzid loc t ms = unsafePerformIO $ do
-  c <- openCalendar mzid loc t
+makeCalendar :: Text -> String -> CalendarType -> Date -> Calendar
+makeCalendar zid loc t ms = unsafePerformIO $ do
+  c <- openCalendar zid loc t
   setMillis c ms
   return c
 
 makeCleanCalendar :: Calendar
 makeCleanCalendar = unsafePerformIO $ do
-  c <- openCalendar Nothing "" gregorian
+  c <- openCalendar "" "" gregorian
   clearCalendar c
   return c
 
 -- | Open a copy of a 'Calendar'. This function performs a deep copy.
 cloneCalendar :: Calendar -> IO Calendar
-cloneCalendar (Calendar ucal t loc mz) = do
+cloneCalendar (Calendar t loc mz ucal) = do
   withForeignPtr ucal $ \ucal' -> do
     (err,newCal) <- withError $ ucal_clone ucal'
     when (isFailure err) (throw err)
-    newucal <- newForeignPtr ucal_close newCal
-    return (Calendar newucal t loc mz)
+    Calendar t loc mz <$> newForeignPtr ucal_close newCal
 
 -- | Get a 'Calendar'\'s current time in millis as a 'Date'. The time
 -- is represented as milliseconds from the epoch.
