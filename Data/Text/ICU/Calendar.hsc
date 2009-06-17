@@ -404,9 +404,7 @@ data Date = Date {fromDate :: Double} deriving (Eq,Ord,Show,Typeable,Data)
 -- | Get the current date and time. The value returned is represented as
 -- milliseconds from the epoch.
 getNow :: IO Date
-getNow = do
-  x <- ucal_getNow
-  return $ Date (fromRational (toRational x))
+getNow = Date . fromRational . toRational <$> ucal_getNow
 
 -- | Open a 'Calendar'. A 'Calendar' may be used to convert a
 -- millisecond value to a year, month, and day.
@@ -443,8 +441,8 @@ cloneCalendar (Calendar t loc mz ucal) = do
 -- is represented as milliseconds from the epoch.
 getMillis :: Calendar -> IO Date
 getMillis cal =
-  withForeignPtr (uCalendar cal) $ \cal' ->
-    fmap (Date . fromRational . toRational) . handleError $ ucal_getMillis cal'
+  withForeignPtr (uCalendar cal) $
+    fmap (Date . fromRational . toRational) . handleError . ucal_getMillis
 
 -- | Set a 'Calendar'\'s current time in millis from a 'Date'. The
 -- time is represented as milliseconds from the epoch.
@@ -469,9 +467,7 @@ updateCalendar cal field x = do
 
 -- | Clear all fields in a 'Calendar'.
 clearCalendar :: Calendar -> IO ()
-clearCalendar cal = do
-  withForeignPtr (uCalendar cal) $ \cal' -> do
-    ucal_clear cal'
+clearCalendar cal = withForeignPtr (uCalendar cal) ucal_clear
 
 -- | Set the value of a field in a Calendar. All fields are
 -- represented as 32-bit integers. The 'Calendar' is cloned before the
@@ -488,9 +484,7 @@ openTimeZones = handleError ucal_openTimeZones >>= enumerationFinalizer
 
 -- | Return a list of all time zones.
 timeZones :: [Text]
-timeZones = unsafePerformIO $ do
-  tzs <- openTimeZones
-  enumerationTexts tzs
+timeZones = unsafePerformIO $ openTimeZones >>= enumerationTexts
 
 -- | Create an 'Enumeration' over all time zones for a country. The
 -- country is specified as String like e.g. \"de\" for Germany or
@@ -503,9 +497,8 @@ openCountryTimeZones ctry = withCAString ctry $ \ctry' ->
 -- specified as String like e.g.  \"de\" for Germany or \"us\" for the
 -- US.
 countryTimeZones :: String -> [Text]
-countryTimeZones ctry = unsafePerformIO $ do
-  tzs <- openCountryTimeZones ctry
-  enumerationTexts tzs
+countryTimeZones ctry = unsafePerformIO $
+  openCountryTimeZones ctry >>= enumerationTexts
 
 -- | Return the default time zone. The default is determined initially
 -- by querying the host operating system. It may be changed with
