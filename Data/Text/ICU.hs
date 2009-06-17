@@ -18,4 +18,4 @@ import Data.Text.ICU.Normalizer
 import Data.Text.ICU.DateTimeFormat
 import Data.Text.ICU.Locale
 import Data.Text.ICU.Error
-import Data.Text.ICU.Formatting
+import Data.Text.ICU.Format

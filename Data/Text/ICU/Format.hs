@@ -16,11 +16,10 @@
 -- &#x21E8; @Right \"&#1502;&#1488;&#1492; &#1506;&#1513;&#1512;&#1497;&#1501;&#1493;&#1513;&#1500;&#1493;&#1513;&#1492; &#1488;&#1500;&#1507; &#1488;&#1512;&#1489;&#1506; &#1502;&#1488;&#1493;&#1514; &#1495;&#1502;&#1497;&#1513;&#1497;&#1501; &#1493;&#1513;&#1513;\"@
 module Data.Text.ICU.Format (Formattable(..)) where
 
-import Data.Text
-import Data.Text.ICU.Calendars
-import Data.Text.ICU.Error
-import Data.Text.ICU.NumberFormatting
-import Data.Text.ICU.DateTimeFormatting
+import Data.Text (Text)
+import Data.Text.ICU.Calendar (Date(..),Calendar,getMillis)
+import Data.Text.ICU.NumberFormat (NumberFormat,NumberFormatStyle,formatIntegral,formatRealFrac,openNumberFormat)
+import Data.Text.ICU.DateTimeFormat (DateFormat,DateFormatStyle,formatDate,openDateFormat)
 
 class Formattable formatSpec dat where
     format :: formatSpec -> dat -> Text
