@@ -339,18 +339,18 @@ data Calendar = Calendar {
                 deriving (Typeable)
 
 instance Show Calendar where
-    show cal = unsafePerformIO $ do
-                         let era' = getCalendar cal era :: Int
-                         let year' = getCalendar cal year :: Int
-                         let month' = getCalendar cal month :: Int
-                         let date' = getCalendar cal date :: Int
-                         let hourOfDay' = getCalendar cal hourOfDay :: Int
-                         let minute' = getCalendar cal minute :: Int
-                         let second' = getCalendar cal second :: Int
-                         let milliSecond' = getCalendar cal milliSecond :: Int
-                         let zoneOffset' = getCalendar cal zoneOffset :: Int
-                         let dstOffset' = getCalendar cal dstOffset :: Int
-                         return ("Calendar {"
+    show cal =
+        let era' = getCalendar cal era :: Int
+            year' = getCalendar cal year :: Int
+            month' = getCalendar cal month :: Int
+            date' = getCalendar cal date :: Int
+            hourOfDay' = getCalendar cal hourOfDay :: Int
+            minute' = getCalendar cal minute :: Int
+            second' = getCalendar cal second :: Int
+            milliSecond' = getCalendar cal milliSecond :: Int
+            zoneOffset' = getCalendar cal zoneOffset :: Int
+            dstOffset' = getCalendar cal dstOffset :: Int
+        in "Calendar {"
                                  ++"era="++show era'
                                  ++",year="++show year'
                                  ++",month="++show month'
@@ -361,7 +361,7 @@ instance Show Calendar where
                                  ++",milliSecond="++show milliSecond'
                                  ++",zoneOffset="++show zoneOffset'
                                  ++",dstOffset="++show dstOffset'
-                                 ++"}")
+                                 ++"}"
 
 type UDate = CDouble
 data Date = Date {fromDate :: Double} deriving (Eq,Ord,Show,Typeable,Data)
