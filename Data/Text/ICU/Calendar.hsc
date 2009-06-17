@@ -72,9 +72,9 @@ module Data.Text.ICU.Calendar
      dayOfWeekInMonth,am_pm,hour,hourOfDay,minute,second,milliSecond,zoneOffset,dstOffset,
      yearWOY,dowLocal,extendedYear,julianDay,millisecondsInDay,isLeapMonth,dayOfMonth,
      -- ** Days of week
-     CalendarDaysOfWeek(..),sunday,monday,tuesday,wednesday,thursday,friday,saturday,
+     DayOfWeek,sunday,monday,tuesday,wednesday,thursday,friday,saturday,
      -- ** Months
-     CalendarMonths(..),january,february,march,april,may,june,july,august,september,
+     Month,january,february,march,april,may,june,july,august,september,
      october,november,december,undecimber,
      -- ** AM and PM
      CalendarAMPMs(..),am,pm,
@@ -275,12 +275,10 @@ newtype CalendarDateFields = CalendarDateFields {
 dayOfMonth :: CalendarDateFields
 dayOfMonth = CalendarDateFields (#const UCAL_DATE)
 
-newtype CalendarDaysOfWeek = CalendarDaysOfWeek {
-      fromCalendarDaysOfWeek :: Word32
-    }
-    deriving (Eq,Typeable,Data,Show)
+newtype DayOfWeek = DayOfWeek Word32
+    deriving (Eq,Enum,Typeable,Data)
 
-#{enum CalendarDaysOfWeek,CalendarDaysOfWeek,
+#{enum DayOfWeek,DayOfWeek,
        sunday = UCAL_SUNDAY,
        monday = UCAL_MONDAY,
        tuesday = UCAL_TUESDAY,
@@ -289,12 +287,23 @@ newtype CalendarDaysOfWeek = CalendarDaysOfWeek {
        friday = UCAL_FRIDAY,
        saturday = UCAL_SATURDAY}
 
-newtype CalendarMonths = CalendarMonths {
-      fromCalendarMonths :: Word32
-    }
+showDayOfWeek :: DayOfWeek -> String
+showDayOfWeek (DayOfWeek #const UCAL_SUNDAY) = "sunday"
+showDayOfWeek (DayOfWeek #const UCAL_MONDAY) = "monday"
+showDayOfWeek (DayOfWeek #const UCAL_TUESDAY) = "tuesday"
+showDayOfWeek (DayOfWeek #const UCAL_WEDNESDAY) = "wednesday"
+showDayOfWeek (DayOfWeek #const UCAL_THURSDAY) = "thursday"
+showDayOfWeek (DayOfWeek #const UCAL_FRIDAY) = "friday"
+showDayOfWeek (DayOfWeek #const UCAL_SATURDAY) = "saturday"
+showDayOfWeek _ = error "showDayOfWeek: impossible"
+
+instance Show DayOfWeek where
+    show = showDayOfWeek
+
+newtype Month = Month Word32
     deriving (Eq,Typeable,Data,Show)
 
-#{enum CalendarMonths,CalendarMonths,
+#{enum Month,Month,
        january = UCAL_JANUARY,
        february = UCAL_FEBRUARY,
        march = UCAL_MARCH,
