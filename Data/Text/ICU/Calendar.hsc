@@ -68,7 +68,7 @@ module Data.Text.ICU.Calendar
      -- ** Types
      CalendarType(..),traditional,gregorian,
      -- ** Date fields
-     CalendarDateFields(..),era,year,month,weekOfYear,weekOfMonth,date,dayOfYear,dayOfWeek,
+     DateField,era,year,month,weekOfYear,weekOfMonth,date,dayOfYear,dayOfWeek,
      dayOfWeekInMonth,am_pm,hour,hourOfDay,minute,second,milliSecond,zoneOffset,dstOffset,
      yearWOY,dowLocal,extendedYear,julianDay,millisecondsInDay,isLeapMonth,dayOfMonth,
      -- ** Days of week
@@ -89,7 +89,7 @@ module Data.Text.ICU.Calendar
      -- * Calendar creation and manipulation
      Calendar,calendarType,calendarLocale,calendarZoneID,openCalendar,makeCalendar,makeCleanCalendar,cloneCalendar,
      getMillis,setMillis,
-     getCalendar,setCalendar,updateCalendar,clearCalendar,
+     getCalendar,updateCalendar,clearCalendar,
      -- * Time zones
      openTimeZones,timeZones,openCountryTimeZones,countryTimeZones,getDefaultTimeZone,
      setDefaultTimeZone,getCanonicalTimeZoneID,
@@ -242,12 +242,10 @@ newtype CalendarType = CalendarType {
 --
 -- * 'dayOfMonth': Field number indicating the day of the month. This
 --   is a synonym for 'date'.  The first day of the month has value 1.
-newtype CalendarDateFields = CalendarDateFields {
-      fromCalendarDateFields :: Word32
-    }
+newtype DateField = DateField Word32
     deriving (Eq,Typeable,Data,Show)
 
-#{enum CalendarDateFields,CalendarDateFields,
+#{enum DateField,DateField,
        era = UCAL_ERA,
        year = UCAL_YEAR,
        month = UCAL_MONTH,
@@ -272,8 +270,8 @@ newtype CalendarDateFields = CalendarDateFields {
        millisecondsInDay = UCAL_MILLISECONDS_IN_DAY,
        isLeapMonth = UCAL_IS_LEAP_MONTH}
 
-dayOfMonth :: CalendarDateFields
-dayOfMonth = CalendarDateFields (#const UCAL_DATE)
+dayOfMonth :: DateField
+dayOfMonth = DateField (#const UCAL_DATE)
 
 newtype DayOfWeek = DayOfWeek Word32
     deriving (Eq,Enum,Typeable,Data)
@@ -361,7 +359,7 @@ newtype CalendarLimitType = CalendarLimitType {
        actualMinimum = UCAL_ACTUAL_MINIMUM,
        actualMaximum = UCAL_ACTUAL_MAXIMUM}
 
-data UCalendar deriving Typeable
+data UCalendar
 data Calendar = Calendar {
       calendarType :: CalendarType,
       calendarLocale :: String,
@@ -453,30 +451,21 @@ setMillis cal d = do
 
 -- | Get the value of a field in a 'Calendar'. All fields are
 -- represented as 32-bit integers.
-getCalendar :: (Integral a) => Calendar -> CalendarDateFields -> IO a
-getCalendar cal field =
+getCalendar :: (Integral a) => Calendar -> DateField -> IO a
+getCalendar cal (DateField field) =
   withForeignPtr (uCalendar cal) $ \cal' ->
-    fmap fromIntegral . handleError $ ucal_get cal' (fromCalendarDateFields field)
+    fmap fromIntegral . handleError $ ucal_get cal' field
 
 -- | Set the value of a field in a Calendar. All fields are
 -- represented as 32-bit integers.
-updateCalendar :: (Integral a) => Calendar -> CalendarDateFields -> a -> IO ()
-updateCalendar cal field x = do
-  withForeignPtr (uCalendar cal) $ \cal' -> do
-    ucal_set cal' (fromCalendarDateFields field) (fromIntegral x)
+updateCalendar :: (Integral a) => Calendar -> DateField -> a -> IO ()
+updateCalendar cal (DateField field) x =
+  withForeignPtr (uCalendar cal) $ \cal' ->
+    ucal_set cal' field (fromIntegral x)
 
 -- | Clear all fields in a 'Calendar'.
 clearCalendar :: Calendar -> IO ()
 clearCalendar cal = withForeignPtr (uCalendar cal) ucal_clear
-
--- | Set the value of a field in a Calendar. All fields are
--- represented as 32-bit integers. The 'Calendar' is cloned before the
--- set operation.
-setCalendar :: (Integral a) => Calendar -> CalendarDateFields -> a -> Calendar
-setCalendar cal field x = unsafePerformIO $ do
-  cal' <- cloneCalendar cal
-  updateCalendar cal' field x
-  return cal'
 
 -- | Create an 'Enumeration' over all time zones.
 openTimeZones :: IO Enumeration
