@@ -20,6 +20,10 @@ build-type:     Simple
 cabal-version:  >= 1.2
 extra-source-files: README
 
+Flag Developer
+  Description: Operate in developer mode
+  Default:     False
+
 Flag Happstack
   Description: Enable Happstack serialization. If this is enabled compilation depends on happstack-data and happstack-state (among others).
   Default:     False
@@ -64,6 +68,8 @@ library
   else
     extra-libraries: icui18n icudata
 
-  ghc-options: -Wall
+  ghc-options: -Wall -funbox-strict-fields
   if impl(ghc >= 6.8)
     ghc-options: -fwarn-tabs
+  if flag(Developer)
+    ghc-options: -Werror
