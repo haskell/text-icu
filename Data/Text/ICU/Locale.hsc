@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP, DeriveDataTypeable, ForeignFunctionInterface,
     GeneralizedNewtypeDeriving #-}
+
 module Data.Text.ICU.Locale
     (
     -- * Types
@@ -53,13 +54,11 @@ import Control.Exception (throw, try)
 import Data.Int (Int32)
 import Data.Text.ICU.Error.Codes (ErrorCode, UErrorCode)
 import Data.Text.ICU.Error.Internal (handleError, preflight)
+import Data.Text.ICU.Locale.Internal (Locale(..))
 import Foreign.C.String (CString, peekCAString, withCAString)
 import Foreign.C.Types (CInt)
 import Foreign.Ptr (Ptr, nullPtr)
 import System.IO.Unsafe (unsafePerformIO)
-
-newtype Locale = Locale { localeName :: String }
-    deriving (Eq, Ord, Show)
 
 data Layout = LeftToRight
             | RightToLeft

@@ -51,6 +51,7 @@ library
       Data.Text.ICU.Format
   other-modules:
       Data.Text.ICU.Error.Codes
+      Data.Text.ICU.Locale.Internal
 
   if flag(Happstack)
       build-depends: happstack-data,happstack-state,monads-fd,binary

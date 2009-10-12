@@ -1,8 +1,8 @@
 {-# LANGUAGE CPP, DeriveDataTypeable, EmptyDataDecls, ForeignFunctionInterface,
     GeneralizedNewtypeDeriving, OverloadedStrings, StandaloneDeriving #-}
--- | The Calendars module is used for converting between a 'Date' and a
--- set of 'Int' fields such as 'year', 'month', 'day', 'hour', and so
--- on. A Date represents a specific instant in time with millisecond
+-- | This module is used for converting between a 'Date' and a set of
+-- 'Int' fields such as 'year', 'month', 'day', 'hour', and so on. A
+-- 'Date' represents a specific instant in time with millisecond
 -- precision. See 'Date' for information.
 --
 -- Types of 'Calendar' interpret a 'Date' according to the rules of a
@@ -66,9 +66,11 @@ module Data.Text.ICU.Calendar
     (
      -- * Calendar metadata
      -- ** Types
-     CalendarType(..),traditional,gregorian,
+     CalendarType
+    , traditional
+    , gregorian
      -- ** Date fields
-     DateField,era,year,month,weekOfYear,weekOfMonth,date,dayOfYear,dayOfWeek,
+    ,DateField,era,year,month,weekOfYear,weekOfMonth,date,dayOfYear,dayOfWeek,
      dayOfWeekInMonth,am_pm,hour,hourOfDay,minute,second,milliSecond,zoneOffset,dstOffset,
      yearWOY,dowLocal,extendedYear,julianDay,millisecondsInDay,isLeapMonth,dayOfMonth,
      -- ** Days of week
@@ -85,7 +87,7 @@ module Data.Text.ICU.Calendar
      -- ** Limits
      CalendarLimitType(..),cltMin,cltMax,greatestMinimum,leastMaximum,actualMinimum,actualMaximum,
      -- * Date
-     Date(..),UDate,getNow,
+     Date,UDate,fromDate,getNow,
      -- * Calendar creation and manipulation
      Calendar,calendarType,calendarLocale,calendarZoneID,openCalendar,makeCalendar,makeCleanCalendar,cloneCalendar,
      getMillis,setMillis,
@@ -108,6 +110,7 @@ import Data.Text.Foreign (useAsPtr,fromPtr)
 import Data.Text.ICU.Error.Codes (UErrorCode)
 import Data.Text.ICU.Error.Internal (handleError)
 import Data.Text.ICU.Internal (UChar)
+import Data.Text.ICU.Locale.Internal (Locale(..))
 import Data.Text.ICU.Enumeration (Enumeration,UEnumeration,enumerationFinalizer,enumerationTexts)
 import Data.Typeable (Typeable)
 import Data.Int (Int32)
@@ -124,10 +127,12 @@ import System.IO.Unsafe (unsafePerformIO)
 -- | Possible types of 'Calendar's.
 -- There is a 'traditional' calendar for the locale and
 -- the Gregorian calendar style is created with 'gregorian'.
-newtype CalendarType = CalendarType {
-      fromCalendarType :: Word32
-    }
-    deriving (Eq,Typeable,Data,Show)
+newtype CalendarType = CalendarType Word32
+    deriving (Eq,Typeable,Data)
+
+instance Show CalendarType where
+    show c | c == traditional = "traditional"
+           | otherwise        = "gregorian"
 
 #{enum CalendarType,CalendarType,
   traditional = UCAL_TRADITIONAL,
@@ -363,7 +368,7 @@ newtype CalendarLimitType = CalendarLimitType {
 data UCalendar
 data Calendar = Calendar {
       calendarType :: CalendarType,
-      calendarLocale :: String,
+      calendarLocale :: Locale,
       calendarZoneID :: Text,
       uCalendar :: ForeignPtr UCalendar
     }
@@ -398,7 +403,7 @@ instance Show Calendar where
     show = unsafePerformIO . showCalendar
 
 type UDate = CDouble
-data Date = Date {fromDate :: Double} deriving (Eq,Ord,Show,Typeable,Data)
+newtype Date = Date {fromDate :: Double} deriving (Eq,Ord,Show,Typeable,Data)
 
 -- | Get the current date and time. The value returned is represented as
 -- milliseconds from the epoch.
@@ -408,16 +413,16 @@ getNow = Date . fromRational . toRational <$> ucal_getNow
 -- | Open a 'Calendar'. A 'Calendar' may be used to convert a
 -- millisecond value to a year, month, and day.
 openCalendar :: Text      -- ^ The desired time zone ID. If empty, use the default time zone.
-             -> String          -- ^ The desired locale.
+             -> Locale          -- ^ The desired locale.
              -> CalendarType    -- ^ The type of calendar to open.
              -> IO Calendar
 openCalendar z loc t = do
   useAsPtr z $ \zoneID' l -> do
-    withCAString loc $ \locale' -> do
+    withCAString (localeName loc) $ \locale' -> do
       cal <- handleError $ ucal_open zoneID' (fromIntegral l) locale' t
       Calendar t loc z <$> newForeignPtr ucal_close cal
 
-makeCalendar :: Text -> String -> CalendarType -> Date -> Calendar
+makeCalendar :: Text -> Locale -> CalendarType -> Date -> Calendar
 makeCalendar zid loc t ms = unsafePerformIO $ do
   c <- openCalendar zid loc t
   setMillis c ms
@@ -425,7 +430,7 @@ makeCalendar zid loc t ms = unsafePerformIO $ do
 
 makeCleanCalendar :: Calendar
 makeCleanCalendar = unsafePerformIO $ do
-  c <- openCalendar "" "" gregorian
+  c <- openCalendar "" (Locale "") gregorian
   clearCalendar c
   return c
 
