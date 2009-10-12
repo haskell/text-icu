@@ -38,6 +38,8 @@ throwOnError code = do
     then throw err
     else return ()
 
+-- | Perform an action that might return an error, and return both the
+-- error code and the action's result.
 withError :: (Ptr UErrorCode -> IO a) -> IO (ErrorCode, a)
 {-# INLINE withError #-}
 withError action = alloca $ \errPtr -> do
@@ -46,6 +48,8 @@ withError action = alloca $ \errPtr -> do
                      err <- peek errPtr
                      return (ErrorCode err, ret)
 
+-- | Perform an action that might return an error.  If an error does
+-- indeed result, throw it as an exception.
 handleError :: (Ptr UErrorCode -> IO a) -> IO a
 {-# INLINE handleError #-}
 handleError action = alloca $ \errPtr -> do
@@ -54,13 +58,25 @@ handleError action = alloca $ \errPtr -> do
                        throwOnError =<< peek errPtr
                        return ret
 
-preflight :: Int -> (CString -> Int32 -> Ptr UErrorCode -> IO Int32)
+-- | Perform an action that is preflight-capable, i.e. one that fills
+-- out a caller-supplied buffer and indicates whether the buffer was
+-- too small.
+--
+-- * If the buffer was too small, rerun the action with a
+--   correctly-sized buffer.
+--
+-- * If some other error occurred, throw it as an exception.
+--
+-- * Otherwise, return the filled-out buffer as a Haskell string.
+preflight :: Int32              -- ^ Initial capacity
+          -> (CString -> Int32 -> Ptr UErrorCode -> IO Int32)
+          -- ^ Preflight-capable action
           -> IO String
 preflight capacity act =
-    allocaArray0 capacity $ \buf -> do
-      (err,l) <- withError $ act buf (fromIntegral capacity)
+    allocaArray0 (fromIntegral capacity) $ \buf -> do
+      (err,actualSize) <- withError $ act buf capacity
       if err == u_BUFFER_OVERFLOW_ERROR
-          then preflight (capacity * 2) act
+          then preflight actualSize act
           else if isSuccess err
-               then peekCAStringLen (buf, fromIntegral l)
+               then peekCAStringLen (buf, fromIntegral actualSize)
                else throw err
