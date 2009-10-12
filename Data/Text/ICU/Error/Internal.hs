@@ -1,40 +1,23 @@
-{-# LANGUAGE DeriveDataTypeable, ForeignFunctionInterface #-}
-
 module Data.Text.ICU.Error.Internal
     (
-    -- * Types
-      ErrorCode(..)
-    -- ** Low-level types
-    , UErrorCode
     -- * Functions
-    , isFailure
+      isFailure
     , isSuccess
-    , errorName
     , handleError
+    , preflight
     , throwOnError
     , withError
     ) where
 
-import Control.Exception
-import Foreign.Ptr
-import Foreign.Marshal.Alloc
-import Data.Typeable (Typeable)
-import Foreign.C.String (CString, peekCString)
-import Foreign.C.Types (CInt)
-import Foreign.Storable
-import System.IO.Unsafe (unsafePerformIO)
-
-type UErrorCode = CInt
-
--- | ICU error code.
-newtype ErrorCode = ErrorCode {
-      fromErrorCode :: UErrorCode
-    } deriving (Eq, Typeable)
-
-instance Show ErrorCode where
-    show code = "ErrorCode " ++ errorName code
-
-instance Exception ErrorCode
+import Control.Exception (throw)
+import Data.Int (Int32)
+import Data.Text.ICU.Error.Codes (ErrorCode(..), UErrorCode,
+                                  u_BUFFER_OVERFLOW_ERROR)
+import Foreign.C.String (CString, peekCAStringLen)
+import Foreign.Marshal.Alloc (alloca)
+import Foreign.Marshal.Array (allocaArray0)
+import Foreign.Ptr (Ptr)
+import Foreign.Storable (peek, poke)
 
 -- | Indicate whether the given error code is a success.
 isSuccess :: ErrorCode -> Bool
@@ -71,10 +54,13 @@ handleError action = alloca $ \errPtr -> do
                        throwOnError =<< peek errPtr
                        return ret
 
--- | Return a string representing the name of the given error code.
-errorName :: ErrorCode -> String
-errorName code = unsafePerformIO $
-                 peekCString (u_errorName (fromErrorCode code))
-
-foreign import ccall unsafe "unicode/utypes.h u_errorName_4_0" u_errorName
-    :: UErrorCode -> CString
+preflight :: Int -> (CString -> Int32 -> Ptr UErrorCode -> IO Int32)
+          -> IO String
+preflight capacity act =
+    allocaArray0 capacity $ \buf -> do
+      (err,l) <- withError $ act buf (fromIntegral capacity)
+      if err == u_BUFFER_OVERFLOW_ERROR
+          then preflight (capacity * 2) act
+          else if isSuccess err
+               then peekCAStringLen (buf, fromIntegral l)
+               else throw err

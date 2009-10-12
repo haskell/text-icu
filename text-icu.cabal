@@ -49,6 +49,9 @@ library
       Data.Text.ICU.DateTimeFormat
       Data.Text.ICU.FieldPosition
       Data.Text.ICU.Format
+  other-modules:
+      Data.Text.ICU.Error.Codes
+
   if flag(Happstack)
       build-depends: happstack-data,happstack-state,monads-fd,binary
       exposed-modules:

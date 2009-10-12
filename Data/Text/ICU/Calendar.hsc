@@ -105,7 +105,8 @@ import Data.Data (Data(..))
 import Data.Ord (Ord(..))
 import Data.Text (Text)
 import Data.Text.Foreign (useAsPtr,fromPtr)
-import Data.Text.ICU.Error.Internal (UErrorCode,handleError)
+import Data.Text.ICU.Error.Codes (UErrorCode)
+import Data.Text.ICU.Error.Internal (handleError)
 import Data.Text.ICU.Internal (UChar)
 import Data.Text.ICU.Enumeration (Enumeration,UEnumeration,enumerationFinalizer,enumerationTexts)
 import Data.Typeable (Typeable)
@@ -551,9 +552,9 @@ foreign import ccall unsafe "unicode/ucal.h ucal_getCanonicalTimeZoneID_4_0" uca
     :: Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> Ptr UBool -> Ptr UErrorCode -> IO Int32
 foreign import ccall unsafe "unicode/ucal.h ucal_equivalentTo_4_0" ucal_equivalentTo
     :: Ptr UCalendar -> Ptr UCalendar -> IO UBool
-foreign import ccall unsafe "unicode/ucal.h ucal_getAttribute_4_0" ucal_getAttribute
-    :: Ptr UCalendar -> Word32 -> IO Int32
-foreign import ccall unsafe "unicode/ucal.h ucal_setAttribute_4_0" ucal_setAttribute
-    :: Ptr UCalendar -> Word32 -> Int32 -> IO ()
+--foreign import ccall unsafe "unicode/ucal.h ucal_getAttribute_4_0" ucal_getAttribute
+--    :: Ptr UCalendar -> Word32 -> IO Int32
+--foreign import ccall unsafe "unicode/ucal.h ucal_setAttribute_4_0" ucal_setAttribute
+--    :: Ptr UCalendar -> Word32 -> Int32 -> IO ()
 foreign import ccall unsafe "unicode/ucal.h ucal_clear_4_0" ucal_clear
     :: Ptr UCalendar -> IO ()
