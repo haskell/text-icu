@@ -79,7 +79,8 @@ module Data.Text.ICU.Calendar
      getMillis,setMillis,
      clearCalendar
      -- ** Fields
-    , DateField(..)
+    , Field(..)
+    , MutableField(..)
     , amPm
     , dayOfMonth
     , dayOfWeek
@@ -233,13 +234,29 @@ data Calendar = Calendar {
                 deriving (Typeable)
 
 -- | A field of a 'Calendar'.
-class DateField a where
+class Field a where
     -- | The type of the value stored in the given field.
     type FieldAt a
     -- | Get the value of a field in a 'Calendar'.
     getField :: Calendar -> a -> IO (FieldAt a)
+
+-- | A field whose value can be directly modified.
+class Field a => MutableField a where
     -- | Set the value of a field in a 'Calendar'.
     setField :: Calendar -> a -> FieldAt a -> IO ()
+    -- | Add to a field.
+    --
+    -- If the amount added causes the value to exceed maximum or
+    -- minimum values for that field, other fields are modified to
+    -- preserve the magnitude of the change.
+    addField :: Calendar -> a -> Int -> IO ()
+    -- | Add to a field. This will /not/ modify more significant
+    -- fields in the calendar.
+    --
+    -- If the amount added would cause the value to exceed maximum or
+    -- minimum values for that field, the field is pinned to a
+    -- permissible value.
+    rollField :: Calendar -> a -> Int -> IO ()
 
 -- | Era, e.g. AD or BC in the Gregorian (Julian) calendar.  This is a
 -- calendar-specific value.
@@ -402,115 +419,182 @@ data IsLeapMonthField = IsLeapMonth deriving (Show, Typeable, Data)
 isLeapMonth :: IsLeapMonthField
 isLeapMonth = IsLeapMonth
 
-instance DateField EraField where
+instance Field EraField where
     type FieldAt EraField = Int
     getField cal _ = getCal cal (#const UCAL_ERA) fromIntegral
-    setField cal _ = setCal cal (#const UCAL_ERA) fromIntegral
 
-instance DateField YearField where
+instance MutableField EraField where
+    setField  cal _ = setCal  cal (#const UCAL_ERA) fromIntegral
+    addField  cal _ = addCal  cal (#const UCAL_ERA)
+    rollField cal _ = rollCal cal (#const UCAL_ERA)
+
+instance Field YearField where
     type FieldAt YearField = Int
     getField cal _ = getCal cal (#const UCAL_YEAR) fromIntegral
-    setField cal _ = setCal cal (#const UCAL_YEAR) fromIntegral
 
-instance DateField MonthField where
+instance MutableField YearField where
+    setField  cal _ = setCal  cal (#const UCAL_YEAR) fromIntegral
+    addField  cal _ = addCal  cal (#const UCAL_YEAR)
+    rollField cal _ = rollCal cal (#const UCAL_YEAR)
+
+instance Field MonthField where
     type FieldAt MonthField = Int
     getField cal _ = getCal cal (#const UCAL_MONTH) (toEnum . fromIntegral)
-    setField cal _ = setCal cal (#const UCAL_MONTH) (fromIntegral . fromEnum)
 
-instance DateField WeekOfYearField where
+instance MutableField MonthField where
+    setField  cal _ = setCal  cal (#const UCAL_MONTH) (fromIntegral . fromEnum)
+    addField  cal _ = addCal  cal (#const UCAL_MONTH)
+    rollField cal _ = rollCal cal (#const UCAL_MONTH)
+
+instance Field WeekOfYearField where
     type FieldAt WeekOfYearField = Int
     getField cal _ = getCal cal (#const UCAL_WEEK_OF_YEAR) fromIntegral
-    setField cal _ = setCal cal (#const UCAL_WEEK_OF_YEAR) fromIntegral
 
-instance DateField WeekOfMonthField where
+instance MutableField WeekOfYearField where
+    setField  cal _ = setCal  cal (#const UCAL_WEEK_OF_YEAR) fromIntegral
+    addField  cal _ = addCal  cal (#const UCAL_WEEK_OF_YEAR)
+    rollField cal _ = rollCal cal (#const UCAL_WEEK_OF_YEAR)
+
+instance Field WeekOfMonthField where
     type FieldAt WeekOfMonthField = Int
     getField cal _ = getCal cal (#const UCAL_WEEK_OF_MONTH) fromIntegral
-    setField cal _ = setCal cal (#const UCAL_WEEK_OF_MONTH) fromIntegral
 
-instance DateField DayOfMonthField where
+instance MutableField WeekOfMonthField where
+    setField  cal _ = setCal  cal (#const UCAL_WEEK_OF_MONTH) fromIntegral
+    addField  cal _ = addCal  cal (#const UCAL_WEEK_OF_MONTH)
+    rollField cal _ = rollCal cal (#const UCAL_WEEK_OF_MONTH)
+
+instance Field DayOfMonthField where
     type FieldAt DayOfMonthField = Int
     getField cal _ = getCal cal (#const UCAL_DAY_OF_MONTH) fromIntegral
-    setField cal _ = setCal cal (#const UCAL_DAY_OF_MONTH) fromIntegral
 
-instance DateField DayOfYearField where
+instance MutableField DayOfMonthField where
+    setField  cal _ = setCal  cal (#const UCAL_DAY_OF_MONTH) fromIntegral
+    addField  cal _ = addCal  cal (#const UCAL_DAY_OF_MONTH)
+    rollField cal _ = rollCal cal (#const UCAL_DAY_OF_MONTH)
+
+instance Field DayOfYearField where
     type FieldAt DayOfYearField = Int
     getField cal _ = getCal cal (#const UCAL_DAY_OF_YEAR) fromIntegral
-    setField cal _ = setCal cal (#const UCAL_DAY_OF_YEAR) fromIntegral
 
-instance DateField DayOfWeekField where
+instance MutableField DayOfYearField where
+    setField  cal _ = setCal  cal (#const UCAL_DAY_OF_YEAR) fromIntegral
+    addField  cal _ = addCal  cal (#const UCAL_DAY_OF_YEAR)
+    rollField cal _ = rollCal cal (#const UCAL_DAY_OF_YEAR)
+
+instance Field DayOfWeekField where
     type FieldAt DayOfWeekField = Weekday
     getField cal _ = getCal cal (#const UCAL_DAY_OF_WEEK) fromICUDay
-    setField cal _ = setCal cal (#const UCAL_DAY_OF_WEEK) toICUDay
 
-instance DateField DayOfWeekInMonthField where
+instance MutableField DayOfWeekField where
+    setField  cal _ = setCal  cal (#const UCAL_DAY_OF_WEEK) toICUDay
+    addField  cal _ = addCal  cal (#const UCAL_DAY_OF_WEEK)
+    rollField cal _ = rollCal cal (#const UCAL_DAY_OF_WEEK)
+
+instance Field DayOfWeekInMonthField where
     type FieldAt DayOfWeekInMonthField = Int
     getField cal _ = getCal cal (#const UCAL_DAY_OF_WEEK_IN_MONTH) fromIntegral
-    setField cal _ = setCal cal (#const UCAL_DAY_OF_WEEK_IN_MONTH) fromIntegral
 
-instance DateField HourField where
+instance MutableField DayOfWeekInMonthField where
+    setField  cal _ = setCal  cal (#const UCAL_DAY_OF_WEEK_IN_MONTH) fromIntegral
+    addField  cal _ = addCal  cal (#const UCAL_DAY_OF_WEEK_IN_MONTH)
+    rollField cal _ = rollCal cal (#const UCAL_DAY_OF_WEEK_IN_MONTH)
+
+instance Field AmPmField where
+    type FieldAt AmPmField = AmPm
+    getField cal _ = getCal cal (#const UCAL_AM_PM) (toEnum . fromIntegral)
+
+instance MutableField AmPmField where
+    setField  cal _ = setCal  cal (#const UCAL_AM_PM) (fromIntegral . fromEnum)
+    addField  cal _ = addCal  cal (#const UCAL_AM_PM)
+    rollField cal _ = rollCal cal (#const UCAL_AM_PM)
+
+instance Field HourField where
     type FieldAt HourField = Int
     getField cal _ = getCal cal (#const UCAL_HOUR) fromIntegral
-    setField cal _ = setCal cal (#const UCAL_HOUR) fromIntegral
 
-instance DateField HourOfDayField where
+instance MutableField HourField where
+    setField  cal _ = setCal  cal (#const UCAL_HOUR) fromIntegral
+    addField  cal _ = addCal  cal (#const UCAL_HOUR)
+    rollField cal _ = rollCal cal (#const UCAL_HOUR)
+
+instance Field HourOfDayField where
     type FieldAt HourOfDayField = Int
     getField cal _ = getCal cal (#const UCAL_HOUR_OF_DAY) fromIntegral
-    setField cal _ = setCal cal (#const UCAL_HOUR_OF_DAY) fromIntegral
 
-instance DateField MinuteField where
+instance MutableField HourOfDayField where
+    setField  cal _ = setCal  cal (#const UCAL_HOUR_OF_DAY) fromIntegral
+    addField  cal _ = addCal  cal (#const UCAL_HOUR_OF_DAY)
+    rollField cal _ = rollCal cal (#const UCAL_HOUR_OF_DAY)
+
+instance Field MinuteField where
     type FieldAt MinuteField = Int
     getField cal _ = getCal cal (#const UCAL_MINUTE) fromIntegral
-    setField cal _ = setCal cal (#const UCAL_MINUTE) fromIntegral
 
-instance DateField SecondField where
+instance MutableField MinuteField where
+    setField  cal _ = setCal  cal (#const UCAL_MINUTE) fromIntegral
+    addField  cal _ = addCal  cal (#const UCAL_MINUTE)
+    rollField cal _ = rollCal cal (#const UCAL_MINUTE)
+
+instance Field SecondField where
     type FieldAt SecondField = Int
     getField cal _ = getCal cal (#const UCAL_SECOND) fromIntegral
-    setField cal _ = setCal cal (#const UCAL_SECOND) fromIntegral
 
-instance DateField MillisecondField where
+instance MutableField SecondField where
+    setField  cal _ = setCal  cal (#const UCAL_SECOND) fromIntegral
+    addField  cal _ = addCal  cal (#const UCAL_SECOND)
+    rollField cal _ = rollCal cal (#const UCAL_SECOND)
+
+instance Field MillisecondField where
     type FieldAt MillisecondField = Int
     getField cal _ = getCal cal (#const UCAL_MILLISECOND) fromIntegral
-    setField cal _ = setCal cal (#const UCAL_MILLISECOND) fromIntegral
 
-instance DateField ZoneOffsetField where
+instance MutableField MillisecondField where
+    setField  cal _ = setCal  cal (#const UCAL_MILLISECOND) fromIntegral
+    addField  cal _ = addCal  cal (#const UCAL_MILLISECOND)
+    rollField cal _ = rollCal cal (#const UCAL_MILLISECOND)
+
+instance Field ZoneOffsetField where
     type FieldAt ZoneOffsetField = Int
     getField cal _ = getCal cal (#const UCAL_ZONE_OFFSET) fromIntegral
-    setField cal _ = setCal cal (#const UCAL_ZONE_OFFSET) fromIntegral
 
-instance DateField DstOffsetField where
+instance MutableField ZoneOffsetField where
+    setField  cal _ = setCal  cal (#const UCAL_ZONE_OFFSET) fromIntegral
+    addField  cal _ = addCal  cal (#const UCAL_ZONE_OFFSET)
+    rollField cal _ = rollCal cal (#const UCAL_ZONE_OFFSET)
+
+instance Field DstOffsetField where
     type FieldAt DstOffsetField = Int
     getField cal _ = getCal cal (#const UCAL_DST_OFFSET) fromIntegral
-    setField cal _ = setCal cal (#const UCAL_DST_OFFSET) fromIntegral
 
-instance DateField YearWOYField where
+instance MutableField DstOffsetField where
+    setField  cal _ = setCal  cal (#const UCAL_DST_OFFSET) fromIntegral
+    addField  cal _ = addCal  cal (#const UCAL_DST_OFFSET)
+    rollField cal _ = rollCal cal (#const UCAL_DST_OFFSET)
+
+instance Field YearWOYField where
     type FieldAt YearWOYField = Int
     getField cal _ = getCal cal (#const UCAL_YEAR_WOY) fromIntegral
-    setField cal _ = setCal cal (#const UCAL_YEAR_WOY) fromIntegral
 
-instance DateField LocalDayOfWeekField where
+instance Field LocalDayOfWeekField where
     type FieldAt LocalDayOfWeekField = Weekday
     getField cal _ = getCal cal (#const UCAL_DOW_LOCAL) fromICUDay
-    setField cal _ = setCal cal (#const UCAL_DOW_LOCAL) toICUDay
 
-instance DateField ExtendedYearField where
+instance Field ExtendedYearField where
     type FieldAt ExtendedYearField = Int
     getField cal _ = getCal cal (#const UCAL_EXTENDED_YEAR) fromIntegral
-    setField cal _ = setCal cal (#const UCAL_EXTENDED_YEAR) fromIntegral
 
-instance DateField JulianDayField where
+instance Field JulianDayField where
     type FieldAt JulianDayField = Int
     getField cal _ = getCal cal (#const UCAL_JULIAN_DAY) fromIntegral
-    setField cal _ = setCal cal (#const UCAL_JULIAN_DAY) fromIntegral
 
-instance DateField MillisecondsInDayField where
+instance Field MillisecondsInDayField where
     type FieldAt MillisecondsInDayField = Int
     getField cal _ = getCal cal (#const UCAL_MILLISECONDS_IN_DAY) fromIntegral
-    setField cal _ = setCal cal (#const UCAL_MILLISECONDS_IN_DAY) fromIntegral
 
-instance DateField IsLeapMonthField where
+instance Field IsLeapMonthField where
     type FieldAt IsLeapMonthField = Bool
     getField cal _ = getCal cal (#const UCAL_IS_LEAP_MONTH) (/=0)
-    setField cal _ = setCal cal (#const UCAL_IS_LEAP_MONTH) (fromIntegral . fromEnum)
 
 type UDate = CDouble
 newtype Date = DDate {fromDate :: Double} deriving (Eq,Ord,Show,Typeable,Data)
@@ -560,12 +644,23 @@ getCal cal field f =
   withForeignPtr (uCalendar cal) $ \cal' ->
     fmap f . handleError $ ucal_get cal' field
 
--- | Set the value of a field in a Calendar. All fields are
--- represented as 32-bit integers.
+-- | Set the value of a field in a 'Calendar'.
 setCal :: Calendar -> CInt -> (a -> Int32) -> a -> IO ()
 setCal cal field f x =
   withForeignPtr (uCalendar cal) $ \cal' ->
     ucal_set cal' field (f x)
+
+-- | Add to the value of a field in a 'Calendar'.
+addCal :: Calendar -> CInt -> Int -> IO ()
+addCal cal field x =
+  withForeignPtr (uCalendar cal) $ \cal' ->
+    handleError $ ucal_add cal' field (fromIntegral x)
+
+-- | Add to the value of a field in a 'Calendar'.
+rollCal :: Calendar -> CInt -> Int -> IO ()
+rollCal cal field x =
+  withForeignPtr (uCalendar cal) $ \cal' ->
+    handleError $ ucal_roll cal' field (fromIntegral x)
 
 -- | Clear all fields in a 'Calendar'.
 clearCalendar :: Calendar -> IO ()
@@ -661,3 +756,7 @@ foreign import ccall unsafe "unicode/ucal.h ucal_equivalentTo_4_0" ucal_equivale
 --  :: Ptr UCalendar -> Word32 -> Int32 -> IO ()
 foreign import ccall unsafe "unicode/ucal.h ucal_clear_4_0" ucal_clear
     :: Ptr UCalendar -> IO ()
+foreign import ccall unsafe "unicode/ucal.h ucal_add_4_0" ucal_add
+    :: Ptr UCalendar -> CInt -> Int32 -> Ptr UErrorCode -> IO ()
+foreign import ccall unsafe "unicode/ucal.h ucal_roll_4_0" ucal_roll
+    :: Ptr UCalendar -> CInt -> Int32 -> Ptr UErrorCode -> IO ()
