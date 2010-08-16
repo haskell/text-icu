@@ -1,5 +1,4 @@
-{-# LANGUAGE CPP, DeriveDataTypeable, EmptyDataDecls,
-    ForeignFunctionInterface #-}
+{-# LANGUAGE DeriveDataTypeable, ForeignFunctionInterface #-}
 -- |
 -- Module      : Data.Text.ICU.Collate
 -- Copyright   : (c) 2010 Bryan O'Sullivan
@@ -11,6 +10,9 @@
 --
 -- String collation functions for Unicode, implemented as bindings to
 -- the International Components for Unicode (ICU) libraries.
+--
+-- For the more powerful, impure collation API, see the
+-- 'Data.Text.ICU.Collate.IO' module.
 
 module Data.Text.ICU.Collate
     (
@@ -18,34 +20,42 @@ module Data.Text.ICU.Collate
     -- $api
       Collator
     , open
+    , freeze
+    , collate
     ) where
 
-import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
-import Data.Text.ICU.Internal (withName)
+import Data.Text (Text)
+import qualified Data.Text.ICU.Collate.IO as IO
 import Data.Typeable (Typeable)
-import Foreign.C.String (CString)
-import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, withForeignPtr)
-import Foreign.Ptr (FunPtr, Ptr)
+import System.IO.Unsafe (unsafePerformIO)
 
 -- $api
 --
 
-data UCollator
-
 -- | String collator type.
-data Collator = Collator {-# UNPACK #-} !(ForeignPtr UCollator)
-                deriving (Eq, Typeable)
+newtype Collator = C IO.Collator
+    deriving (Typeable)
 
-withCollator :: Collator -> (Ptr UCollator -> IO a) -> IO a
-{-# INLINE withCollator #-}
-withCollator (Collator col) action = withForeignPtr col action
+-- | Open a 'Collator' for comparing strings.
+--
+-- * If 'Nothing' is passed for the locale, the default locale
+--   collation rules will be used.
+--
+-- * If ('Just' @\"\"@) or 'Just' @\"root\"@ is passed, UCA rules will
+--   be used.
+open :: Maybe String
+     -- ^ The locale containing the required collation rules.
+     -> IO Collator
+open loc = Collator `fmap` IO.open loc
 
-open :: String -> IO Collator
-open loc =
-  fmap Collator . newForeignPtr ucol_close =<< withName loc (handleError . ucol_open)
+freeze :: IO.Collator -> IO Collator
+freeze c = undefined
 
-foreign import ccall unsafe "hs_text_icu.h __hs_ucol_open" ucol_open
-    :: CString -> Ptr UErrorCode -> IO (Ptr UCollator)
+-- | Compare two strings.
+collate :: Collator -> Text -> Text -> Ordering
+collate (C c) a b = unsafePerformIO $ IO.collate c a b
+{-# INLINE collate #-}
 
-foreign import ccall unsafe "hs_text_icu.h &__hs_ucol_close" ucol_close
-    :: FunPtr (Ptr UCollator -> IO ())
+foreign import ccall unsafe "hs_text_icu.h __hs_ucol_safeClone" ucol_safeClone
+        :: Ptr UCollator -> Ptr a -> Ptr Int32 -> UErrorCode
+        -> Ptr UCollator

@@ -10,6 +10,21 @@ void __hs_ucol_close(UCollator *coll)
     ucol_close(coll);
 }
 
+UCollationResult __hs_ucol_strcoll(const UCollator *coll,
+				   const UChar *source, int32_t sourceLength,
+				   const UChar *target, int32_t targetLength)
+{
+    return ucol_strcoll(coll, source, sourceLength, target, targetLength);
+}
+
+UCollator* __hs_ucol_safeClone(const UCollator *coll,
+			       void *stackBuffer,
+			       int32_t *pBufferSize,
+			       UErrorCode *status)
+{
+    return ucol_safeClone(coll, stackBuffer, pBufferSize, status);
+}
+
 int __get_max_bytes_for_string(UConverter *cnv, int src_length)
 {
     return UCNV_GET_MAX_BYTES_FOR_STRING(src_length, ucnv_getMaxCharSize(cnv));

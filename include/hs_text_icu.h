@@ -13,6 +13,13 @@
 
 UCollator* __hs_ucol_open(const char *loc, UErrorCode *status);
 void __hs_ucol_close(UCollator *coll);
+UCollationResult __hs_ucol_strcoll(const UCollator *coll,
+				   const UChar *source, int32_t sourceLength,
+				   const UChar *target, int32_t targetLength);
+UCollator* __hs_ucol_safeClone(const UCollator *coll,
+			       void *stackBuffer,
+			       int32_t *pBufferSize,
+			       UErrorCode *status);
 
 /* ucnv.h */
 

@@ -23,10 +23,12 @@ library
   exposed-modules:
       Data.Text.ICU
       Data.Text.ICU.Collate
+      Data.Text.ICU.Collate.IO
       Data.Text.ICU.Convert
       Data.Text.ICU.Error
       Data.Text.ICU.Normalize
   other-modules:
+      Data.Text.ICU.Collate.Internal
       Data.Text.ICU.Convert.Internal
       Data.Text.ICU.Error.Internal
       Data.Text.ICU.Internal
