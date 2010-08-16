@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP, DeriveDataTypeable, ForeignFunctionInterface,
     GeneralizedNewtypeDeriving #-}
 -- |
--- Module      : Data.Text.ICU.Normalizer
+-- Module      : Data.Text.ICU.Normalize
 -- Copyright   : (c) Bryan O'Sullivan 2009
 --
 -- License     : BSD-style
@@ -13,7 +13,7 @@
 -- bindings to the International Components for Unicode (ICU)
 -- libraries.
 
-module Data.Text.ICU.Normalizer
+module Data.Text.ICU.Normalize
     (
     -- * Unicode normalization API
     -- $api

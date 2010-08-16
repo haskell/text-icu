@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP, ForeignFunctionInterface #-}
 -- |
--- Module      : Data.Text.ICU.Converter
+-- Module      : Data.Text.ICU.Convert
 -- Copyright   : (c) Bryan O'Sullivan 2009
 --
 -- License     : BSD-style
@@ -12,7 +12,7 @@
 -- bindings to the International Components for Unicode (ICU)
 -- libraries.
 
-module Data.Text.ICU.Converter
+module Data.Text.ICU.Convert
     (
     -- * Character set conversion
       Converter
@@ -41,7 +41,7 @@ import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.Int (Int32)
 import Data.Text (Text)
 import Data.Text.Foreign (fromPtr, lengthWord16, useAsPtr)
-import Data.Text.ICU.Converter.Internal
+import Data.Text.ICU.Convert.Internal
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
 import Data.Word (Word16)
 import Foreign.C.String (CString, peekCString, withCString)

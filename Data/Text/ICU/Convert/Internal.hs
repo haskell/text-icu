@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable, EmptyDataDecls, ForeignFunctionInterface #-}
 -- |
--- Module      : Data.Text.ICU.Converter.Internal
+-- Module      : Data.Text.ICU.Convert.Internal
 -- Copyright   : (c) Bryan O'Sullivan 2009
 --
 -- License     : BSD-style
@@ -10,7 +10,7 @@
 --
 -- Low-level character set types and functions.
 
-module Data.Text.ICU.Converter.Internal
+module Data.Text.ICU.Convert.Internal
     (
       Converter(..)
     , UConverter

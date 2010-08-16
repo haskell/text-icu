@@ -21,11 +21,11 @@ library
     build-depends:   base >= 4
 
   exposed-modules:
-      Data.Text.ICU.Converter
+      Data.Text.ICU.Convert
       Data.Text.ICU.Error
-      Data.Text.ICU.Normalizer
+      Data.Text.ICU.Normalize
   other-modules:
-      Data.Text.ICU.Converter.Internal
+      Data.Text.ICU.Convert.Internal
       Data.Text.ICU.Error.Internal
       Data.Text.ICU.Internal
   c-sources: cbits/text_icu.c
