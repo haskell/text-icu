@@ -17,11 +17,11 @@ module Data.Text.ICU.Error.Internal
 
 import Control.Exception (Exception, throw)
 import Foreign.Ptr (Ptr)
-import Foreign.Marshal.Alloc (alloca)
+import Foreign.Marshal.Utils (with)
 import Data.Typeable (Typeable)
 import Foreign.C.String (CString, peekCString)
 import Foreign.C.Types (CInt)
-import Foreign.Storable (peek, poke)
+import Foreign.Storable (peek)
 import System.IO.Unsafe (unsafePerformIO)
 
 type UErrorCode = CInt
@@ -57,16 +57,14 @@ throwOnError code = do
 
 withError :: (Ptr UErrorCode -> IO a) -> IO (ErrorCode, a)
 {-# INLINE withError #-}
-withError action = alloca $ \errPtr -> do
-                     poke errPtr 0
+withError action = with 0 $ \errPtr -> do
                      ret <- action errPtr
                      err <- peek errPtr
                      return (ErrorCode err, ret)
 
 handleError :: (Ptr UErrorCode -> IO a) -> IO a
 {-# INLINE handleError #-}
-handleError action = alloca $ \errPtr -> do
-                       poke errPtr 0
+handleError action = with 0 $ \errPtr -> do
                        ret <- action errPtr
                        throwOnError =<< peek errPtr
                        return ret

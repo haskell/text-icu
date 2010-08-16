@@ -27,8 +27,7 @@ import Data.Text.ICU.Collate.Internal
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
 import Data.Text.ICU.Internal (UChar, asOrdering)
 import Foreign.C.String (CString, withCString)
-import Foreign.ForeignPtr (newForeignPtr)
-import Foreign.Ptr (FunPtr, Ptr, nullPtr)
+import Foreign.Ptr (Ptr, nullPtr)
 
 -- | Open a 'Collator' for comparing strings.
 --
@@ -40,8 +39,7 @@ import Foreign.Ptr (FunPtr, Ptr, nullPtr)
 open :: Maybe String
      -- ^ The locale containing the required collation rules.
      -> IO Collator
-open loc = do
-  fmap Collator . newForeignPtr ucol_close =<< withName loc (handleError . ucol_open)
+open loc = wrap =<< withName loc (handleError . ucol_open)
  where
    withName Nothing act = act nullPtr
    withName (Just n) act = withCString n act
@@ -57,9 +55,6 @@ collate c a b =
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ucol_open" ucol_open
     :: CString -> Ptr UErrorCode -> IO (Ptr UCollator)
-
-foreign import ccall unsafe "hs_text_icu.h &__hs_ucol_close" ucol_close
-    :: FunPtr (Ptr UCollator -> IO ())
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ucol_strcoll" ucol_strcoll
     :: Ptr UCollator -> Ptr UChar -> Int32 -> Ptr UChar -> Int32

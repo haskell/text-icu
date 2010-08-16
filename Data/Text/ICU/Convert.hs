@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, ForeignFunctionInterface #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
 -- |
 -- Module      : Data.Text.ICU.Convert
 -- Copyright   : (c) 2009, 2010 Bryan O'Sullivan
