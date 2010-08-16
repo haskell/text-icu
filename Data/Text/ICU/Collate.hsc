@@ -29,19 +29,19 @@ module Data.Text.ICU.Collate
 
 import Data.Int (Int32)
 import Data.Text (Text)
-import qualified Data.Text.ICU.Collate.IO as IO
-import Data.Text.ICU.Collate.Internal hiding (Collator)
+import Data.Text.ICU.Collate.Internal (MCollator, UCollator, withCollator, wrap)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
 import Data.Typeable (Typeable)
 import Foreign.Marshal.Utils (with)
 import Foreign.Ptr (Ptr, nullPtr)
 import System.IO.Unsafe (unsafePerformIO)
+import qualified Data.Text.ICU.Collate.IO as IO
 
 -- $api
 --
 
 -- | String collator type.
-newtype Collator = C IO.Collator
+newtype Collator = C MCollator
     deriving (Typeable)
 
 -- | Open an immutable 'Collator' for comparing strings.
@@ -56,10 +56,10 @@ open :: Maybe String
      -> IO Collator
 open loc = C `fmap` IO.open loc
 
--- | Make a safe copy of a mutable 'IO.Collator' for use in pure code.
--- Subsequent changes to the 'IO.Collator' will not affect the state
--- of the returned 'Collator'.
-freeze :: IO.Collator -> IO Collator
+-- | Make a safe copy of a mutable 'MCollator' for use in pure code.
+-- Subsequent changes to the 'MCollator' will not affect the state of
+-- the returned 'Collator'.
+freeze :: MCollator -> IO Collator
 freeze c = do
   p <- withCollator c $ \cptr ->
     with (#const U_COL_SAFECLONE_BUFFERSIZE)

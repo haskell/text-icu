@@ -15,7 +15,7 @@ module Data.Text.ICU.Collate.IO
     (
     -- * Unicode collation API
     -- $api
-      Collator
+      MCollator
     , open
     , collate
     ) where
@@ -23,11 +23,17 @@ module Data.Text.ICU.Collate.IO
 import Data.Int (Int32)
 import Data.Text (Text)
 import Data.Text.Foreign (useAsPtr)
-import Data.Text.ICU.Collate.Internal
+import Data.Text.ICU.Collate.Internal (MCollator, UCollator, withCollator, wrap)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
 import Data.Text.ICU.Internal (UChar, asOrdering)
 import Foreign.C.String (CString, withCString)
+import Foreign.C.Types (CInt)
 import Foreign.Ptr (Ptr, nullPtr)
+
+-- $api
+--
+
+type UCollationResult = CInt
 
 -- | Open a 'Collator' for comparing strings.
 --
@@ -38,14 +44,14 @@ import Foreign.Ptr (Ptr, nullPtr)
 --   be used.
 open :: Maybe String
      -- ^ The locale containing the required collation rules.
-     -> IO Collator
+     -> IO MCollator
 open loc = wrap =<< withName loc (handleError . ucol_open)
  where
    withName Nothing act = act nullPtr
    withName (Just n) act = withCString n act
 
 -- | Compare two strings.
-collate :: Collator -> Text -> Text -> IO Ordering
+collate :: MCollator -> Text -> Text -> IO Ordering
 collate c a b =
   withCollator c $ \cptr ->
     useAsPtr a $ \aptr alen ->

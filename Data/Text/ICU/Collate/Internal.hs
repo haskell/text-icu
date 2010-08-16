@@ -13,15 +13,13 @@
 module Data.Text.ICU.Collate.Internal
     (
     -- * Unicode collation API
-      Collator(..)
+      MCollator(..)
     , UCollator
-    , UCollationResult
     , withCollator
     , wrap
     ) where
 
 import Data.Typeable (Typeable)
-import Foreign.C.Types (CInt)
 import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, withForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr)
 
@@ -30,18 +28,16 @@ import Foreign.Ptr (FunPtr, Ptr)
 
 data UCollator
 
-type UCollationResult = CInt
-
 -- | String collator type.
-data Collator = Collator {-# UNPACK #-} !(ForeignPtr UCollator)
-                deriving (Typeable)
+data MCollator = MCollator {-# UNPACK #-} !(ForeignPtr UCollator)
+                 deriving (Typeable)
 
-withCollator :: Collator -> (Ptr UCollator -> IO a) -> IO a
-withCollator (Collator col) action = withForeignPtr col action
+withCollator :: MCollator -> (Ptr UCollator -> IO a) -> IO a
+withCollator (MCollator col) action = withForeignPtr col action
 {-# INLINE withCollator #-}
 
-wrap :: Ptr UCollator -> IO Collator
-wrap = fmap Collator . newForeignPtr ucol_close
+wrap :: Ptr UCollator -> IO MCollator
+wrap = fmap MCollator . newForeignPtr ucol_close
 {-# INLINE wrap #-}
 
 foreign import ccall unsafe "hs_text_icu.h &__hs_ucol_close" ucol_close
