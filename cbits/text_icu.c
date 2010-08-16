@@ -1,5 +1,15 @@
 #include "hs_text_icu.h"
 
+UCollator* __hs_ucol_open(const char *loc, UErrorCode *status)
+{
+    return ucol_open(loc, status);
+}
+
+void __hs_ucol_close(UCollator *coll)
+{
+    ucol_close(coll);
+}
+
 int __get_max_bytes_for_string(UConverter *cnv, int src_length)
 {
     return UCNV_GET_MAX_BYTES_FOR_STRING(src_length, ucnv_getMaxCharSize(cnv));

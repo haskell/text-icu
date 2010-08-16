@@ -3,10 +3,16 @@
 #endif
 
 #include "unicode/utypes.h"
+#include "unicode/ucol.h"
 #include "unicode/ucnv.h"
 #include "unicode/unorm.h"
 
 #include <stdint.h>
+
+/* ucol.h */
+
+UCollator* __hs_ucol_open(const char *loc, UErrorCode *status);
+void __hs_ucol_close(UCollator *coll);
 
 /* ucnv.h */
 
