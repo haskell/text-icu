@@ -27,6 +27,7 @@ module Data.Text.ICU
     -- ** Locale-sensitive string comparison
     , uca
     , collate
+    , sortKey
     ) where
 
 import Data.Text.ICU.Collate

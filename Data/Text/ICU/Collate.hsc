@@ -23,10 +23,12 @@ module Data.Text.ICU.Collate
     , open
     , freeze
     , collate
+    , sortKey
     ) where
 
 #include <unicode/ucol.h>
 
+import Data.ByteString (ByteString)
 import Data.Int (Int32)
 import Data.Text (Text)
 import Data.Text.ICU.Collate.Internal (MCollator, UCollator, withCollator, wrap)
@@ -70,6 +72,14 @@ freeze c = do
 collate :: Collator -> Text -> Text -> Ordering
 collate (C c) a b = unsafePerformIO $ IO.collate c a b
 {-# INLINE collate #-}
+
+-- | Create a key for sorting the 'Text' using the given 'Collator'.
+-- The result of comparing two 'ByteString's that have been
+-- transformed with 'sortKey' will be the same as the result of
+-- 'collate' on the two untransformed 'Text's.
+sortKey :: Collator -> Text -> ByteString
+sortKey (C c) = unsafePerformIO . IO.sortKey c
+{-# INLINE sortKey #-}
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ucol_safeClone" ucol_safeClone
         :: Ptr UCollator -> Ptr a -> Ptr Int32 -> Ptr UErrorCode

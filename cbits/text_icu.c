@@ -25,6 +25,13 @@ UCollator* __hs_ucol_safeClone(const UCollator *coll,
     return ucol_safeClone(coll, stackBuffer, pBufferSize, status);
 }
 
+int32_t __hs_ucol_getSortKey(const UCollator *coll,
+			     const UChar *source, int32_t sourceLength,
+			     uint8_t *result, int32_t resultLength)
+{
+    return ucol_getSortKey(coll, source, sourceLength, result, resultLength);
+}
+
 int __get_max_bytes_for_string(UConverter *cnv, int src_length)
 {
     return UCNV_GET_MAX_BYTES_FOR_STRING(src_length, ucnv_getMaxCharSize(cnv));
