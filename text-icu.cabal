@@ -1,66 +1,28 @@
 name:           text-icu
-version:        0.2.1
+version:        0.1
 synopsis:       Bindings to the ICU library
 description:    Haskell bindings to the International Components for
-                Unicode (ICU) libraries version 4.0.1.  These libraries provide
+                Unicode (ICU) libraries.  These libraries provide
                 robust and full-featured Unicode services on a wide
-                variety of platforms. See <http://site.icu-project.org/>
-		for a detailed description of the project and the library. 
-		You can find the user guide for the ICU library at 
-		<http://userguide.icu-project.org/> and the API documentation at
-		<http://icu-project.org/apiref/icu4c/>. The ICU library is not 
-		part of the Haskell binding and has to be installed separately. 
-		It can be downloaded from <http://site.icu-project.org/download>.
+                variety of platforms.
 maintainer:     Bryan O'Sullivan <bos@serpentine.com>
 copyright:      2009 Bryan O'Sullivan
-category:       Data,Text
+category:       Data, Text
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
 cabal-version:  >= 1.2
 extra-source-files: README
 
-Flag Developer
-  Description: Operate in developer mode
-  Default:     False
-
-Flag Happstack
-  Description: Enable Happstack serialization. If this is enabled compilation depends on happstack-data and happstack-state (among others).
-  Default:     False
-
-Flag StringTemplate
-  Description: Enable StringTemplate instances. If this is enabled compilation depends on HStringTemplate (among others).
-  Default:     False
-
 library
-  build-depends:     base<5,bytestring,text,containers
+  build-depends:     base < 5, bytestring, text
   if impl(ghc >= 6.10)
-    build-depends:   base>=4
+    build-depends:   base >= 4
 
   exposed-modules:
-      Data.Text.ICU
       Data.Text.ICU.Converter
       Data.Text.ICU.Error
       Data.Text.ICU.Normalizer
-      Data.Text.ICU.Locale
-      Data.Text.ICU.NumberFormat
-      Data.Text.ICU.Calendar
-      Data.Text.ICU.Enumeration
-      Data.Text.ICU.DateTimeFormat
-      Data.Text.ICU.FieldPosition
-      Data.Text.ICU.Format
-  other-modules:
-      Data.Text.ICU.Error.Codes
-      Data.Text.ICU.Locale.Internal
-
-  if flag(Happstack)
-      build-depends: happstack-data,happstack-state,monads-fd,binary
-      exposed-modules:
-          Data.Text.ICU.Happstack
-  if flag(StringTemplate)
-      build-depends: HStringTemplate
-      exposed-modules:
-          Data.Text.ICU.StringTemplate
   other-modules:
       Data.Text.ICU.Converter.Internal
       Data.Text.ICU.Error.Internal
@@ -72,8 +34,6 @@ library
   else
     extra-libraries: icui18n icudata
 
-  ghc-options: -Wall -funbox-strict-fields
+  ghc-options: -Wall
   if impl(ghc >= 6.8)
     ghc-options: -fwarn-tabs
-  if flag(Developer)
-    ghc-options: -Werror

@@ -18,8 +18,7 @@ module Data.Text.ICU.Converter.Internal
     , withConverter
     ) where
 
-import Data.Text.ICU.Error.Codes (UErrorCode)
-import Data.Text.ICU.Error.Internal (handleError)
+import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
 import Data.Typeable (Typeable)
 import Foreign.C.String (CString, peekCString)
 import Foreign.ForeignPtr (ForeignPtr, withForeignPtr)

@@ -1,23 +1,40 @@
+{-# LANGUAGE DeriveDataTypeable, ForeignFunctionInterface #-}
+
 module Data.Text.ICU.Error.Internal
     (
+    -- * Types
+      ErrorCode(..)
+    -- ** Low-level types
+    , UErrorCode
     -- * Functions
-      isFailure
+    , isFailure
     , isSuccess
+    , errorName
     , handleError
-    , preflight
     , throwOnError
     , withError
     ) where
 
-import Control.Exception (throw)
-import Data.Int (Int32)
-import Data.Text.ICU.Error.Codes (ErrorCode(..), UErrorCode,
-                                  u_BUFFER_OVERFLOW_ERROR)
-import Foreign.C.String (CString, peekCAStringLen)
-import Foreign.Marshal.Alloc (alloca)
-import Foreign.Marshal.Array (allocaArray0)
-import Foreign.Ptr (Ptr)
-import Foreign.Storable (peek, poke)
+import Control.Exception
+import Foreign.Ptr
+import Foreign.Marshal.Alloc
+import Data.Typeable (Typeable)
+import Foreign.C.String (CString, peekCString)
+import Foreign.C.Types (CInt)
+import Foreign.Storable
+import System.IO.Unsafe (unsafePerformIO)
+
+type UErrorCode = CInt
+
+-- | ICU error code.
+newtype ErrorCode = ErrorCode {
+      fromErrorCode :: UErrorCode
+    } deriving (Eq, Typeable)
+
+instance Show ErrorCode where
+    show code = "ErrorCode " ++ errorName code
+
+instance Exception ErrorCode
 
 -- | Indicate whether the given error code is a success.
 isSuccess :: ErrorCode -> Bool
@@ -38,8 +55,6 @@ throwOnError code = do
     then throw err
     else return ()
 
--- | Perform an action that might return an error, and return both the
--- error code and the action's result.
 withError :: (Ptr UErrorCode -> IO a) -> IO (ErrorCode, a)
 {-# INLINE withError #-}
 withError action = alloca $ \errPtr -> do
@@ -48,8 +63,6 @@ withError action = alloca $ \errPtr -> do
                      err <- peek errPtr
                      return (ErrorCode err, ret)
 
--- | Perform an action that might return an error.  If an error does
--- indeed result, throw it as an exception.
 handleError :: (Ptr UErrorCode -> IO a) -> IO a
 {-# INLINE handleError #-}
 handleError action = alloca $ \errPtr -> do
@@ -58,25 +71,10 @@ handleError action = alloca $ \errPtr -> do
                        throwOnError =<< peek errPtr
                        return ret
 
--- | Perform an action that is preflight-capable, i.e. one that fills
--- out a caller-supplied buffer and indicates whether the buffer was
--- too small.
---
--- * If the buffer was too small, rerun the action with a
---   correctly-sized buffer.
---
--- * If some other error occurred, throw it as an exception.
---
--- * Otherwise, return the filled-out buffer as a Haskell string.
-preflight :: Int32              -- ^ Initial capacity
-          -> (CString -> Int32 -> Ptr UErrorCode -> IO Int32)
-          -- ^ Preflight-capable action
-          -> IO String
-preflight capacity act =
-    allocaArray0 (fromIntegral capacity) $ \buf -> do
-      (err,actualSize) <- withError $ act buf capacity
-      if err == u_BUFFER_OVERFLOW_ERROR
-          then preflight actualSize act
-          else if isSuccess err
-               then peekCAStringLen (buf, fromIntegral actualSize)
-               else throw err
+-- | Return a string representing the name of the given error code.
+errorName :: ErrorCode -> String
+errorName code = unsafePerformIO $
+                 peekCString (u_errorName (fromErrorCode code))
+
+foreign import ccall unsafe "unicode/utypes.h u_errorName_4_0" u_errorName
+    :: UErrorCode -> CString

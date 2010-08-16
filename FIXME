@@ -1,7 +1,0 @@
-﻿Fixes to be made in the future:
-- openNumberFormat does not allow to set all the parameters to unum_open (loss of functionality).
-- formatIntegral, formatRealFrac do not allow to set all parameters to unum_format (loss of functionality).
-- openDateFormat does not allow to set all the parameters to udat_open (loss of functionality).
-- formatDate does not allow to set all the parameters to udat_format (loss of functionality).
-- Modules NumberFormatting, DateTimeFormatting, Calendars, Locales are incomplete.
-- Documentation is incomplete at least in NumberFormatting, Locales.

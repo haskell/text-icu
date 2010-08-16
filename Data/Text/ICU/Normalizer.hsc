@@ -42,8 +42,8 @@ import Control.Exception (throw)
 import Control.Monad (when)
 import Data.Text (Text)
 import Data.Text.Foreign (fromPtr, useAsPtr)
-import Data.Text.ICU.Error.Codes (UErrorCode, u_BUFFER_OVERFLOW_ERROR)
-import Data.Text.ICU.Error.Internal (isFailure, handleError, withError)
+import Data.Text.ICU.Error (u_BUFFER_OVERFLOW_ERROR)
+import Data.Text.ICU.Error.Internal (UErrorCode, isFailure, handleError, withError)
 import Data.Text.ICU.Internal (UBool, UChar, asBool, asOrdering)
 import Data.Typeable (Typeable)
 import Data.Int (Int32)
@@ -70,14 +70,14 @@ import Data.Bits ((.|.))
 -- \"composed\" form):
 --
 -- @
---      &#x00C1;   00C1    LATIN CAPITAL LETTER A WITH ACUTE
+--      00C1    LATIN CAPITAL LETTER A WITH ACUTE
 -- @
 --
 -- or as two separate characters (the \"decomposed\" form):
 --
 -- @
---      &#x0041;   0041    LATIN CAPITAL LETTER A
---      &#x0301;    0301    COMBINING ACUTE ACCENT
+--      0041    LATIN CAPITAL LETTER A
+--      0301    COMBINING ACUTE ACCENT
 -- @
 --
 -- To a user of your program, however, both of these sequences should
@@ -92,15 +92,15 @@ import Data.Bits ((.|.))
 -- Similarly, the string \"ffi\" can be encoded as three separate letters:
 --
 -- @
---      f   0066    LATIN SMALL LETTER F
---      f   0066    LATIN SMALL LETTER F
---      i   0069    LATIN SMALL LETTER I
+--      0066    LATIN SMALL LETTER F
+--      0066    LATIN SMALL LETTER F
+--      0069    LATIN SMALL LETTER I
 -- @
 --
 -- or as the single character
 --
 -- @
---      &#xFB03;   FB03    LATIN SMALL LIGATURE FFI
+--      FB03    LATIN SMALL LIGATURE FFI
 -- @
 --
 -- The \"ffi\" ligature is not a distinct semantic character, and
