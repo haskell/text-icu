@@ -176,7 +176,7 @@ standardNames = filter (not . null) . unsafePerformIO $
 -- | Return the aliases for a given converter or alias name.
 aliases :: String -> [String]
 aliases name = unsafePerformIO . withCString name $ \ptr -> do
-  count <- ucnv_countAliases ptr
+  count <- handleError $ ucnv_countAliases ptr
   if count == 0
     then return []
     else mapM ((peekCString =<<) . handleError . ucnv_getAlias ptr) [0..count-1]
@@ -214,7 +214,7 @@ foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_getAvailableName" ucnv_getA
     :: Int32 -> IO CString
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_countAliases" ucnv_countAliases
-    :: CString -> IO Word16
+    :: CString -> Ptr UErrorCode -> IO Word16
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_getAlias" ucnv_getAlias
     :: CString -> Word16 -> Ptr UErrorCode -> IO CString
