@@ -25,10 +25,7 @@ module Data.Text.ICU.Normalizer
     , quickCheck
     , isNormalized
     -- * Normalization-sensitive comparison
-    , CompareOption
-    , u_INPUT_IS_FCD
-    , u_COMPARE_CODE_POINT_ORDER
-    , u_COMPARE_IGNORE_CASE
+    , CompareOption(..)
     , compare
     ) where
 
@@ -36,6 +33,7 @@ module Data.Text.ICU.Normalizer
 #define U_HAVE_INTTYPES_H 1
 #endif
 
+#include <unicode/uchar.h>
 #include <unicode/unorm.h>
 
 import Control.Exception (throw)
@@ -160,22 +158,41 @@ import Data.Bits ((.|.))
 -- normalized to 'NFC'.  For more usage examples, see the Unicode
 -- Standard Annex.
 
-newtype CompareOption = CompareOption {
-      fromCompareOption :: Word32
-    } deriving (Eq, Typeable)
+type UCompareOption = Word32
 
-foldCompareOptions :: [CompareOption] -> Word32
-foldCompareOptions = foldl' orO 0
+-- | Options to 'compare'.
+data CompareOption = InputIsFCD
+                   -- ^ The caller knows that both strings fulfill the
+                   -- 'FCD' conditions.  If not set, 'compare' will
+                   -- 'quickCheck' for 'FCD' and normalize if
+                   -- necessary.
+                   | CompareCodePointOrder
+                   -- ^ Choose code point order instead of code unit
+                   -- order.
+                   | CompareIgnoreCase
+                   -- ^ Compare strings case-insensitively using case
+                   -- folding, instead of case-sensitively.  If set,
+                   -- then the following case folding options are
+                   -- used.
+                   | FoldCaseExcludeSpecialI
+                   -- ^ When case folding, exclude the special I
+                   -- character.  For use with Turkic
+                   -- (Turkish/Azerbaijani) text data.
+                     deriving (Eq, Show, Enum, Typeable)
+
+fromCompareOption :: CompareOption -> UCompareOption
+fromCompareOption InputIsFCD              = #const UNORM_INPUT_IS_FCD
+fromCompareOption CompareCodePointOrder   = #const U_COMPARE_CODE_POINT_ORDER
+fromCompareOption CompareIgnoreCase       = #const U_COMPARE_IGNORE_CASE
+fromCompareOption FoldCaseExcludeSpecialI = #const U_FOLD_CASE_EXCLUDE_SPECIAL_I
+
+reduceCompareOptions :: [CompareOption] -> UCompareOption
+reduceCompareOptions = foldl' orO (#const U_FOLD_CASE_DEFAULT)
     where a `orO` b = a .|. fromCompareOption b
-
-#{enum CompareOption, CompareOption,
-  u_INPUT_IS_FCD = UNORM_INPUT_IS_FCD,
-  u_COMPARE_CODE_POINT_ORDER = U_COMPARE_CODE_POINT_ORDER,
-  u_COMPARE_IGNORE_CASE = U_COMPARE_IGNORE_CASE
-  }
 
 type UNormalizationMode = CInt
 
+-- | Normalization modes.
 data NormalizationMode
     = None   -- ^ No decomposition/composition.
     | NFD    -- ^ Canonical decomposition.
@@ -253,39 +270,27 @@ isNormalized mode t =
     fmap asBool . handleError $ unorm_isNormalized ptr (fromIntegral len)
                                 (toNM mode)
 
--- | Compare two strings for canonical equivalence.
--- Further options include case-insensitive comparison and
--- code point order (as opposed to code unit order).
+-- | Compare two strings for canonical equivalence.  Further options
+-- include case-insensitive comparison and code point order (as
+-- opposed to code unit order).
 --
--- Canonical equivalence between two strings is defined as their normalized
--- forms (NFD or NFC) being identical.
--- This function compares strings incrementally instead of normalizing
--- (and optionally case-folding) both strings entirely,
--- improving performance significantly.
+-- Canonical equivalence between two strings is defined as their
+-- normalized forms ('NFD' or 'NFC') being identical.  This function
+-- compares strings incrementally instead of normalizing (and
+-- optionally case-folding) both strings entirely, improving
+-- performance significantly.
 --
--- Bulk normalization is only necessary if the strings do not fulfill the FCD
--- conditions. Only in this case, and only if the strings are relatively long,
--- is memory allocated temporarily.
--- For FCD strings and short non-FCD strings there is no memory allocation.
---
--- Options:
---
---  ['u_INPUT_IS_FCD'] Set if the caller knows that both strings fulfill the FCD conditions.
---     If not set, the function will 'quickCheck' for FCD
---     and normalize if necessary.
---
---  ['u_COMPARE_CODE_POINT_ORDER'] Set to choose code point order instead of code unit order.
---
---  ['u_COMPARE_IGNORE_CASE'] Set to compare strings case-insensitively using case folding,
---     instead of case-sensitively.
---     If set, then the following case folding options are used.
+-- Bulk normalization is only necessary if the strings do not fulfill
+-- the FCD conditions. Only in this case, and only if the strings are
+-- relatively long, is memory allocated temporarily.  For FCD strings
+-- and short non-FCD strings there is no memory allocation.
 compare :: [CompareOption] -> Text -> Text -> Ordering
 compare opts a b = unsafePerformIO .
   useAsPtr a $ \aptr alen ->
     useAsPtr b $ \bptr blen ->
       fmap asOrdering . handleError $
       unorm_compare aptr (fromIntegral alen) bptr (fromIntegral blen)
-                    (foldCompareOptions opts)
+                    (reduceCompareOptions opts)
 
 foreign import ccall unsafe "hs_text_icu.h __hs_unorm_compare" unorm_compare
     :: Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> Word32
