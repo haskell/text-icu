@@ -47,9 +47,9 @@ import Foreign.C.String (CString, peekCString, withCString)
 import Foreign.C.Types (CInt)
 import Foreign.ForeignPtr (newForeignPtr)
 import Foreign.Marshal.Array (allocaArray)
-import Foreign.Ptr (FunPtr, Ptr, castPtr, nullPtr)
+import Foreign.Ptr (FunPtr, Ptr, castPtr)
 import System.IO.Unsafe (unsafePerformIO)
-import Data.Text.ICU.Internal (UBool, UChar, asBool, asOrdering)
+import Data.Text.ICU.Internal (UBool, UChar, asBool, asOrdering, withName)
 
 -- | Do a fuzzy compare of two converter/alias names.  The comparison
 -- is case-insensitive, ignores leading zeroes if they are not
@@ -96,14 +96,11 @@ open :: String                  -- ^ Name of the converter to use.
                                 -- (see 'usesFallback' for details).
      -> IO Converter
 open name mf = do
-  c <- fmap Converter . newForeignPtr ucnv_close =<< named (handleError . ucnv_open)
+  c <- fmap Converter . newForeignPtr ucnv_close =<< withName name (handleError . ucnv_open)
   case mf of
     Just f -> withConverter c $ \p -> ucnv_setFallback p . fromIntegral . fromEnum $ f
     _ -> return ()
   return c
-  where named act
-            | null name = act nullPtr
-            | otherwise = withCString name act
 
 -- | Convert the Unicode string into a codepage string using the given
 -- converter.
