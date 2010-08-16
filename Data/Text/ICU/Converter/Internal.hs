@@ -46,5 +46,5 @@ getName cnv = unsafePerformIO .
   withConverter cnv $ \ptr ->
     peekCString =<< handleError (ucnv_getName ptr)
 
-foreign import ccall unsafe "unicode/ucnv.h ucnv_getName_4_0" ucnv_getName
+foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_getName" ucnv_getName
     :: Ptr UConverter -> Ptr UErrorCode -> IO CString

@@ -195,6 +195,7 @@ toNM FCD  = #const UNORM_FCD
 
 type UNormalizationCheckResult = CInt
 
+-- | Result of a fast normalization check using 'quickCheck'.
 data NormalizationCheckResult
     = No      -- ^ Text is not normalized.
     | Perhaps -- ^ It cannot be determined whether text is in normalized 
@@ -286,17 +287,17 @@ compare opts a b = unsafePerformIO .
       unorm_compare aptr (fromIntegral alen) bptr (fromIntegral blen)
                     (foldCompareOptions opts)
 
-foreign import ccall unsafe "unicode/unorm.h unorm_compare_4_0" unorm_compare
+foreign import ccall unsafe "hs_text_icu.h __hs_unorm_compare" unorm_compare
     :: Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> Word32
     -> Ptr UErrorCode -> IO Int32
 
-foreign import ccall unsafe "unicode/unorm.h unorm_quickCheck_4_0" unorm_quickCheck
+foreign import ccall unsafe "hs_text_icu.h __hs_unorm_quickCheck" unorm_quickCheck
     :: Ptr UChar -> Int32 -> UNormalizationMode -> Ptr UErrorCode
     -> IO UNormalizationCheckResult
 
-foreign import ccall unsafe "unicode/unorm.h unorm_isNormalized_4_0" unorm_isNormalized
+foreign import ccall unsafe "hs_text_icu.h __hs_unorm_isNormalized" unorm_isNormalized
     :: Ptr UChar -> Int32 -> UNormalizationMode -> Ptr UErrorCode -> IO UBool
 
-foreign import ccall unsafe "unicode/unorm.h unorm_normalize_4_0" unorm_normalize
+foreign import ccall unsafe "hs_text_icu.h __hs_unorm_normalize" unorm_normalize
     :: Ptr UChar -> Int32 -> UNormalizationMode -> Int32
     -> Ptr UChar -> Int32 -> Ptr UErrorCode -> IO Int32

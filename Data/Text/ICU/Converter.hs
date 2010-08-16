@@ -181,55 +181,55 @@ aliases name = unsafePerformIO . withCString name $ \ptr -> do
     then return []
     else mapM ((peekCString =<<) . handleError . ucnv_getAlias ptr) [0..count-1]
 
-foreign import ccall unsafe "unicode/ucnv.h ucnv_open_4_0" ucnv_open
+foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_open" ucnv_open
     :: CString -> Ptr UErrorCode -> IO (Ptr UConverter)
 
-foreign import ccall unsafe "unicode/ucnv.h &ucnv_close_4_0" ucnv_close
+foreign import ccall unsafe "hs_text_icu.h &__hs_ucnv_close" ucnv_close
     :: FunPtr (Ptr UConverter -> IO ())
 
 foreign import ccall unsafe "__get_max_bytes_for_string" max_bytes_for_string
     :: Ptr UConverter -> CInt -> CInt
 
-foreign import ccall unsafe "unicode/ucnv.h ucnv_toUChars_4_0" ucnv_toUChars
+foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_toUChars" ucnv_toUChars
     :: Ptr UConverter -> Ptr UChar -> Int32 -> CString -> Int32
     -> Ptr UErrorCode -> IO Int32
 
-foreign import ccall unsafe "unicode/ucnv.h ucnv_fromUChars_4_0" ucnv_fromUChars
+foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_fromUChars" ucnv_fromUChars
     :: Ptr UConverter -> CString -> Int32 -> Ptr UChar -> Int32
     -> Ptr UErrorCode -> IO Int32
 
-foreign import ccall unsafe "unicode/ucnv.h ucnv_compareNames_4_0" ucnv_compareNames
+foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_compareNames" ucnv_compareNames
     :: CString -> CString -> IO CInt
 
-foreign import ccall unsafe "unicode/ucnv.h ucnv_getDefaultName_4_0" ucnv_getDefaultName
+foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_getDefaultName" ucnv_getDefaultName
     :: IO CString
 
-foreign import ccall unsafe "unicode/ucnv.h ucnv_setDefaultName_4_0" ucnv_setDefaultName
+foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_setDefaultName" ucnv_setDefaultName
     :: CString -> IO ()
 
-foreign import ccall unsafe "unicode/ucnv.h ucnv_countAvailable_4_0" ucnv_countAvailable
+foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_countAvailable" ucnv_countAvailable
     :: Int32
 
-foreign import ccall unsafe "unicode/ucnv.h ucnv_getAvailableName_4_0" ucnv_getAvailableName
+foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_getAvailableName" ucnv_getAvailableName
     :: Int32 -> IO CString
 
-foreign import ccall unsafe "unicode/ucnv.h ucnv_countAliases_4_0" ucnv_countAliases
+foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_countAliases" ucnv_countAliases
     :: CString -> IO Word16
 
-foreign import ccall unsafe "unicode/ucnv.h ucnv_getAlias_4_0" ucnv_getAlias
+foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_getAlias" ucnv_getAlias
     :: CString -> Word16 -> Ptr UErrorCode -> IO CString
 
-foreign import ccall unsafe "unicode/ucnv.h ucnv_countStandards_4_0" ucnv_countStandards
+foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_countStandards" ucnv_countStandards
     :: Word16
 
-foreign import ccall unsafe "unicode/ucnv.h ucnv_getStandard_4_0" ucnv_getStandard
+foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_getStandard" ucnv_getStandard
     :: Word16 -> Ptr UErrorCode -> IO CString
 
-foreign import ccall unsafe "unicode/ucnv.h ucnv_usesFallback_4_0" ucnv_usesFallback
+foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_usesFallback" ucnv_usesFallback
     :: Ptr UConverter -> IO UBool
 
-foreign import ccall unsafe "unicode/ucnv.h ucnv_setFallback_4_0" ucnv_setFallback
+foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_setFallback" ucnv_setFallback
     :: Ptr UConverter -> UBool -> IO ()
 
-foreign import ccall unsafe "unicode/ucnv.h ucnv_isAmbiguous_4_0" ucnv_isAmbiguous
+foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_isAmbiguous" ucnv_isAmbiguous
     :: Ptr UConverter -> IO UBool

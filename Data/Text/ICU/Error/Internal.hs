@@ -76,5 +76,5 @@ errorName :: ErrorCode -> String
 errorName code = unsafePerformIO $
                  peekCString (u_errorName (fromErrorCode code))
 
-foreign import ccall unsafe "unicode/utypes.h u_errorName_4_0" u_errorName
+foreign import ccall unsafe "hs_text_icu.h __hs_u_errorName" u_errorName
     :: UErrorCode -> CString
