@@ -66,7 +66,7 @@ freeze c = do
       (handleError . ucol_safeClone cptr nullPtr)
   C `fmap` wrap p
 
--- | Compare two strings.
+-- | Compare two strings using the given 'Collator'.
 collate :: Collator -> Text -> Text -> Ordering
 collate (C c) a b = unsafePerformIO $ IO.collate c a b
 {-# INLINE collate #-}
