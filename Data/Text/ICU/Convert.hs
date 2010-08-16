@@ -23,7 +23,6 @@ module Data.Text.ICU.Convert
     -- ** Converter metadata
     , getName
     , usesFallback
-    , setFallback
     , isAmbiguous
     -- * Functions for controlling global behavior
     , getDefaultName
@@ -92,18 +91,25 @@ compareNames a b =
 -- starting with a @\"cp\"@ prefix have no specific meaning other than
 -- its an alias starting with the letters @\"cp\"@. Please do not
 -- associate any meaning to these aliases.
-open :: String -> IO Converter
-open name =
-  fmap Converter . newForeignPtr ucnv_close =<< named (handleError . ucnv_open)
+open :: String                  -- ^ Name of the converter to use.
+     -> Maybe Bool              -- ^ Whether to use fallback mappings
+                                -- (see 'usesFallback' for details).
+     -> IO Converter
+open name mf = do
+  c <- fmap Converter . newForeignPtr ucnv_close =<< named (handleError . ucnv_open)
+  case mf of
+    Just f -> withConverter c $ \p -> ucnv_setFallback p . fromIntegral . fromEnum $ f
+    _ -> return ()
+  return c
   where named act
             | null name = act nullPtr
             | otherwise = withCString name act
 
 -- | Convert the Unicode string into a codepage string using the given
 -- converter.
-fromUnicode :: Converter -> Text -> IO ByteString
+fromUnicode :: Converter -> Text -> ByteString
 fromUnicode cnv t =
-  useAsPtr t $ \tptr tlen ->
+  unsafePerformIO . useAsPtr t $ \tptr tlen ->
     withConverter cnv $ \cptr -> do
       let capacity = fromIntegral . max_bytes_for_string cptr . fromIntegral $
                      lengthWord16 t
@@ -113,9 +119,9 @@ fromUnicode cnv t =
 
 -- | Convert the codepage string into a Unicode string using the given
 -- converter.
-toUnicode :: Converter -> ByteString -> IO Text
+toUnicode :: Converter -> ByteString -> Text
 toUnicode cnv bs =
-  unsafeUseAsCStringLen bs $ \(sptr, slen) ->
+  unsafePerformIO . unsafeUseAsCStringLen bs $ \(sptr, slen) ->
     withConverter cnv $ \cptr -> do
       let capacity = slen * 2
       allocaArray capacity $ \tptr -> 
@@ -124,19 +130,14 @@ toUnicode cnv bs =
                                         (fromIntegral slen))
 
 -- | Determines whether the converter uses fallback mappings or not.
--- This flag has restrictions; see 'setFallback'.
-usesFallback :: Converter -> IO Bool
-usesFallback cnv = asBool `fmap` withConverter cnv ucnv_usesFallback
-
--- | Sets the converter to use fallback mappings or not.  Regardless
--- of this flag, the converter will always use fallbacks from Unicode
--- Private Use code points, as well as reverse fallbacks (to Unicode).
--- For details see \".ucm File Format\" in the Conversion Data chapter
--- of the ICU User Guide:
+-- This flag has restrictions.  Regardless of this flag, the converter
+-- will always use fallbacks from Unicode Private Use code points, as
+-- well as reverse fallbacks (to Unicode).  For details see \".ucm
+-- File Format\" in the Conversion Data chapter of the ICU User Guide:
 -- <http://www.icu-project.org/userguide/conversion-data.html#ucmformat>
-setFallback :: Converter -> Bool -> IO ()
-setFallback cnv flag =
-  withConverter cnv $ \p -> (ucnv_setFallback p (fromIntegral (fromEnum flag)))
+usesFallback :: Converter -> Bool
+usesFallback cnv = unsafePerformIO $
+                   asBool `fmap` withConverter cnv ucnv_usesFallback
 
 -- | Returns the current default converter name. If you want to 'open'
 -- a default converter, you do not need to use this function.  It is
