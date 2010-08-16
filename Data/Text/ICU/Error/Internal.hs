@@ -15,13 +15,13 @@ module Data.Text.ICU.Error.Internal
     , withError
     ) where
 
-import Control.Exception
-import Foreign.Ptr
-import Foreign.Marshal.Alloc
+import Control.Exception (Exception, throw)
+import Foreign.Ptr (Ptr)
+import Foreign.Marshal.Alloc (alloca)
 import Data.Typeable (Typeable)
 import Foreign.C.String (CString, peekCString)
 import Foreign.C.Types (CInt)
-import Foreign.Storable
+import Foreign.Storable (peek, poke)
 import System.IO.Unsafe (unsafePerformIO)
 
 type UErrorCode = CInt
