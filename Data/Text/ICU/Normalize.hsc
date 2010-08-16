@@ -1,5 +1,4 @@
-{-# LANGUAGE CPP, DeriveDataTypeable, ForeignFunctionInterface,
-    GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE CPP, DeriveDataTypeable, ForeignFunctionInterface #-}
 -- |
 -- Module      : Data.Text.ICU.Normalize
 -- Copyright   : (c) 2009, 2010 Bryan O'Sullivan
