@@ -10,6 +10,7 @@ module Data.Text.ICU.Internal
     , asOrdering
     , withCharIterator
     , withName
+    , withMName
     ) where
 
 #include <unicode/uiter.h>
@@ -74,6 +75,10 @@ withName :: String -> (CString -> IO a) -> IO a
 withName name act
     | null name = act nullPtr
     | otherwise = withCString name act
+
+withMName :: Maybe String -> (CString -> IO a) -> IO a
+withMName Nothing act = act nullPtr
+withMName (Just n) act = withCString n act
 
 foreign import ccall unsafe "hs_text_icu.h __hs_uiter_setString" uiter_setString
     :: Ptr UCharIterator -> Ptr UChar -> Int32 -> IO ()

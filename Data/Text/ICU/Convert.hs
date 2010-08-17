@@ -11,7 +11,6 @@
 -- Character set conversion functions for Unicode, implemented as
 -- bindings to the International Components for Unicode (ICU)
 -- libraries.
-
 module Data.Text.ICU.Convert
     (
     -- * Character set conversion

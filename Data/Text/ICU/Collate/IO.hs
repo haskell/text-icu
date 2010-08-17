@@ -32,7 +32,7 @@ import Data.Text.Foreign (useAsPtr)
 import Data.Text.ICU.Collate.Internal (MCollator, UCollator, withCollator, wrap)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
 import Data.Text.ICU.Internal (UChar, CharIterator, UCharIterator, asOrdering,
-                               withCharIterator)
+                               withCharIterator, withMName)
 import Data.Word (Word8)
 import Foreign.C.String (CString, withCString)
 import Foreign.C.Types (CInt)
@@ -54,10 +54,7 @@ type UCollationResult = CInt
 open :: Maybe String
      -- ^ The locale containing the required collation rules.
      -> IO MCollator
-open loc = wrap =<< withName loc (handleError . ucol_open)
- where
-   withName Nothing act = act nullPtr
-   withName (Just n) act = withCString n act
+open loc = wrap =<< withMName loc (handleError . ucol_open)
 
 -- | Compare two strings.
 collate :: MCollator -> Text -> Text -> IO Ordering
