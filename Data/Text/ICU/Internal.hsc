@@ -26,6 +26,13 @@ import Foreign.ForeignPtr (withForeignPtr)
 import Foreign.Ptr (Ptr, castPtr, nullPtr)
 import Foreign.Storable (Storable(..))
 
+-- | A type that supports efficient iteration over Unicode characters.
+--
+-- As an example of where this may be useful, a function using this
+-- type may be able to iterate over a UTF-8 'ByteString' directly,
+-- rather than first copying and converting it to an intermediate
+-- form.  This type also allows e.g. comparison between 'Text' and
+-- 'ByteString', with minimal overhead.
 data CharIterator = CIText !Text
                   | CIUTF8 !ByteString
 
