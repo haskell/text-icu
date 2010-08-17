@@ -280,9 +280,9 @@ isNormalized mode t =
 -- performance significantly.
 --
 -- Bulk normalization is only necessary if the strings do not fulfill
--- the FCD conditions. Only in this case, and only if the strings are
--- relatively long, is memory allocated temporarily.  For FCD strings
--- and short non-FCD strings there is no memory allocation.
+-- the 'FCD' conditions. Only in this case, and only if the strings
+-- are relatively long, is memory allocated temporarily.  For 'FCD'
+-- strings and short non-'FCD' strings there is no memory allocation.
 compare :: [CompareOption] -> Text -> Text -> Ordering
 compare opts a b = unsafePerformIO .
   useAsPtr a $ \aptr alen ->

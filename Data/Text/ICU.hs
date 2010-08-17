@@ -11,7 +11,7 @@
 -- Commonly used functions for Unicode, implemented as bindings to the
 -- International Components for Unicode (ICU) libraries.
 --
--- This module contains only a handful of commonly used types and
+-- This module contains only the most commonly used types and
 -- functions.  Other modules in this package expose richer interfaces.
 module Data.Text.ICU
     (
