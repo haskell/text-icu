@@ -18,18 +18,21 @@ module Data.Text.ICU.Collate.IO
       MCollator
     , open
     , collate
+    , collateIter
     , sortKey
     ) where
 
 import Data.ByteString (empty)
-import Data.ByteString.Internal (ByteString(..), create, mallocByteString, memcpy)
+import Data.ByteString.Internal (ByteString(..), create, mallocByteString,
+                                 memcpy)
 import Data.Int (Int32)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.Foreign (useAsPtr)
 import Data.Text.ICU.Collate.Internal (MCollator, UCollator, withCollator, wrap)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
-import Data.Text.ICU.Internal (UChar, asOrdering)
+import Data.Text.ICU.Internal (UChar, CharIterator, UCharIterator, asOrdering,
+                               withCharIterator)
 import Data.Word (Word8)
 import Foreign.C.String (CString, withCString)
 import Foreign.C.Types (CInt)
@@ -65,6 +68,17 @@ collate c a b =
         fmap asOrdering . handleError $
         ucol_strcoll cptr aptr (fromIntegral alen) bptr (fromIntegral blen)
 
+-- | Compare two 'CharIterator's.
+--
+-- If either iterator was constructed from a 'ByteString', it does not
+-- need to be copied or converted beforehand, so this function can be
+-- quite cheap.
+collateIter :: MCollator -> CharIterator -> CharIterator -> IO Ordering
+collateIter c a b =
+  fmap asOrdering . withCollator c $ \cptr ->
+    withCharIterator a $ \ai ->
+      withCharIterator b $ handleError . ucol_strcollIter cptr ai
+
 -- | Create a key for sorting the 'Text' using the given 'Collator'.
 -- The result of comparing two 'ByteString's that have been
 -- transformed with 'sortKey' will be the same as the result of
@@ -98,3 +112,7 @@ foreign import ccall unsafe "hs_text_icu.h __hs_ucol_strcoll" ucol_strcoll
 foreign import ccall unsafe "hs_text_icu.h __hs_ucol_getSortKey" ucol_getSortKey
     :: Ptr UCollator -> Ptr UChar -> Int32 -> Ptr Word8 -> Int32
     -> IO Int32
+
+foreign import ccall unsafe "hs_text_icu.h __hs_ucol_strcollIter" ucol_strcollIter
+    :: Ptr UCollator -> Ptr UCharIterator -> Ptr UCharIterator -> Ptr UErrorCode
+    -> IO UCollationResult

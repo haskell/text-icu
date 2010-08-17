@@ -5,6 +5,7 @@
 #include "unicode/utypes.h"
 #include "unicode/ucol.h"
 #include "unicode/ucnv.h"
+#include "unicode/uiter.h"
 #include "unicode/unorm.h"
 
 #include <stdint.h>
@@ -16,6 +17,10 @@ void __hs_ucol_close(UCollator *coll);
 UCollationResult __hs_ucol_strcoll(const UCollator *coll,
 				   const UChar *source, int32_t sourceLength,
 				   const UChar *target, int32_t targetLength);
+UCollationResult __hs_ucol_strcollIter(const UCollator *coll,
+				       UCharIterator *sIter,
+				       UCharIterator *tIter,
+				       UErrorCode *status);
 UCollator* __hs_ucol_safeClone(const UCollator *coll,
 			       void *stackBuffer,
 			       int32_t *pBufferSize,
@@ -50,6 +55,11 @@ const char *__hs_ucnv_getStandard(uint16_t n, UErrorCode *pErrorCode);
 UBool __hs_ucnv_usesFallback(const UConverter *cnv);
 void __hs_ucnv_setFallback(UConverter *cnv, UBool usesFallback);
 UBool __hs_ucnv_isAmbiguous(const UConverter *cnv);
+
+/* uiter.h */
+
+void __hs_uiter_setString(UCharIterator *iter, const UChar *s, int32_t length);
+void __hs_uiter_setUTF8(UCharIterator *iter, const char *s, int32_t length);
 
 /* unorm.h */
 

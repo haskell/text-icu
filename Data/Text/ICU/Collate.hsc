@@ -23,7 +23,9 @@ module Data.Text.ICU.Collate
     , open
     , freeze
     , collate
+    , collateIter
     , sortKey
+    , uca
     ) where
 
 #include <unicode/ucol.h>
@@ -33,6 +35,7 @@ import Data.Int (Int32)
 import Data.Text (Text)
 import Data.Text.ICU.Collate.Internal (MCollator, UCollator, withCollator, wrap)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
+import Data.Text.ICU.Internal (CharIterator)
 import Data.Typeable (Typeable)
 import Foreign.Marshal.Utils (with)
 import Foreign.Ptr (Ptr, nullPtr)
@@ -68,10 +71,19 @@ freeze c = do
       (handleError . ucol_safeClone cptr nullPtr)
   C `fmap` wrap p
 
--- | Compare two strings using the given 'Collator'.
+-- | Compare two strings.
 collate :: Collator -> Text -> Text -> Ordering
 collate (C c) a b = unsafePerformIO $ IO.collate c a b
 {-# INLINE collate #-}
+
+-- | Compare two 'CharIterator's.
+--
+-- If either iterator was constructed from a 'ByteString', it does not
+-- need to be copied or converted beforehand, so this function can be
+-- quite cheap.
+collateIter :: Collator -> CharIterator -> CharIterator -> Ordering
+collateIter (C c) a b = unsafePerformIO $ IO.collateIter c a b
+{-# INLINE collateIter #-}
 
 -- | Create a key for sorting the 'Text' using the given 'Collator'.
 -- The result of comparing two 'ByteString's that have been
@@ -80,6 +92,11 @@ collate (C c) a b = unsafePerformIO $ IO.collate c a b
 sortKey :: Collator -> Text -> ByteString
 sortKey (C c) = unsafePerformIO . IO.sortKey c
 {-# INLINE sortKey #-}
+
+-- | A 'Collator' that uses the Unicode Collation Algorithm (UCA).
+uca :: Collator
+uca = unsafePerformIO (open (Just "root"))
+{-# NOINLINE uca #-}
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ucol_safeClone" ucol_safeClone
         :: Ptr UCollator -> Ptr a -> Ptr Int32 -> Ptr UErrorCode

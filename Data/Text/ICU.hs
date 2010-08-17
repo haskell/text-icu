@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 -- |
 -- Module      : Data.Text.ICU
 -- Copyright   : (c) 2010 Bryan O'Sullivan
@@ -14,8 +15,12 @@
 -- functions.  Other modules in this package expose richer interfaces.
 module Data.Text.ICU
     (
+    -- * Iteration
+      CharIterator
+    , fromText
+    , fromUtf8
     -- * Normalization
-      NormalizationMode(..)
+    , NormalizationMode(..)
     , normalize
     , NormalizationCheckResult(..)
     , quickCheck
@@ -27,15 +32,11 @@ module Data.Text.ICU
     -- ** Locale-sensitive string comparison
     , uca
     , collate
+    , collateIter
     , sortKey
     ) where
 
 import Data.Text.ICU.Collate
+import Data.Text.ICU.Internal
+import Data.Text.ICU.Iterator
 import Data.Text.ICU.Normalize
-import Prelude hiding (compare)
-import System.IO.Unsafe (unsafePerformIO)
-
--- | A 'Collator' that uses the Unicode Collation Algorithm (UCA).
-uca :: Collator
-uca = unsafePerformIO (open (Just "root"))
-{-# NOINLINE uca #-}

@@ -17,6 +17,14 @@ UCollationResult __hs_ucol_strcoll(const UCollator *coll,
     return ucol_strcoll(coll, source, sourceLength, target, targetLength);
 }
 
+UCollationResult __hs_ucol_strcollIter(const UCollator *coll,
+				       UCharIterator *sIter,
+				       UCharIterator *tIter,
+				       UErrorCode *status)
+{
+    return ucol_strcollIter(coll, sIter, tIter, status);
+}
+
 UCollator* __hs_ucol_safeClone(const UCollator *coll,
 			       void *stackBuffer,
 			       int32_t *pBufferSize,
@@ -130,6 +138,16 @@ void __hs_ucnv_setFallback(UConverter *cnv, UBool usesFallback)
 UBool __hs_ucnv_isAmbiguous(const UConverter *cnv)
 {
     return ucnv_isAmbiguous(cnv);
+}
+
+void __hs_uiter_setString(UCharIterator *iter, const UChar *s, int32_t length)
+{
+    uiter_setString(iter, s, length);
+}
+
+void __hs_uiter_setUTF8(UCharIterator *iter, const char *s, int32_t length)
+{
+    uiter_setUTF8(iter, s, length);
 }
 
 int32_t __hs_unorm_compare(const UChar *s1, int32_t length1,
