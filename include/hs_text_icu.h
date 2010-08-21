@@ -19,6 +19,7 @@ UBreakIterator* __hs_ubrk_open(UBreakIteratorType type, const char *locale,
 			       const UChar *text, int32_t textLength,
 			       UErrorCode *status);
 void __hs_ubrk_close(UBreakIterator *bi);
+int32_t __hs_ubrk_first(UBreakIterator *bi);
 int32_t __hs_ubrk_next(UBreakIterator *bi);
 
 /* ucol.h */

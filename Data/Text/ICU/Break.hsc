@@ -13,20 +13,21 @@
 module Data.Text.ICU.Break
     (
       Break(..)
+    , BreakIterator
     , break
+    , open
     ) where
 
 #include <unicode/ubrk.h>
 
 import Data.Int (Int32)
 import Data.Text (Text)
-import Data.Text.Foreign (lengthWord16, unsafeCopyToPtr)
+import Data.Text.Foreign (useAsPtr)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
 import Data.Text.ICU.Internal (LocaleName, UChar, withLocaleName)
-import Data.Word (Word16)
 import Foreign.C.String (CString)
 import Foreign.C.Types (CInt)
-import Foreign.ForeignPtr (ForeignPtr, mallocForeignPtrBytes, newForeignPtr, withForeignPtr)
+import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, withForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr)
 import System.IO.Unsafe (unsafeInterleaveIO, unsafePerformIO)
 import Prelude hiding (break)
@@ -44,28 +45,24 @@ fromBreak Word      = #const UBRK_WORD
 fromBreak Line      = #const UBRK_LINE
 fromBreak Sentence  = #const UBRK_SENTENCE
 
-data BreakIterator = BI (ForeignPtr Word16) (ForeignPtr UBreakIterator)
+newtype BreakIterator = BI (ForeignPtr UBreakIterator)
 
+-- | Create a new 'BreakIterator' for locating text boundaries in the
+-- specified locale.
 open :: Break -> LocaleName -> Text -> IO BreakIterator
-open brk loc t = withLocaleName loc $ \locale -> do
-  let len = lengthWord16 t
-  ws <- mallocForeignPtrBytes len
-  withForeignPtr ws $ \ptr -> do
-    unsafeCopyToPtr t ptr
+open brk loc t = withLocaleName loc $ \locale ->
+  useAsPtr t $ \ptr len -> do
     bi <- handleError $ ubrk_open (fromBreak brk) locale ptr (fromIntegral len)
-    BI ws `fmap` newForeignPtr ubrk_close bi
+    BI `fmap` newForeignPtr ubrk_close bi
 
 breakWith :: (Int32 -> IO a) -> Break -> LocaleName -> Text -> [a]
 breakWith act brk loc t = unsafePerformIO $ do
-  BI _ bi <- open brk loc t
-  let loop = do
-        b <- withForeignPtr bi ubrk_next
-        if b == #const UBRK_DONE
-          then return []
-          else do
-            !c <- act b
-            (c:) `fmap` loop
-  unsafeInterleaveIO loop
+  BI bi <- open brk loc t
+  let loop (#const UBRK_DONE) = return []
+      loop b = do
+        !c <- act b
+        (c:) `fmap` (withForeignPtr bi ubrk_next >>= loop)
+  unsafeInterleaveIO $ withForeignPtr bi ubrk_first >>= loop
 
 break :: Break -> LocaleName -> Text -> [Int]
 break = breakWith (return . fromIntegral)
@@ -79,6 +76,9 @@ foreign import ccall unsafe "hs_text_icu.h __hs_ubrk_open" ubrk_open
 
 foreign import ccall unsafe "hs_text_icu.h &__hs_ubrk_close" ubrk_close
     :: FunPtr (Ptr UBreakIterator -> IO ())
+
+foreign import ccall unsafe "hs_text_icu.h __hs_ubrk_first" ubrk_first
+    :: Ptr UBreakIterator -> IO Int32
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ubrk_next" ubrk_next
     :: Ptr UBreakIterator -> IO Int32

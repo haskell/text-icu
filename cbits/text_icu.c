@@ -12,6 +12,11 @@ void __hs_ubrk_close(UBreakIterator *bi)
     ubrk_close(bi);
 }
 
+int32_t __hs_ubrk_first(UBreakIterator *bi)
+{
+    return ubrk_first(bi);
+}
+
 int32_t __hs_ubrk_next(UBreakIterator *bi)
 {
     return ubrk_next(bi);
