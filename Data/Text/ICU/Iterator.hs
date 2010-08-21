@@ -21,23 +21,26 @@ module Data.Text.ICU.Iterator
     , fromString
     , fromText
     , fromUtf8
-    -- * Functions
-    , compareIter
     ) where
 
 import Data.ByteString (ByteString)
 import Data.Int (Int32)
 import Data.Text (Text, pack)
-import Data.Text.ICU.Internal (CharIterator(..), UBool, UCharIterator, asOrdering, withCharIterator)
-import Data.Text.ICU.Collate (collateIter, uca)
+import Data.Text.ICU.Internal (CharIterator(..), UCharIterator, asOrdering,
+                               withCharIterator)
 import Foreign.Ptr (Ptr)
 import System.IO.Unsafe (unsafePerformIO)
+
+instance Eq CharIterator where
+    a == b = compareIter a b == EQ
+
+instance Ord CharIterator where
+    compare = compareIter
 
 -- | Compare two 'CharIterator's.
 compareIter :: CharIterator -> CharIterator -> Ordering
 compareIter a b = unsafePerformIO . fmap asOrdering .
-  withCharIterator a $ \ ai ->
-    withCharIterator b $ \ bi -> u_strCompareIter ai bi 1
+  withCharIterator a $ withCharIterator b . u_strCompareIter
 
 -- | Construct a 'CharIterator' from a Unicode string.
 fromString :: String -> CharIterator
@@ -55,11 +58,5 @@ fromUtf8 :: ByteString -> CharIterator
 fromUtf8 = CIUTF8
 {-# INLINE fromUtf8 #-}
 
-instance Eq CharIterator where
-    a == b = collateIter uca a b == EQ
-
-instance Ord CharIterator where
-    compare = collateIter uca
-
 foreign import ccall unsafe "hs_text_icu.h __hs_u_strCompareIter" u_strCompareIter
-    :: Ptr UCharIterator -> Ptr UCharIterator -> UBool -> IO Int32
+    :: Ptr UCharIterator -> Ptr UCharIterator -> IO Int32

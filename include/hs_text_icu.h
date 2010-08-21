@@ -91,3 +91,4 @@ int32_t __hs_u_strToUpper(UChar *dest, int32_t destCapacity,
 int32_t __hs_u_strToLower(UChar *dest, int32_t destCapacity,
 			  const UChar *src, int32_t srcLength,
 			  const char *locale, UErrorCode *pErrorCode);
+int32_t __hs_u_strCompareIter(UCharIterator *iter1, UCharIterator *iter2);
