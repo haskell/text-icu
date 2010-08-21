@@ -18,6 +18,7 @@ module Data.Text.ICU.Iterator
     (
     -- * Types and constructors
       CharIterator
+    , fromString
     , fromText
     , fromUtf8
     -- * Functions
@@ -26,7 +27,7 @@ module Data.Text.ICU.Iterator
 
 import Data.ByteString (ByteString)
 import Data.Int (Int32)
-import Data.Text (Text)
+import Data.Text (Text, pack)
 import Data.Text.ICU.Internal (CharIterator(..), UBool, UCharIterator, asOrdering, withCharIterator)
 import Data.Text.ICU.Collate (collateIter, uca)
 import Foreign.Ptr (Ptr)
@@ -37,6 +38,11 @@ compareIter :: CharIterator -> CharIterator -> Ordering
 compareIter a b = unsafePerformIO . fmap asOrdering .
   withCharIterator a $ \ ai ->
     withCharIterator b $ \ bi -> u_strCompareIter ai bi 1
+
+-- | Construct a 'CharIterator' from a Unicode string.
+fromString :: String -> CharIterator
+fromString = CIText . pack
+{-# INLINE fromString #-}
 
 -- | Construct a 'CharIterator' from a Unicode string.
 fromText :: Text -> CharIterator
