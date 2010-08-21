@@ -34,10 +34,10 @@ import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
 import Data.Text.ICU.Internal (UChar, CharIterator, UCharIterator, asOrdering,
                                withCharIterator, withMName)
 import Data.Word (Word8)
-import Foreign.C.String (CString, withCString)
+import Foreign.C.String (CString)
 import Foreign.C.Types (CInt)
 import Foreign.ForeignPtr (withForeignPtr)
-import Foreign.Ptr (Ptr, nullPtr)
+import Foreign.Ptr (Ptr)
 
 -- $api
 --
