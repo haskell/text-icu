@@ -22,7 +22,6 @@ library
 
   exposed-modules:
       Data.Text.ICU
-      Data.Text.ICU.CaseMap
       Data.Text.ICU.Collate
       Data.Text.ICU.Collate.IO
       Data.Text.ICU.Convert
