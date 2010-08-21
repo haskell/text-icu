@@ -12,14 +12,30 @@ void __hs_ubrk_close(UBreakIterator *bi)
     ubrk_close(bi);
 }
 
+void __hs_ubrk_setText(UBreakIterator* bi, const UChar *text,
+		       int32_t textLength, UErrorCode *status)
+{
+    ubrk_setText(bi, text, textLength, status);
+}
+
 int32_t __hs_ubrk_first(UBreakIterator *bi)
 {
     return ubrk_first(bi);
 }
 
+int32_t __hs_ubrk_last(UBreakIterator *bi)
+{
+    return ubrk_last(bi);
+}
+
 int32_t __hs_ubrk_next(UBreakIterator *bi)
 {
     return ubrk_next(bi);
+}
+
+int32_t __hs_ubrk_previous(UBreakIterator *bi)
+{
+    return ubrk_previous(bi);
 }
 
 UCollator* __hs_ucol_open(const char *loc, UErrorCode *status)
