@@ -2,15 +2,16 @@
 
 module Data.Text.ICU.Internal
     (
-      UBool
+      LocaleName
+    , UBool
     , UChar
     , UCharIterator
     , CharIterator(..)
     , asBool
     , asOrdering
     , withCharIterator
+    , withLocaleName
     , withName
-    , withMName
     ) where
 
 #include <unicode/uiter.h>
@@ -76,9 +77,11 @@ withName name act
     | null name = act nullPtr
     | otherwise = withCString name act
 
-withMName :: Maybe String -> (CString -> IO a) -> IO a
-withMName Nothing act = act nullPtr
-withMName (Just n) act = withCString n act
+type LocaleName = Maybe String
+
+withLocaleName :: LocaleName -> (CString -> IO a) -> IO a
+withLocaleName Nothing act = act nullPtr
+withLocaleName (Just n) act = withCString n act
 
 foreign import ccall unsafe "hs_text_icu.h __hs_uiter_setString" uiter_setString
     :: Ptr UCharIterator -> Ptr UChar -> Int32 -> IO ()

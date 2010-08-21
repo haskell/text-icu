@@ -31,8 +31,8 @@ import qualified Data.Text as T
 import Data.Text.Foreign (useAsPtr)
 import Data.Text.ICU.Collate.Internal (MCollator, UCollator, withCollator, wrap)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
-import Data.Text.ICU.Internal (UChar, CharIterator, UCharIterator, asOrdering,
-                               withCharIterator, withMName)
+import Data.Text.ICU.Internal (LocaleName, UChar, CharIterator, UCharIterator,
+                               asOrdering, withCharIterator, withLocaleName)
 import Data.Word (Word8)
 import Foreign.C.String (CString)
 import Foreign.C.Types (CInt)
@@ -51,10 +51,10 @@ type UCollationResult = CInt
 --
 -- * If ('Just' @\"\"@) or 'Just' @\"root\"@ is passed, UCA rules will
 --   be used.
-open :: Maybe String
+open :: LocaleName
      -- ^ The locale containing the required collation rules.
      -> IO MCollator
-open loc = wrap =<< withMName loc (handleError . ucol_open)
+open loc = wrap =<< withLocaleName loc (handleError . ucol_open)
 
 -- | Compare two strings.
 collate :: MCollator -> Text -> Text -> IO Ordering

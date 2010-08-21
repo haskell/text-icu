@@ -25,7 +25,7 @@ module Data.Text.ICU.CaseMap
 import Data.Bits ((.|.))
 import Data.List (foldl')
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
-import Data.Text.ICU.Internal (withMName)
+import Data.Text.ICU.Internal (LocaleName, withLocaleName)
 import Data.Typeable (Typeable)
 import Data.Word (Word32)
 import Foreign.C.String (CString)
@@ -52,9 +52,9 @@ reduceCaseMapOptions :: [CaseOption] -> Word32
 reduceCaseMapOptions = foldl' (.|.) (#const U_FOLD_CASE_DEFAULT) .
                        map fromCaseMapOption
 
-caseMap :: Maybe String -> [CaseOption] -> CaseMap
+caseMap :: LocaleName -> [CaseOption] -> CaseMap
 caseMap name opts = unsafePerformIO $ do
-  p <- withMName name $ \nptr -> handleError . ucasemap_open nptr .
+  p <- withLocaleName name $ \nptr -> handleError . ucasemap_open nptr .
        reduceCaseMapOptions $ opts
   CaseMap `fmap` newForeignPtr ucasemap_close p
 
