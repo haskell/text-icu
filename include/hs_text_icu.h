@@ -3,6 +3,8 @@
 #endif
 
 #include "unicode/utypes.h"
+
+#include "unicode/ubrk.h"
 #include "unicode/ucol.h"
 #include "unicode/ucnv.h"
 #include "unicode/uiter.h"
@@ -10,6 +12,14 @@
 #include "unicode/ustring.h"
 
 #include <stdint.h>
+
+/* ubrk.h */
+
+UBreakIterator* __hs_ubrk_open(UBreakIteratorType type, const char *locale,
+			       const UChar *text, int32_t textLength,
+			       UErrorCode *status);
+void __hs_ubrk_close(UBreakIterator *bi);
+int32_t __hs_ubrk_next(UBreakIterator *bi);
 
 /* ucol.h */
 

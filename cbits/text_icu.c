@@ -1,5 +1,22 @@
 #include "hs_text_icu.h"
 
+UBreakIterator* __hs_ubrk_open(UBreakIteratorType type, const char *locale,
+			       const UChar *text, int32_t textLength,
+			       UErrorCode *status)
+{
+    return ubrk_open(type, locale, text, textLength, status);
+}
+
+void __hs_ubrk_close(UBreakIterator *bi)
+{
+    ubrk_close(bi);
+}
+
+int32_t __hs_ubrk_next(UBreakIterator *bi)
+{
+    return ubrk_next(bi);
+}
+
 UCollator* __hs_ucol_open(const char *loc, UErrorCode *status)
 {
     return ucol_open(loc, status);
