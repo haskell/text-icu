@@ -19,6 +19,7 @@ module Data.Text.ICU.Internal
 import Data.ByteString.Internal (ByteString(..))
 import Data.Int (Int8, Int32)
 import Data.Text (Text)
+import Data.Text.Encoding (decodeUtf8)
 import Data.Text.Foreign (useAsPtr)
 import Data.Word (Word16)
 import Foreign.C.String (CString, withCString)
@@ -40,7 +41,7 @@ data CharIterator = CIText !Text
 
 instance Show CharIterator where
     show (CIText t)  = show t
-    show (CIUTF8 bs) = show bs
+    show (CIUTF8 bs) = show (decodeUtf8 bs)
 
 data UCharIterator
 
