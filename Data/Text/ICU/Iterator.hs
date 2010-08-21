@@ -1,3 +1,4 @@
+{-# LANGUAGE ForeignFunctionInterface #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -- |
 -- Module      : Data.Text.ICU.Iterator
@@ -15,15 +16,27 @@
 -- counterparts.
 module Data.Text.ICU.Iterator
     (
+    -- * Types and constructors
       CharIterator
     , fromText
     , fromUtf8
+    -- * Functions
+    , compareIter
     ) where
 
 import Data.ByteString (ByteString)
+import Data.Int (Int32)
 import Data.Text (Text)
-import Data.Text.ICU.Internal (CharIterator(..))
+import Data.Text.ICU.Internal (CharIterator(..), UBool, UCharIterator, asOrdering, withCharIterator)
 import Data.Text.ICU.Collate (collateIter, uca)
+import Foreign.Ptr (Ptr)
+import System.IO.Unsafe (unsafePerformIO)
+
+-- | Compare two 'CharIterator's.
+compareIter :: CharIterator -> CharIterator -> Ordering
+compareIter a b = unsafePerformIO . fmap asOrdering .
+  withCharIterator a $ \ ai ->
+    withCharIterator b $ \ bi -> u_strCompareIter ai bi 1
 
 -- | Construct a 'CharIterator' from a Unicode string.
 fromText :: Text -> CharIterator
@@ -41,3 +54,6 @@ instance Eq CharIterator where
 
 instance Ord CharIterator where
     compare = collateIter uca
+
+foreign import ccall unsafe "hs_text_icu.h __hs_u_strCompareIter" u_strCompareIter
+    :: Ptr UCharIterator -> Ptr UCharIterator -> UBool -> IO Int32
