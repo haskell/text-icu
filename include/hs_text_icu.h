@@ -85,3 +85,6 @@ int32_t __hs_unorm_normalize(const UChar *source, int32_t sourceLength,
 int32_t __hs_u_strToUpper(UChar *dest, int32_t destCapacity,
 			  const UChar *src, int32_t srcLength,
 			  const char *locale, UErrorCode *pErrorCode);
+int32_t __hs_u_strToLower(UChar *dest, int32_t destCapacity,
+			  const UChar *src, int32_t srcLength,
+			  const char *locale, UErrorCode *pErrorCode);

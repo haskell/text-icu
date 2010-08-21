@@ -188,3 +188,10 @@ int32_t __hs_u_strToUpper(UChar *dest, int32_t destCapacity,
 {
     return u_strToUpper(dest, destCapacity, src, srcLength, locale, pErrorCode);
 }
+
+int32_t __hs_u_strToLower(UChar *dest, int32_t destCapacity,
+			  const UChar *src, int32_t srcLength,
+			  const char *locale, UErrorCode *pErrorCode)
+{
+    return u_strToLower(dest, destCapacity, src, srcLength, locale, pErrorCode);
+}
