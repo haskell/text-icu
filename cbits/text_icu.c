@@ -195,3 +195,12 @@ int32_t __hs_u_strToLower(UChar *dest, int32_t destCapacity,
 {
     return u_strToLower(dest, destCapacity, src, srcLength, locale, pErrorCode);
 }
+
+int32_t __hs_u_strFoldCase(UChar *dest, int32_t destCapacity,
+			   const UChar *src, int32_t srcLength,
+			   uint32_t options, UErrorCode *pErrorCode)
+{
+    return u_strFoldCase(dest, destCapacity, src, srcLength, options,
+			 pErrorCode);
+}
+
