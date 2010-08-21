@@ -26,31 +26,26 @@ import Foreign.Marshal.Array (allocaArray)
 import Foreign.Ptr (Ptr)
 import System.IO.Unsafe (unsafePerformIO)
 
-toLower :: LocaleName -> Text -> Text
-toLower loc s = unsafePerformIO .
+caseMap :: (Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> CString
+            -> Ptr UErrorCode -> IO Int32)
+        -> LocaleName -> Text -> Text
+caseMap mapFn loc s = unsafePerformIO .
   withLocaleName loc $ \locale ->
     useAsPtr s $ \sptr slen -> do
       let go len = allocaArray len $ \dptr -> do
             n <- fmap fromIntegral . handleError $
-                 u_strToLower dptr (fromIntegral len) sptr
+                 mapFn dptr (fromIntegral len) sptr
                               (fromIntegral slen) locale
             if n > len
               then go n
               else fromPtr dptr n
       go slen
 
+toLower :: LocaleName -> Text -> Text
+toLower = caseMap u_strToLower
+
 toUpper :: LocaleName -> Text -> Text
-toUpper loc s = unsafePerformIO .
-  withLocaleName loc $ \locale ->
-    useAsPtr s $ \sptr slen -> do
-      let go len = allocaArray len $ \dptr -> do
-            n <- fmap fromIntegral . handleError $
-                 u_strToUpper dptr (fromIntegral len) sptr
-                              (fromIntegral slen) locale
-            if n > len
-              then go n
-              else fromPtr dptr n
-      go slen
+toUpper = caseMap u_strToUpper
 
 foreign import ccall unsafe "hs_text_icu.h __hs_u_strToLower" u_strToLower
     :: Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> CString -> Ptr UErrorCode
