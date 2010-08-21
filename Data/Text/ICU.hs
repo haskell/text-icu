@@ -22,6 +22,7 @@ module Data.Text.ICU
     , toUpper
     -- * Iteration
     , CharIterator
+    , fromString
     , fromText
     , fromUtf8
     -- * Normalization
