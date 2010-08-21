@@ -13,6 +13,7 @@
 module Data.Text.ICU.Text
     (
     -- * Case conversion
+    -- $case
       toCaseFold
     , toLower
     , toUpper
@@ -29,7 +30,21 @@ import Foreign.Marshal.Array (allocaArray)
 import Foreign.Ptr (Ptr)
 import System.IO.Unsafe (unsafePerformIO)
 
-toCaseFold :: Bool -> Text -> Text
+-- $case
+--
+-- In some languages, case conversion is a locale- and
+-- context-dependent operation. The case conversion functions in this
+-- module are locale and context sensitive.
+
+-- | Case-fold the characters in a string.
+--
+-- Case folding is locale independent and not context sensitive, but
+-- there is an option for treating the letter I specially for Turkic
+-- languages.  The result may be longer or shorter than the original.
+toCaseFold :: Bool -- ^ Whether to include or exclude mappings for
+                   -- dotted and dotless I and i that are marked with
+                   -- 'I' in @CaseFolding.txt@.
+           -> Text -> Text
 toCaseFold excludeI s = unsafePerformIO .
   useAsPtr s $ \sptr slen -> do
     let opts = fromIntegral . fromEnum $ excludeI
@@ -58,9 +73,17 @@ caseMap mapFn loc s = unsafePerformIO .
               else fromPtr dptr n
       go slen
 
+-- | Lowercase the characters in a string.
+--
+-- Casing is locale dependent and context sensitive.  The result may
+-- be longer or shorter than the original.
 toLower :: LocaleName -> Text -> Text
 toLower = caseMap u_strToLower
 
+-- | Uppercase the characters in a string.
+--
+-- Casing is locale dependent and context sensitive.  The result may
+-- be longer or shorter than the original.
 toUpper :: LocaleName -> Text -> Text
 toUpper = caseMap u_strToUpper
 

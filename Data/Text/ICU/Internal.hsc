@@ -2,7 +2,7 @@
 
 module Data.Text.ICU.Internal
     (
-      LocaleName
+      LocaleName(..)
     , UBool
     , UChar
     , UCharIterator
@@ -77,11 +77,16 @@ withName name act
     | null name = act nullPtr
     | otherwise = withCString name act
 
-type LocaleName = Maybe String
+-- | The name of a locale.
+data LocaleName = Root          -- ^ The root locale.
+                | Locale String -- ^ A specific locale.
+                | Current       -- ^ The program's current locale. 
+                  deriving (Eq, Ord, Read, Show)
 
 withLocaleName :: LocaleName -> (CString -> IO a) -> IO a
-withLocaleName Nothing act = act nullPtr
-withLocaleName (Just n) act = withCString n act
+withLocaleName Current act = act nullPtr
+withLocaleName Root act = withCString "" act
+withLocaleName (Locale n) act = withCString n act
 
 foreign import ccall unsafe "hs_text_icu.h __hs_uiter_setString" uiter_setString
     :: Ptr UCharIterator -> Ptr UChar -> Int32 -> IO ()

@@ -35,7 +35,7 @@ import Data.Int (Int32)
 import Data.Text (Text)
 import Data.Text.ICU.Collate.Internal (MCollator, UCollator, withCollator, wrap)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
-import Data.Text.ICU.Internal (CharIterator)
+import Data.Text.ICU.Internal (CharIterator, LocaleName(..))
 import Data.Typeable (Typeable)
 import Foreign.Marshal.Utils (with)
 import Foreign.Ptr (Ptr, nullPtr)
@@ -51,14 +51,9 @@ newtype Collator = C MCollator
 
 -- | Open an immutable 'Collator' for comparing strings.
 --
--- * If 'Nothing' is passed for the locale, the default locale
---   collation rules will be used.
---
--- * If ('Just' @\"\"@) or 'Just' @\"root\"@ is passed, UCA rules will
---   be used.
-open :: Maybe String
-     -- ^ The locale containing the required collation rules.
-     -> IO Collator
+-- If 'Root' is passed as the locale, UCA collation rules will be
+-- used.
+open :: LocaleName -> IO Collator
 open loc = C `fmap` IO.open loc
 
 -- | Make a safe copy of a mutable 'MCollator' for use in pure code.
@@ -95,7 +90,7 @@ sortKey (C c) = unsafePerformIO . IO.sortKey c
 
 -- | A 'Collator' that uses the Unicode Collation Algorithm (UCA).
 uca :: Collator
-uca = unsafePerformIO (open (Just "root"))
+uca = unsafePerformIO (open Root)
 {-# NOINLINE uca #-}
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ucol_safeClone" ucol_safeClone

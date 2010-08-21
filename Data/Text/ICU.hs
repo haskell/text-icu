@@ -15,8 +15,13 @@
 -- functions.  Other modules in this package expose richer interfaces.
 module Data.Text.ICU
     (
+    -- * Locale support
+      LocaleName(..)
+    , toCaseFold
+    , toLower
+    , toUpper
     -- * Iteration
-      CharIterator
+    , CharIterator
     , fromText
     , fromUtf8
     -- * Normalization
@@ -40,3 +45,4 @@ import Data.Text.ICU.Collate
 import Data.Text.ICU.Internal
 import Data.Text.ICU.Iterator
 import Data.Text.ICU.Normalize
+import Data.Text.ICU.Text
