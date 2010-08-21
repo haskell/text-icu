@@ -28,6 +28,7 @@ library
       Data.Text.ICU.Error
       Data.Text.ICU.Iterator
       Data.Text.ICU.Normalize
+      Data.Text.ICU.Text
   other-modules:
       Data.Text.ICU.Collate.Internal
       Data.Text.ICU.Convert.Internal

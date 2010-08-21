@@ -181,3 +181,10 @@ int32_t __hs_unorm_normalize(const UChar *source, int32_t sourceLength,
     return unorm_normalize(source, sourceLength, mode, options, result,
 			   resultLength, status);
 }
+
+int32_t __hs_u_strToUpper(UChar *dest, int32_t destCapacity,
+			  const UChar *src, int32_t srcLength,
+			  const char *locale, UErrorCode *pErrorCode)
+{
+    return u_strToUpper(dest, destCapacity, src, srcLength, locale, pErrorCode);
+}

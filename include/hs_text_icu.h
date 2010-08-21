@@ -7,6 +7,7 @@
 #include "unicode/ucnv.h"
 #include "unicode/uiter.h"
 #include "unicode/unorm.h"
+#include "unicode/ustring.h"
 
 #include <stdint.h>
 
@@ -78,3 +79,9 @@ int32_t __hs_unorm_normalize(const UChar *source, int32_t sourceLength,
 			     UNormalizationMode mode, int32_t options,
 			     UChar *result, int32_t resultLength,
 			     UErrorCode *status);
+
+/* ustring.h */
+
+int32_t __hs_u_strToUpper(UChar *dest, int32_t destCapacity,
+			  const UChar *src, int32_t srcLength,
+			  const char *locale, UErrorCode *pErrorCode);
