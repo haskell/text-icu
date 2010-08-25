@@ -25,6 +25,7 @@ int32_t __hs_ubrk_first(UBreakIterator *bi);
 int32_t __hs_ubrk_last(UBreakIterator *bi);
 int32_t __hs_ubrk_next(UBreakIterator *bi);
 int32_t __hs_ubrk_previous(UBreakIterator *bi);
+int32_t __hs_ubrk_getRuleStatus(UBreakIterator *bi);
 
 /* ucol.h */
 

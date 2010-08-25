@@ -38,6 +38,11 @@ int32_t __hs_ubrk_previous(UBreakIterator *bi)
     return ubrk_previous(bi);
 }
 
+int32_t __hs_ubrk_getRuleStatus(UBreakIterator *bi)
+{
+    return ubrk_getRuleStatus(bi);
+}
+
 UCollator* __hs_ucol_open(const char *loc, UErrorCode *status)
 {
     return ucol_open(loc, status);
