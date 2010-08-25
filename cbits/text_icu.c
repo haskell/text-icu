@@ -43,6 +43,12 @@ int32_t __hs_ubrk_getRuleStatus(UBreakIterator *bi)
     return ubrk_getRuleStatus(bi);
 }
 
+int32_t __hs_ubrk_getRuleStatusVec(UBreakIterator *bi, int32_t *fillInVec,
+				   int32_t capacity, UErrorCode *status)
+{
+    return ubrk_getRuleStatusVec(bi, fillInVec, capacity, status);
+}
+
 UCollator* __hs_ucol_open(const char *loc, UErrorCode *status)
 {
     return ucol_open(loc, status);

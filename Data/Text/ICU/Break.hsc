@@ -35,6 +35,7 @@ module Data.Text.ICU.Break
     , next
     , previous
     , getStatus
+    , getStatuses
     ) where
 
 #include <unicode/ubrk.h>
@@ -48,7 +49,8 @@ import Data.Text.ICU.Internal (LocaleName, UChar, withLocaleName)
 import Foreign.C.String (CString)
 import Foreign.C.Types (CInt)
 import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, withForeignPtr)
-import Foreign.Ptr (FunPtr, Ptr)
+import Foreign.Marshal.Array (allocaArray, peekArray)
+import Foreign.Ptr (FunPtr, Ptr, nullPtr)
 import Prelude hiding (last)
 
 -- | Line break status.
@@ -179,6 +181,16 @@ previous = asIndex ubrk_previous
 getStatus :: BreakIterator a -> IO a
 getStatus (BI _ f bi) = f `fmap` withForeignPtr bi ubrk_getRuleStatus
 
+-- | Return statuses from all of the break rules that determined the most
+-- recently returned break position.
+getStatuses :: BreakIterator a -> IO [a]
+getStatuses (BI _ f bi) =
+  withForeignPtr bi $ \brk -> do
+    n <- handleError $ ubrk_getRuleStatusVec brk nullPtr 0
+    allocaArray (fromIntegral n) $ \ptr -> do
+      _ <- handleError $ ubrk_getRuleStatusVec brk ptr n
+      map f `fmap` peekArray (fromIntegral n) ptr
+
 type UBreakIteratorType = CInt
 data UBreakIterator
 
@@ -207,3 +219,6 @@ foreign import ccall unsafe "hs_text_icu.h __hs_ubrk_previous" ubrk_previous
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ubrk_getRuleStatus" ubrk_getRuleStatus
     :: Ptr UBreakIterator -> IO Int32
+
+foreign import ccall unsafe "hs_text_icu.h __hs_ubrk_getRuleStatusVec" ubrk_getRuleStatusVec
+    :: Ptr UBreakIterator -> Ptr Int32 -> Int32 -> Ptr UErrorCode -> IO Int32

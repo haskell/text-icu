@@ -26,6 +26,8 @@ int32_t __hs_ubrk_last(UBreakIterator *bi);
 int32_t __hs_ubrk_next(UBreakIterator *bi);
 int32_t __hs_ubrk_previous(UBreakIterator *bi);
 int32_t __hs_ubrk_getRuleStatus(UBreakIterator *bi);
+int32_t __hs_ubrk_getRuleStatusVec(UBreakIterator *bi, int32_t *fillInVec,
+				   int32_t capacity, UErrorCode *status);
 
 /* ucol.h */
 
