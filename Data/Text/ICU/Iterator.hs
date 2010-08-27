@@ -12,6 +12,9 @@
 -- Iteration functions for Unicode, implemented as bindings to the
 -- International Components for Unicode (ICU) libraries.
 --
+-- Unlike the C and C++ @UCharIterator@ type, the Haskell
+-- 'CharIterator' type can safely be used in pure code.
+--
 -- Functions using these iterators may be more efficient than their
 -- counterparts.
 module Data.Text.ICU.Iterator
