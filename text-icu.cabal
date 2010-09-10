@@ -22,7 +22,6 @@ library
 
   exposed-modules:
       Data.Text.ICU
-      Data.Text.ICU.Break
       Data.Text.ICU.Collate
       Data.Text.ICU.Collate.IO
       Data.Text.ICU.Convert
@@ -32,6 +31,7 @@ library
       Data.Text.ICU.Text
       Data.Text.ICU.Types
   other-modules:
+      Data.Text.ICU.Break
       Data.Text.ICU.Collate.Internal
       Data.Text.ICU.Convert.Internal
       Data.Text.ICU.Error.Internal
