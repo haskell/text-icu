@@ -17,8 +17,10 @@ module Data.Text.ICU
     (
     -- * Data representation
     -- $data
-    -- * Locale support
+
+    -- * Types
       LocaleName(..)
+    -- * Case mapping
     , toCaseFold
     , toLower
     , toUpper
@@ -36,14 +38,17 @@ module Data.Text.ICU
     -- ** Normalization-sensitive string comparison
     , CompareOption(..)
     , compare
-    -- ** Locale-sensitive string comparison
-    , uca
+    -- ** Locale-sensitive string collation
+    -- $collate
+    , Collator
+    , collator
     , collate
     , collateIter
     , sortKey
+    , uca
     ) where
 
-import Data.Text.ICU.Collate
+import Data.Text.ICU.Collate.Pure
 import Data.Text.ICU.Internal
 import Data.Text.ICU.Iterator
 import Data.Text.ICU.Normalize
@@ -66,3 +71,9 @@ import Data.Text (Text)
 -- system heap.  The copied strings are still managed automatically,
 -- but the need to duplicate data does add some performance and memory
 -- overhead.
+
+-- $collate
+--
+-- For the impure collation API (which is richer, but less easy to
+-- use than the pure API), see the 'Data.Text.ICU.Collate'
+-- module.
