@@ -13,12 +13,6 @@ module Data.Text.ICU.Types
     (
     -- * Widely used types
       LocaleName(..)
-    -- * Normalization
-    , CompareOption(..)
-    , NormalizationCheckResult(..)
-    , NormalizationMode(..)
     ) where
 
 import Data.Text.ICU.Internal (LocaleName(..))
-import Data.Text.ICU.Normalize (CompareOption(..), NormalizationMode(..),
-                                NormalizationCheckResult(..))
