@@ -55,10 +55,10 @@ import Data.Bits ((.|.))
 
 -- $api
 --
--- 'normalize' transforms Unicode text into an equivalent composed or
--- decomposed form, allowing for easier sorting and searching of text.
--- 'normalize' supports the standard normalization forms described in
--- <http://www.unicode.org/unicode/reports/tr15/>,
+-- The 'normalize' function transforms Unicode text into an equivalent
+-- composed or decomposed form, allowing for easier sorting and
+-- searching of text.  'normalize' supports the standard normalization
+-- forms described in <http://www.unicode.org/unicode/reports/tr15/>,
 -- Unicode Standard Annex #15: Unicode Normalization Forms.
 --
 -- Characters with accents or other adornments can be encoded in
@@ -162,7 +162,7 @@ type UCompareOption = Word32
 -- | Options to 'compare'.
 data CompareOption = InputIsFCD
                    -- ^ The caller knows that both strings fulfill the
-                   -- 'FCD' conditions.  If not set, 'compare' will
+                   -- 'FCD' conditions.  If /not/ set, 'compare' will
                    -- 'quickCheck' for 'FCD' and normalize if
                    -- necessary.
                    | CompareCodePointOrder
