@@ -3,7 +3,7 @@
 module Data.Text.ICU.Error.Internal
     (
     -- * Types
-      ErrorCode(..)
+      ICUError(..)
     -- ** Low-level types
     , UErrorCode
     -- * Functions
@@ -26,23 +26,25 @@ import System.IO.Unsafe (unsafePerformIO)
 
 type UErrorCode = CInt
 
--- | ICU error code.
-newtype ErrorCode = ErrorCode {
+-- | ICU error type.  This is an instance of the 'Exception' type
+-- class.  A value of this type may be thrown as an exception by most
+-- ICU functions.
+newtype ICUError = ICUError {
       fromErrorCode :: UErrorCode
     } deriving (Eq, Typeable)
 
-instance Show ErrorCode where
-    show code = "ErrorCode " ++ errorName code
+instance Show ICUError where
+    show code = "ICUError " ++ errorName code
 
-instance Exception ErrorCode
+instance Exception ICUError
 
 -- | Indicate whether the given error code is a success.
-isSuccess :: ErrorCode -> Bool
+isSuccess :: ICUError -> Bool
 {-# INLINE isSuccess #-}
 isSuccess = (<= 0) . fromErrorCode
 
 -- | Indicate whether the given error code is a failure.
-isFailure :: ErrorCode -> Bool
+isFailure :: ICUError -> Bool
 {-# INLINE isFailure #-}
 isFailure = (> 0) . fromErrorCode
 
@@ -50,17 +52,17 @@ isFailure = (> 0) . fromErrorCode
 throwOnError :: UErrorCode -> IO ()
 {-# INLINE throwOnError #-}
 throwOnError code = do
-  let err = (ErrorCode code)
+  let err = (ICUError code)
   if isFailure err
     then throw err
     else return ()
 
-withError :: (Ptr UErrorCode -> IO a) -> IO (ErrorCode, a)
+withError :: (Ptr UErrorCode -> IO a) -> IO (ICUError, a)
 {-# INLINE withError #-}
 withError action = with 0 $ \errPtr -> do
                      ret <- action errPtr
                      err <- peek errPtr
-                     return (ErrorCode err, ret)
+                     return (ICUError err, ret)
 
 handleError :: (Ptr UErrorCode -> IO a) -> IO a
 {-# INLINE handleError #-}
@@ -70,7 +72,7 @@ handleError action = with 0 $ \errPtr -> do
                        return ret
 
 -- | Return a string representing the name of the given error code.
-errorName :: ErrorCode -> String
+errorName :: ICUError -> String
 errorName code = unsafePerformIO $
                  peekCString (u_errorName (fromErrorCode code))
 

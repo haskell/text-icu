@@ -1,7 +1,20 @@
+-- |
+-- Module      : Data.Text.ICU.Error
+-- Copyright   : (c) 2010 Bryan O'Sullivan
+--
+-- License     : BSD-style
+-- Maintainer  : bos@serpentine.com
+-- Stability   : experimental
+-- Portability : GHC
+--
+-- Errors thrown by bindings to the International Components for
+-- Unicode (ICU) libraries.
+--
+-- Most ICU functions can throw an 'ICUError' value as an exception.
 module Data.Text.ICU.Error
     (
      -- * Types
-     ErrorCode,
+     ICUError,
 
      -- * Functions
      isSuccess,
@@ -153,7 +166,7 @@ module Data.Text.ICU.Error
 
 import Data.Text.ICU.Error.Internal
 
-#{enum ErrorCode, ErrorCode,
+#{enum ICUError, ICUError,
   u_USING_FALLBACK_WARNING = U_USING_FALLBACK_WARNING,
   u_USING_DEFAULT_WARNING = U_USING_DEFAULT_WARNING,   
   u_SAFECLONE_ALLOCATED_WARNING = U_SAFECLONE_ALLOCATED_WARNING, 
