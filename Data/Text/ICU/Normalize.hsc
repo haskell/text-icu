@@ -165,9 +165,6 @@ data CompareOption = InputIsFCD
                    -- 'FCD' conditions.  If /not/ set, 'compare' will
                    -- 'quickCheck' for 'FCD' and normalize if
                    -- necessary.
-                   | CompareCodePointOrder
-                   -- ^ Choose code point order instead of code unit
-                   -- order.
                    | CompareIgnoreCase
                    -- ^ Compare strings case-insensitively using case
                    -- folding, instead of case-sensitively.  If set,
@@ -181,12 +178,11 @@ data CompareOption = InputIsFCD
 
 fromCompareOption :: CompareOption -> UCompareOption
 fromCompareOption InputIsFCD              = #const UNORM_INPUT_IS_FCD
-fromCompareOption CompareCodePointOrder   = #const U_COMPARE_CODE_POINT_ORDER
 fromCompareOption CompareIgnoreCase       = #const U_COMPARE_IGNORE_CASE
 fromCompareOption FoldCaseExcludeSpecialI = #const U_FOLD_CASE_EXCLUDE_SPECIAL_I
 
 reduceCompareOptions :: [CompareOption] -> UCompareOption
-reduceCompareOptions = foldl' orO (#const U_FOLD_CASE_DEFAULT)
+reduceCompareOptions = foldl' orO (#const U_COMPARE_CODE_POINT_ORDER)
     where a `orO` b = a .|. fromCompareOption b
 
 type UNormalizationMode = CInt
