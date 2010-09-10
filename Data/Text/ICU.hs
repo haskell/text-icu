@@ -30,7 +30,7 @@ module Data.Text.ICU
     -- * Normalization
     , NormalizationMode(..)
     , normalize
-    , NormalizationCheckResult(..)
+    , QuickResult(..)
     , quickCheck
     , isNormalized
     -- * String comparison

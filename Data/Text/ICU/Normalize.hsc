@@ -20,7 +20,7 @@ module Data.Text.ICU.Normalize
     -- * Normalization functions
     , normalize
     -- * Normalization checks
-    , NormalizationCheckResult(..)
+    , QuickResult(..)
     , quickCheck
     , isNormalized
     -- * Normalization-sensitive comparison
@@ -212,14 +212,14 @@ toNM FCD  = #const UNORM_FCD
 type UNormalizationCheckResult = CInt
 
 -- | Result of a fast normalization check using 'quickCheck'.
-data NormalizationCheckResult
+data QuickResult
     = No      -- ^ Text is not normalized.
     | Perhaps -- ^ It cannot be determined whether text is in normalized 
               -- form without further thorough checks.
     | Yes     -- ^ Text is in normalized form.
       deriving (Eq, Show, Enum, Typeable)
                               
-toNCR :: UNormalizationCheckResult -> NormalizationCheckResult
+toNCR :: UNormalizationCheckResult -> QuickResult
 toNCR (#const UNORM_NO)    = No
 toNCR (#const UNORM_MAYBE) = Perhaps
 toNCR (#const UNORM_YES)   = Yes
@@ -250,7 +250,7 @@ normalize mode t = unsafePerformIO . useAsPtr t $ \sptr slen ->
 -- A 'Perhaps' result indicates that a more thorough check is
 -- required, e.g. with 'isNormalized'.  The user may have to put the
 -- string in its normalized form and compare the results.
-quickCheck :: NormalizationMode -> Text -> NormalizationCheckResult
+quickCheck :: NormalizationMode -> Text -> QuickResult
 quickCheck mode t =
   unsafePerformIO . useAsPtr t $ \ptr len ->
     fmap toNCR . handleError $ unorm_quickCheck ptr (fromIntegral len)
