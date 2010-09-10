@@ -59,6 +59,19 @@ void __hs_ucol_close(UCollator *coll)
     ucol_close(coll);
 }
 
+void __hs_ucol_setAttribute(UCollator *coll, UColAttribute attr,
+			    UColAttributeValue value, UErrorCode *status)
+{
+    ucol_setAttribute(coll, attr, value, status);
+}
+
+UColAttributeValue __hs_ucol_getAttribute(const UCollator *coll,
+					  UColAttribute attr,
+					  UErrorCode *status)
+{
+    return ucol_getAttribute(coll, attr, status);
+}
+
 UCollationResult __hs_ucol_strcoll(const UCollator *coll,
 				   const UChar *source, int32_t sourceLength,
 				   const UChar *target, int32_t targetLength)
@@ -87,6 +100,11 @@ int32_t __hs_ucol_getSortKey(const UCollator *coll,
 			     uint8_t *result, int32_t resultLength)
 {
     return ucol_getSortKey(coll, source, sourceLength, result, resultLength);
+}
+
+UBool __hs_ucol_equals(const UCollator *source, const UCollator *target)
+{
+    return ucol_equals(source, target);
 }
 
 int __get_max_bytes_for_string(UConverter *cnv, int src_length)

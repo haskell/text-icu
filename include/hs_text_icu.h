@@ -33,6 +33,11 @@ int32_t __hs_ubrk_getRuleStatusVec(UBreakIterator *bi, int32_t *fillInVec,
 
 UCollator* __hs_ucol_open(const char *loc, UErrorCode *status);
 void __hs_ucol_close(UCollator *coll);
+void __hs_ucol_setAttribute(UCollator *coll, UColAttribute attr,
+			    UColAttributeValue value, UErrorCode *status);
+UColAttributeValue __hs_ucol_getAttribute(const UCollator *coll,
+					  UColAttribute attr,
+					  UErrorCode *status);
 UCollationResult __hs_ucol_strcoll(const UCollator *coll,
 				   const UChar *source, int32_t sourceLength,
 				   const UChar *target, int32_t targetLength);
@@ -47,6 +52,7 @@ UCollator* __hs_ucol_safeClone(const UCollator *coll,
 int32_t __hs_ucol_getSortKey(const UCollator *coll,
 			     const UChar *source, int32_t sourceLength,
 			     uint8_t *result, int32_t resultLength);
+UBool __hs_ucol_equals(const UCollator *source, const UCollator *target);
 
 /* ucnv.h */
 

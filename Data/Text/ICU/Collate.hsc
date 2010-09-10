@@ -12,20 +12,21 @@
 -- bindings to the International Components for Unicode (ICU)
 -- libraries.
 --
--- For the impure collation API (which is more flexible, but less easy
--- to use), see the 'Data.Text.ICU.Collate.IO' module.
+-- For the impure collation API (which is richer, but less easy to
+-- use), see the 'Data.Text.ICU.Collate.IO' module.
 
 module Data.Text.ICU.Collate
     (
     -- * Unicode collation API
     -- $api
       Collator
-    , open
-    , freeze
+    , collator
     , collate
     , collateIter
     , sortKey
     , uca
+    -- * Working with mutable collators
+    , freeze
     ) where
 
 #include <unicode/ucol.h>
@@ -45,16 +46,20 @@ import qualified Data.Text.ICU.Collate.IO as IO
 -- $api
 --
 
--- | String collator type.
+-- | String collator type.  'Collator's are considered equal if they
+-- will sort strings identically.
 newtype Collator = C MCollator
     deriving (Typeable)
 
--- | Open an immutable 'Collator' for comparing strings.
+instance Eq Collator where
+    (C a) == (C b) = unsafePerformIO $ IO.equals a b
+                         
+-- | Create an immutable 'Collator' for comparing strings.
 --
 -- If 'Root' is passed as the locale, UCA collation rules will be
 -- used.
-open :: LocaleName -> IO Collator
-open loc = C `fmap` IO.open loc
+collator :: LocaleName -> Collator
+collator loc = unsafePerformIO $ C `fmap` IO.open loc
 
 -- | Make a safe copy of a mutable 'MCollator' for use in pure code.
 -- Subsequent changes to the 'MCollator' will not affect the state of
@@ -90,7 +95,7 @@ sortKey (C c) = unsafePerformIO . IO.sortKey c
 
 -- | A 'Collator' that uses the Unicode Collation Algorithm (UCA).
 uca :: Collator
-uca = unsafePerformIO (open Root)
+uca = collator Root
 {-# NOINLINE uca #-}
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ucol_safeClone" ucol_safeClone
