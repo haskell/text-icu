@@ -20,7 +20,6 @@ module Data.Text.ICU.Normalize
     -- * Normalization functions
     , normalize
     -- * Normalization checks
-    , QuickResult(..)
     , quickCheck
     , isNormalized
     -- * Normalization-sensitive comparison
@@ -207,18 +206,10 @@ toNM FCD  = #const UNORM_FCD
 
 type UNormalizationCheckResult = CInt
 
--- | Result of a fast normalization check using 'quickCheck'.
-data QuickResult
-    = No      -- ^ Text is not normalized.
-    | Perhaps -- ^ It cannot be determined whether text is in normalized 
-              -- form without further thorough checks.
-    | Yes     -- ^ Text is in normalized form.
-      deriving (Eq, Show, Enum, Typeable)
-                              
-toNCR :: UNormalizationCheckResult -> QuickResult
-toNCR (#const UNORM_NO)    = No
-toNCR (#const UNORM_MAYBE) = Perhaps
-toNCR (#const UNORM_YES)   = Yes
+toNCR :: UNormalizationCheckResult -> Maybe Bool
+toNCR (#const UNORM_NO)    = Just False
+toNCR (#const UNORM_MAYBE) = Nothing
+toNCR (#const UNORM_YES)   = Just True
 toNCR _                    = error "toNormalizationCheckResult"
 
 -- | Normalize a string according the specified normalization mode.
@@ -241,12 +232,16 @@ normalize mode t = unsafePerformIO . useAsPtr t $ \sptr slen ->
     
       
 -- | Perform an efficient check on a string, to quickly determine if
--- the string is in a particular normalization format.
+-- the string is in a particular normalization form.
 --
--- A 'Perhaps' result indicates that a more thorough check is
--- required, e.g. with 'isNormalized'.  The user may have to put the
--- string in its normalized form and compare the results.
-quickCheck :: NormalizationMode -> Text -> QuickResult
+-- A 'Nothing' result indicates that a certain answer could not be
+-- determined quickly, and a more thorough check is required,
+-- e.g. with 'isNormalized'.  The user may have to convert the string
+-- to its normalized form and compare the results.
+--
+-- A result of 'Just' 'True' or 'Just' 'False' indicates that the
+-- string definitely is, or is not, in the given normalization form.
+quickCheck :: NormalizationMode -> Text -> Maybe Bool
 quickCheck mode t =
   unsafePerformIO . useAsPtr t $ \ptr len ->
     fmap toNCR . handleError $ unorm_quickCheck ptr (fromIntegral len)
