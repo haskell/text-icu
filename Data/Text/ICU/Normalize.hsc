@@ -234,7 +234,7 @@ normalize mode t = unsafePerformIO . useAsPtr t $ \sptr slen ->
 -- | Perform an efficient check on a string, to quickly determine if
 -- the string is in a particular normalization form.
 --
--- A 'Nothing' result indicates that a certain answer could not be
+-- A 'Nothing' result indicates that a definite answer could not be
 -- determined quickly, and a more thorough check is required,
 -- e.g. with 'isNormalized'.  The user may have to convert the string
 -- to its normalized form and compare the results.
