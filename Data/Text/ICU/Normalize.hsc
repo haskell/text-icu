@@ -252,7 +252,7 @@ quickCheck mode t =
 -- Unlike 'quickCheck', this function returns a definitive result.
 -- For 'NFD', 'NFKD', and 'FCD' normalization forms, both functions
 -- work in exactly the same ways.  For 'NFC' and 'NFKC' forms, where
--- 'quickCheck' may return 'Perhaps', this function will perform
+-- 'quickCheck' may return 'Nothing', this function will perform
 -- further tests to arrive at a definitive result.
 isNormalized :: NormalizationMode -> Text -> Bool
 isNormalized mode t =
