@@ -13,10 +13,15 @@
 -- International Components for Unicode (ICU) libraries.
 --
 -- Unlike the C and C++ @UCharIterator@ type, the Haskell
--- 'CharIterator' type can safely be used in pure code.
+-- 'CharIterator' type is immutable, and can safely be used in pure
+-- code.
 --
 -- Functions using these iterators may be more efficient than their
--- counterparts.
+-- counterparts.  For instance, the 'CharIterator' type allows a UTF-8
+-- 'ByteString' to be compared against a 'Text', without first
+-- converting the 'ByteString':
+--
+-- > fromUtf8 bs == fromText t
 module Data.Text.ICU.Iterator
     (
     -- * Types and constructors
