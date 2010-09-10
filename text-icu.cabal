@@ -28,7 +28,6 @@ library
       Data.Text.ICU.Error
       Data.Text.ICU.Iterator
       Data.Text.ICU.Normalize
-      Data.Text.ICU.Text
       Data.Text.ICU.Types
   other-modules:
       Data.Text.ICU.Break
@@ -36,6 +35,7 @@ library
       Data.Text.ICU.Convert.Internal
       Data.Text.ICU.Error.Internal
       Data.Text.ICU.Internal
+      Data.Text.ICU.Text
   c-sources: cbits/text_icu.c
   include-dirs: include
   extra-libraries: icuuc
