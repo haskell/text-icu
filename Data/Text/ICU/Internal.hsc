@@ -79,7 +79,10 @@ withName name act
     | otherwise = withCString name act
 
 -- | The name of a locale.
-data LocaleName = Root          -- ^ The root locale.
+data LocaleName = Root
+                -- ^ The root locale.  For a description of resource bundles
+                -- and the root resource, see
+                -- <http://userguide.icu-project.org/locale/resources>.
                 | Locale String -- ^ A specific locale.
                 | Current       -- ^ The program's current locale. 
                   deriving (Eq, Ord, Read, Show)
