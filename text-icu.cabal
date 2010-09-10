@@ -11,7 +11,7 @@ category:       Data, Text
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
-cabal-version:  >= 1.2
+cabal-version:  >= 1.6
 extra-source-files:
   README include/hs_text_icu.h
 
@@ -47,3 +47,7 @@ library
   ghc-options: -Wall
   if impl(ghc >= 6.8)
     ghc-options: -fwarn-tabs
+
+source-repository head
+  type:     darcs
+  location: http://code.haskell.org/text-icu/
