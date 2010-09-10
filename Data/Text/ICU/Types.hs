@@ -7,7 +7,7 @@
 -- Stability   : experimental
 -- Portability : GHC
 --
--- Functions for manipulating Unicode text, implemented as bindings to
+-- Types for use when manipulating Unicode text, using the bindings to
 -- the International Components for Unicode (ICU) libraries.
 module Data.Text.ICU.Types
     (
