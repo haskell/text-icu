@@ -22,6 +22,7 @@ module Data.Text.ICU.Char
     , combiningClass
     , digitToInt
     , direction
+    , isoComment
     , isMirrored
     , mirror
     ) where
@@ -315,13 +316,26 @@ charName = charName' (#const U_UNICODE_CHAR_NAME)
 charFullName :: Char -> String
 charFullName = charName' (#const U_EXTENDED_CHAR_NAME)
 
+-- | Return the ISO 10646 comment for a character.
+--
+-- If a character does not have an associated comment, the empty
+-- string is returned.
+--
+-- The ISO 10646 comment is an informative field in the Unicode
+-- Character Database (@UnicodeData.txt@ field 11) and is from the ISO
+-- 10646 names list.
+isoComment :: Char -> String
+isoComment c = fillString $ u_getISOComment (fromIntegral (ord c))
+
 charName' :: UCharNameChoice -> Char -> String
-charName' choice c = unsafePerformIO $ loop 128
+charName' choice c = fillString $ u_charName (fromIntegral (ord c)) choice
+
+fillString :: (CString -> Int32 -> Ptr UErrorCode -> IO Int32) -> String
+fillString act = unsafePerformIO $ loop 128
  where
   loop n =
     allocaBytes n $ \ptr -> do
-      (err,r) <- withError $ u_charName (fromIntegral (ord c)) choice ptr
-                                        (fromIntegral n)
+      (err,r) <- withError $ act ptr (fromIntegral n)
       case undefined of
        _| err == u_BUFFER_OVERFLOW_ERROR -> loop (fromIntegral r)
         | isFailure err                  -> throw err
@@ -352,3 +366,6 @@ foreign import ccall unsafe "hs_text_icu.h __hs_u_charDigitValue" u_charDigitVal
 foreign import ccall unsafe "hs_text_icu.h __hs_u_charName" u_charName
     :: UChar32 -> UCharNameChoice -> CString -> Int32 -> Ptr UErrorCode
     -> IO Int32
+
+foreign import ccall unsafe "hs_text_icu.h __hs_u_getISOComment" u_getISOComment
+    :: UChar32 -> CString -> Int32 -> Ptr UErrorCode -> IO Int32

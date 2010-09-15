@@ -41,6 +41,8 @@ int32_t __hs_u_charDigitValue(UChar32 c);
 int32_t __hs_u_charName(UChar32 code, UCharNameChoice nameChoice,
 			char *buffer, int32_t bufferLength,
 			UErrorCode *pErrorCode);
+int32_t __hs_u_getISOComment(UChar32 c, char *dest, int32_t destCapacity,
+			     UErrorCode *pErrorCode);
 
 /* ucol.h */
 
