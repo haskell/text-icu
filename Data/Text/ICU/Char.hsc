@@ -25,15 +25,18 @@ module Data.Text.ICU.Char
     , CanonicalCombiningClass_(..)
     , EastAsianWidth_(..)
     , GeneralCategory_(..)
+    , HangulSyllableType_(..)
     , JoiningGroup_(..)
     , JoiningType_(..)
     , LineBreak_(..)
+    , NumericType_(..)
     -- ** Property value types
     , EastAsianWidth(..)
     , GeneralCategory(..)
+    , HangulSyllableType(..)
     , JoiningGroup(..)
     , JoiningType(..)
-    , LineBreak(..)
+    , NumericType(..)
     -- * Functions
     , blockCode
     , charFullName
@@ -608,6 +611,29 @@ data LineBreak =
 instance Property LineBreak_ (Maybe LineBreak) where
     fromNative _  = maybeEnum
     toUProperty _ = (#const UCHAR_LINE_BREAK)
+
+data NumericType_ = NumericType deriving (Show, Typeable)
+
+data NumericType = NTDecimal | NTDigit | NTNumeric
+                   deriving (Eq, Enum, Show, Typeable)
+
+instance Property NumericType_ (Maybe NumericType) where
+    fromNative _  = maybeEnum
+    toUProperty _ = (#const UCHAR_NUMERIC_TYPE)
+
+data HangulSyllableType_ = HangulSyllableType deriving (Show, Typeable)
+
+data HangulSyllableType =
+    LeadingJamo
+  | VowelJamo
+  | TrailingJamo
+  | LVSyllable
+  | LVTSyllable
+    deriving (Eq, Enum, Show, Typeable)
+
+instance Property HangulSyllableType_ (Maybe HangulSyllableType) where
+    fromNative _  = maybeEnum
+    toUProperty _ = (#const UCHAR_HANGUL_SYLLABLE_TYPE)
 
 property :: Property p v => p -> Char -> v
 property p c = fromNative p . u_getIntPropertyValue (fromIntegral (ord c)) .
