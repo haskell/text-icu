@@ -43,6 +43,7 @@ int32_t __hs_u_charName(UChar32 code, UCharNameChoice nameChoice,
 			UErrorCode *pErrorCode);
 int32_t __hs_u_getISOComment(UChar32 c, char *dest, int32_t destCapacity,
 			     UErrorCode *pErrorCode);
+UBool __hs_u_hasBinaryProperty(UChar32 c, UProperty which);
 
 /* ucol.h */
 

@@ -15,6 +15,7 @@ module Data.Text.ICU.Char
     (
       BlockCode(..)
     , Direction(..)
+    , BoolProperty(..)
     -- * Functions
     , blockCode
     , charFullName
@@ -22,6 +23,7 @@ module Data.Text.ICU.Char
     , combiningClass
     , digitToInt
     , direction
+    , hasBoolProperty
     , isoComment
     , isMirrored
     , mirror
@@ -64,7 +66,7 @@ data Direction =
   | PopDirectionalFormat
   | DirNonSpacingMark
   | BoundaryNeutral
-  deriving (Eq, Enum, Bounded, Show, Typeable)
+  deriving (Eq, Enum, Show, Typeable)
 
 -- | Descriptions of Unicode blocks.
 data BlockCode =
@@ -240,7 +242,127 @@ data BlockCode =
   | Lydian
   | MahjongTiles
   | DominoTiles
-  deriving (Eq, Enum, Bounded, Show, Typeable)
+  deriving (Eq, Enum, Show, Typeable)
+
+data BoolProperty =
+    Alphabetic
+  | ASCIIHexDigit
+  -- ^ 0-9, A-F, a-f
+  | BidiControl
+  -- ^ Format controls which have specific functions in the Bidi Algorithm.
+  | BidiMirrored
+  -- ^ Characters that may change display in RTL text.
+  | Dash
+  -- ^ Variations of dashes.
+  | DefaultIgnorable
+  -- ^ Ignorable in most processing.
+  | Deprecated
+  -- ^ The usage of deprecated characters is strongly discouraged.
+  | Diacritic
+  -- ^ Characters that linguistically modify the meaning of another
+  -- character to which they apply.
+  | Extender
+  -- ^ Extend the value or shape of a preceding alphabetic character,
+  -- e.g. length and iteration marks.
+  | FullCompositionExclusion
+  | GraphemeBase
+  -- ^ For programmatic determination of grapheme cluster boundaries.
+  | GraphemeExtend
+  -- ^ For programmatic determination of grapheme cluster boundaries.
+  | GraphemeLink
+  -- ^ For programmatic determination of grapheme cluster boundaries.
+  | HexDigit
+  -- ^ Characters commonly used for hexadecimal numbers.
+  | Hyphen
+  -- ^ Dashes used to mark connections between pieces of words, plus the
+  -- Katakana middle dot.
+  | IDContinue
+  -- ^ Characters that can continue an identifier.
+  | IDStart
+  -- ^ Characters that can start an identifier.
+  | Ideographic
+  -- ^ CJKV ideographs.
+  | IDSBinaryOperator
+  -- ^ For programmatic determination of Ideographic Description Sequences.
+  | IDSTrinaryOperator
+  | JoinControl
+  -- ^ Format controls for cursive joining and ligation.
+  | LogicalOrderException
+  -- ^ Characters that do not use logical order and require special handling
+  -- in most processing.
+  | Lowercase
+  | Math
+  | NonCharacter
+  -- ^ Code points that are explicitly defined as illegal for the encoding
+  -- of characters.
+  | QuotationMark
+  | Radical
+  -- ^ For programmatic determination of Ideographic Description Sequences.
+  | SoftDotted
+  -- ^ Characters with a "soft dot", like i or j. An accent placed on these
+  -- characters causes the dot to disappear.
+  | TerminalPunctuation
+  -- ^ Punctuation characters that generally mark the end of textual units.
+  | UnifiedIdeograph
+  -- ^ For programmatic determination of Ideographic Description Sequences.
+  | Uppercase
+  | WhiteSpace
+  | XidContinue
+  -- ^ 'IDContinue' modified to allow closure under normalization forms
+  -- NFKC and NFKD.
+  | XidStart
+  -- ^ 'IDStart' modified to allow closure under normalization forms NFKC
+  -- and NFKD.
+  | CaseSensitive
+  -- ^ Either the source of a case mapping or /in/ the target of a case
+  -- mapping. Not the same as the general category @Cased_Letter@.
+  | STerm
+  -- ^ Sentence Terminal. Used in UAX #29: Text Boundaries
+  -- <http://www.unicode.org/reports/tr29/>.
+  | VariationSelector
+  -- ^ Indicates all those characters that qualify as Variation
+  -- Selectors. For details on the behavior of these characters, see
+  -- <http://unicode.org/Public/UNIDATA/StandardizedVariants.html> and 15.6
+  -- Variation Selectors.
+  | NFDInert
+  -- ^ ICU-specific property for characters that are inert under NFD, i.e.
+  -- they do not interact with adjacent characters.  Used for example in
+  -- normalizing transforms in incremental mode to find the boundary of
+  -- safely normalizable text despite possible text additions.
+  | NFKDInert
+  -- ^ ICU-specific property for characters that are inert under NFKD, i.e.
+  -- they do not interact with adjacent characters.
+  | NFCInert
+  -- ^ ICU-specific property for characters that are inert under NFC,
+  -- i.e. they do not interact with adjacent characters.
+  | NFKCInert
+  -- ^ ICU-specific property for characters that are inert under NFKC,
+  -- i.e. they do not interact with adjacent characters.
+  | SegmentStarter
+  -- ^ ICU-specific property for characters that are starters in terms of
+  -- Unicode normalization and combining character sequences.
+  | PatternSyntax
+  -- ^ See UAX #31 Identifier and Pattern Syntax
+  -- <http://www.unicode.org/reports/tr31/>.
+  | PatternWhiteSpace
+  -- ^ See UAX #31 Identifier and Pattern Syntax
+  -- <http://www.unicode.org/reports/tr31/>.
+  | POSIXAlNum
+  -- ^ Alphanumeric character class.
+  | POSIXBlank
+  -- ^ Blank character class.
+  | POSIXGraph
+  -- ^ Graph character class.
+  | POSIXPrint
+  -- ^ Printable character class.
+  | POSIXXDigit
+  -- ^ Hex digit character class.
+    deriving (Eq, Enum, Show, Typeable)
+    
+hasBoolProperty :: Char -> BoolProperty -> Bool
+hasBoolProperty c = asBool . u_hasBinaryProperty (fromIntegral (ord c)) .
+                    fromIntegral . fromEnum
+{-# INLINE hasBoolProperty #-}
 
 -- | Return the Unicode allocation block that contains the given
 -- character.
@@ -344,6 +466,7 @@ fillString act = unsafePerformIO $ loop 128
 type UBlockCode = CInt
 type UCharDirection = CInt
 type UCharNameChoice = CInt
+type UProperty = CInt
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ublock_getCode" ublock_getCode
     :: UChar32 -> UBlockCode
@@ -369,3 +492,6 @@ foreign import ccall unsafe "hs_text_icu.h __hs_u_charName" u_charName
 
 foreign import ccall unsafe "hs_text_icu.h __hs_u_getISOComment" u_getISOComment
     :: UChar32 -> CString -> Int32 -> Ptr UErrorCode -> IO Int32
+
+foreign import ccall unsafe "hs_text_icu.h __hs_u_hasBinaryProperty" u_hasBinaryProperty
+    :: UChar32 -> UProperty -> UBool
