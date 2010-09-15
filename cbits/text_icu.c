@@ -295,3 +295,14 @@ UChar32 __hs_u_charMirror(UChar32 c)
 {
     return u_charMirror(c);
 }
+
+uint8_t __hs_u_getCombiningClass(UChar32 c)
+{
+    return u_getCombiningClass(c);
+}
+
+int32_t __hs_u_charDigitValue(UChar32 c)
+{
+    return u_charDigitValue(c);
+}
+

@@ -36,6 +36,8 @@ UBlockCode __hs_ublock_getCode(UChar32 c);
 UCharDirection __hs_u_charDirection(UChar32 c);
 UBool __hs_u_isMirrored(UChar32 c);
 UChar32 __hs_u_charMirror(UChar32 c);
+uint8_t __hs_u_getCombiningClass(UChar32 c);
+int32_t __hs_u_charDigitValue(UChar32 c);
 
 /* ucol.h */
 

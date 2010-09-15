@@ -17,14 +17,18 @@ module Data.Text.ICU.Char
     , Direction(..)
     -- * Functions
     , blockCode
+    , combiningClass
+    , digitToInt
     , direction
     , isMirrored
     , mirror
     ) where
 
 import Data.Char (chr, ord)
+import Data.Int (Int32)
 import Data.Text.ICU.Internal (UBool, UChar32, asBool)
 import Data.Typeable (Typeable)
+import Data.Word (Word8)
 import Foreign.C.Types (CInt)
 
 -- | The language directional property of a character set.
@@ -264,6 +268,26 @@ mirror :: Char -> Char
 mirror = chr . fromIntegral . u_charMirror . fromIntegral . ord
 {-# INLINE mirror #-}
 
+combiningClass :: Char -> Int
+combiningClass = fromIntegral . u_getCombiningClass . fromIntegral . ord
+{-# INLINE combiningClass #-}
+
+-- | Return the decimal digit value of a decimal digit character.
+-- Such characters have the general category @Nd@ (decimal digit
+-- numbers) and a @Numeric_Type@ of @Decimal@.
+--
+-- No digit values are returned for any Han characters, because Han
+-- number characters are often used with a special Chinese-style
+-- number format (with characters for powers of 10 in between) instead
+-- of in decimal-positional notation.  Unicode 4 explicitly assigns
+-- Han number characters a @Numeric_Type@ of @Numeric@ instead of
+-- @Decimal@.
+digitToInt :: Char -> Maybe Int
+digitToInt c
+    | i == -1   = Nothing
+    | otherwise = Just $! fromIntegral i
+  where i = u_charDigitValue . fromIntegral . ord $ c
+
 type UBlockCode = CInt
 type UCharDirection = CInt
 
@@ -278,3 +302,9 @@ foreign import ccall unsafe "hs_text_icu.h __hs_u_isMirrored" u_isMirrored
 
 foreign import ccall unsafe "hs_text_icu.h __hs_u_charMirror" u_charMirror
     :: UChar32 -> UChar32
+
+foreign import ccall unsafe "hs_text_icu.h __hs_u_getCombingingClass" u_getCombiningClass
+    :: UChar32 -> Word8
+
+foreign import ccall unsafe "hs_text_icu.h __hs_u_charDigitValue" u_charDigitValue
+    :: UChar32 -> Int32
