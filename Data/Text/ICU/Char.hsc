@@ -23,8 +23,11 @@ module Data.Text.ICU.Char
     , Block_(..)
     , Bool_(..)
     , CanonicalCombiningClass_(..)
+    , LeadCanonicalCombiningClass_(..)
+    , TrailingCanonicalCombiningClass_(..)
     , EastAsianWidth_(..)
     , GeneralCategory_(..)
+    , GraphemeClusterBreak_(..)
     , HangulSyllableType_(..)
     , JoiningGroup_(..)
     , JoiningType_(..)
@@ -37,6 +40,7 @@ module Data.Text.ICU.Char
     -- ** Property value types
     , EastAsianWidth(..)
     , GeneralCategory(..)
+    , GraphemeClusterBreak(..)
     , HangulSyllableType(..)
     , JoiningGroup(..)
     , JoiningType(..)
@@ -660,6 +664,40 @@ instance Property NFKCQuickCheck_ (Maybe Bool) where
 instance Property NFKDQuickCheck_ (Maybe Bool) where
     fromNative  _ = toNCR . fromIntegral
     toUProperty _ = (#const UCHAR_NFKD_QUICK_CHECK)
+
+data LeadCanonicalCombiningClass_ = LeadCanonicalCombiningClass
+                                    deriving (Show, Typeable)
+
+instance Property LeadCanonicalCombiningClass_ Int where
+    fromNative  _ = fromIntegral
+    toUProperty _ = (#const UCHAR_LEAD_CANONICAL_COMBINING_CLASS)
+
+data TrailingCanonicalCombiningClass_ = TrailingCanonicalCombiningClass
+                                   deriving (Show, Typeable)
+
+instance Property TrailingCanonicalCombiningClass_ Int where
+    fromNative  _ = fromIntegral
+    toUProperty _ = (#const UCHAR_TRAIL_CANONICAL_COMBINING_CLASS)
+
+data GraphemeClusterBreak_ = GraphemeClusterBreak deriving (Show, Typeable)
+
+data GraphemeClusterBreak =
+    Control
+  | CR
+  | Extend
+  | L
+  | LF
+  | LV
+  | LVT
+  | T
+  | V
+  | SpacingMark
+  | Prepend
+    deriving (Eq, Enum, Show, Typeable)
+
+instance Property GraphemeClusterBreak_ (Maybe GraphemeClusterBreak) where
+    fromNative  _ = maybeEnum
+    toUProperty _ = (#const UCHAR_GRAPHEME_CLUSTER_BREAK)
 
 property :: Property p v => p -> Char -> v
 property p c = fromNative p . u_getIntPropertyValue (fromIntegral (ord c)) .
