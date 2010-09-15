@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, ForeignFunctionInterface,
+{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, ForeignFunctionInterface,
     FunctionalDependencies, MultiParamTypeClasses #-}
 
 -- |
@@ -26,10 +26,14 @@ module Data.Text.ICU.Char
     , EastAsianWidth_(..)
     , GeneralCategory_(..)
     , JoiningGroup_(..)
+    , JoiningType_(..)
+    , LineBreak_(..)
     -- ** Property value types
     , EastAsianWidth(..)
     , GeneralCategory(..)
     , JoiningGroup(..)
+    , JoiningType(..)
+    , LineBreak(..)
     -- * Functions
     , blockCode
     , charFullName
@@ -398,8 +402,7 @@ instance Property CanonicalCombiningClass_ Int where
 data Decomposition_ = Decomposition deriving (Show, Typeable)
 
 data Decomposition =
-    None
-  | Canonical
+    Canonical
   | Compat
   | Circle
   | Final
@@ -419,19 +422,19 @@ data Decomposition =
   | Count
     deriving (Eq, Enum, Show, Typeable)
 
-instance Property Decomposition_ Decomposition where
-    fromNative _  = toEnum . fromIntegral
+instance Property Decomposition_ (Maybe Decomposition) where
+    fromNative _  = maybeEnum
     toUProperty _ = (#const UCHAR_DECOMPOSITION_TYPE)
 
 data EastAsianWidth_ = EastAsianWidth deriving (Show, Typeable)
 
-data EastAsianWidth = Neutral
-                    | Ambiguous
-                    | HalfWidth
-                    | FullWidth
-                    | NarrowWidth
-                    | WideWidth
-                    | CountWidth
+data EastAsianWidth = EANeutral
+                    | EAAmbiguous
+                    | EAHalf
+                    | EAFull
+                    | EANarrow
+                    | EAWide
+                    | EACount
                     deriving (Eq, Enum, Show, Typeable)
 
 instance Property EastAsianWidth_ EastAsianWidth where
@@ -483,9 +486,12 @@ instance Property GeneralCategory_ GeneralCategory where
 
 data JoiningGroup_ = JoiningGroup deriving (Show, Typeable)
 
+maybeEnum :: Enum a => Int32 -> Maybe a
+maybeEnum 0 = Nothing
+maybeEnum n = Just $! toEnum (fromIntegral n-1)
+
 data JoiningGroup =
-    NoJoiningGroup
-  | Ain
+    Ain
   | Alaph
   | Alef
   | Beh
@@ -541,9 +547,67 @@ data JoiningGroup =
   | BurushaskiYehBarree
     deriving (Eq, Enum, Show, Typeable)
 
-instance Property JoiningGroup_ JoiningGroup where
-    fromNative _  = toEnum . fromIntegral
+instance Property JoiningGroup_ (Maybe JoiningGroup) where
+    fromNative _  = maybeEnum
     toUProperty _ = (#const UCHAR_JOINING_GROUP)
+
+data JoiningType_ = JoiningType deriving (Show, Typeable)
+
+data JoiningType =
+    JoinCausing
+  | DualJoining
+  | LeftJoining
+  | RightJoining
+  | Transparent
+    deriving (Eq, Enum, Show, Typeable)
+
+instance Property JoiningType_ (Maybe JoiningType) where
+    fromNative _  = maybeEnum
+    toUProperty _ = (#const UCHAR_JOINING_TYPE)
+
+data LineBreak_ = LineBreak deriving (Show, Typeable)
+
+data LineBreak =
+    Ambiguous
+  | LBAlphabetic
+  | BreakBoth
+  | BreakAfter
+  | BreakBefore
+  | MandatoryBreak
+  | ContingentBreak
+  | ClosePunctuation
+  | CombiningMark
+  | CarriageReturn
+  | Exclamation
+  | Glue
+  | LBHyphen
+  | LBIdeographic
+  | Inseparable
+  | InfixNumeric
+  | LineFeed
+  | Nonstarter
+  | Numeric
+  | OpenPunctuation
+  | PostfixNumeric
+  | PrefixNumeric
+  | Quotation
+  | ComplexContext
+  | LBSurrogate
+  | Space
+  | BreakSymbols
+  | Zwspace
+  | NextLine
+  | WordJoiner
+  | H2
+  | H3
+  | JL
+  | JT
+  | JV
+    deriving (Eq, Enum, Show, Typeable)
+
+instance Property LineBreak_ (Maybe LineBreak) where
+    fromNative _  = maybeEnum
+    toUProperty _ = (#const UCHAR_LINE_BREAK)
 
 property :: Property p v => p -> Char -> v
 property p c = fromNative p . u_getIntPropertyValue (fromIntegral (ord c)) .
