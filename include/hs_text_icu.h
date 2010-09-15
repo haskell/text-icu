@@ -44,6 +44,7 @@ int32_t __hs_u_charName(UChar32 code, UCharNameChoice nameChoice,
 int32_t __hs_u_getISOComment(UChar32 c, char *dest, int32_t destCapacity,
 			     UErrorCode *pErrorCode);
 int32_t __hs_u_getIntPropertyValue(UChar32 c, UProperty which);
+double __hs_u_getNumericValue(UChar32 c);
 
 /* ucol.h */
 

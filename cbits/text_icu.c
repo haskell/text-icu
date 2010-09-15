@@ -323,3 +323,8 @@ int32_t __hs_u_getIntPropertyValue(UChar32 c, UProperty which)
 {
     return u_getIntPropertyValue(c, which);
 }
+
+double __hs_u_getNumericValue(UChar32 c)
+{
+    return u_getNumericValue(c);
+}

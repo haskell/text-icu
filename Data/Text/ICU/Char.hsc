@@ -37,6 +37,8 @@ module Data.Text.ICU.Char
     , NFKCQuickCheck_(..)
     , NFKDQuickCheck_(..)
     , NumericType_(..)
+    , SentenceBreak_(..)
+    , WordBreak_(..)
     -- ** Property value types
     , EastAsianWidth(..)
     , GeneralCategory(..)
@@ -45,17 +47,21 @@ module Data.Text.ICU.Char
     , JoiningGroup(..)
     , JoiningType(..)
     , NumericType(..)
+    , SentenceBreak(..)
+    , WordBreak(..)
     -- * Functions
     , blockCode
     , charFullName
     , charName
     , combiningClass
-    , digitToInt
     , direction
     , property
     , isoComment
     , isMirrored
     , mirror
+    -- ** Conversion to numbers
+    , digitToInt
+    , numericValue
     ) where
 
 #include <unicode/uchar.h>
@@ -699,6 +705,50 @@ instance Property GraphemeClusterBreak_ (Maybe GraphemeClusterBreak) where
     fromNative  _ = maybeEnum
     toUProperty _ = (#const UCHAR_GRAPHEME_CLUSTER_BREAK)
 
+data SentenceBreak_ = SentenceBreak deriving (Show, Typeable)
+
+data SentenceBreak =
+    SBATerm
+  | SBClose
+  | SBFormat
+  | SBLower
+  | SBNumeric
+  | SBOLetter
+  | SBSep
+  | SBSP
+  | SBSTerm
+  | SBUpper
+  | SBCR
+  | SBExtend
+  | SBLF
+  | SBSContinue
+    deriving (Eq, Enum, Show, Typeable)
+
+instance Property SentenceBreak_ (Maybe SentenceBreak) where
+    fromNative  _ = maybeEnum
+    toUProperty _ = (#const UCHAR_SENTENCE_BREAK)
+
+data WordBreak_ = WordBreak deriving (Show, Typeable)
+
+data WordBreak =
+    WBALetter
+  | WBFormat
+  | WBKatakana
+  | WBMidLetter
+  | WBMidNum
+  | WBNumeric
+  | WBExtendNumLet
+  | WBCR
+  | WBExtend
+  | WBLF
+  | WBMidNumLet
+  | WBNewline
+    deriving (Eq, Enum, Show, Typeable)
+
+instance Property WordBreak_ (Maybe WordBreak) where
+    fromNative  _ = maybeEnum
+    toUProperty _ = (#const UCHAR_WORD_BREAK)
+
 property :: Property p v => p -> Char -> v
 property p c = fromNative p . u_getIntPropertyValue (fromIntegral (ord c)) .
                toUProperty $ p
@@ -761,6 +811,17 @@ digitToInt c
     | i == -1   = Nothing
     | otherwise = Just $! fromIntegral i
   where i = u_charDigitValue . fromIntegral . ord $ c
+
+-- | Return the numeric value for a Unicode code point as defined in the
+-- Unicode Character Database.
+--
+-- A 'Double' return type is necessary because some numeric values are
+-- fractions, negative, or too large to fit in a fixed-width integral type.
+numericValue :: Char -> Maybe Double
+numericValue c
+    | v == (#const U_NO_NUMERIC_VALUE) = Nothing
+    | otherwise                        = Just v
+    where v = u_getNumericValue . fromIntegral . ord $ c
 
 -- | Return the name of a Unicode character.
 --
@@ -835,3 +896,6 @@ foreign import ccall unsafe "hs_text_icu.h __hs_u_getISOComment" u_getISOComment
 
 foreign import ccall unsafe "hs_text_icu.h __hs_u_getIntPropertyValue" u_getIntPropertyValue
     :: UChar32 -> UProperty -> Int32
+
+foreign import ccall unsafe "hs_text_icu.h __hs_u_getNumericValue" u_getNumericValue
+    :: UChar32 -> Double
