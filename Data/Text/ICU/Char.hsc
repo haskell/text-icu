@@ -1,4 +1,5 @@
-{-# LANGUAGE DeriveDataTypeable, ForeignFunctionInterface #-}
+{-# LANGUAGE DeriveDataTypeable, ForeignFunctionInterface,
+    FunctionalDependencies, MultiParamTypeClasses #-}
 
 -- |
 -- Module      : Data.Text.ICU.Char
@@ -15,7 +16,18 @@ module Data.Text.ICU.Char
     (
       BlockCode(..)
     , Direction(..)
-    , BoolProperty(..)
+    -- * Character property types
+    -- ** Property identifier types
+    , Property
+    , BidiClass_(..)
+    , Block_(..)
+    , Bool_(..)
+    , CanonicalCombiningClass_(..)
+    , EastAsianWidth_(..)
+    , GeneralCategory_(..)
+    -- ** Property value types
+    , EastAsianWidth(..)
+    , GeneralCategory(..)
     -- * Functions
     , blockCode
     , charFullName
@@ -23,7 +35,7 @@ module Data.Text.ICU.Char
     , combiningClass
     , digitToInt
     , direction
-    , hasBoolProperty
+    , property
     , isoComment
     , isMirrored
     , mirror
@@ -244,7 +256,7 @@ data BlockCode =
   | DominoTiles
   deriving (Eq, Enum, Show, Typeable)
 
-data BoolProperty =
+data Bool_ =
     Alphabetic
   | ASCIIHexDigit
   -- ^ 0-9, A-F, a-f
@@ -359,10 +371,118 @@ data BoolProperty =
   -- ^ Hex digit character class.
     deriving (Eq, Enum, Show, Typeable)
     
-hasBoolProperty :: Char -> BoolProperty -> Bool
-hasBoolProperty c = asBool . u_hasBinaryProperty (fromIntegral (ord c)) .
-                    fromIntegral . fromEnum
-{-# INLINE hasBoolProperty #-}
+class Property p v | p -> v where
+    fromNative :: p -> Int32 -> v
+    toUProperty :: p -> UProperty
+
+data BidiClass_ = BidiClass deriving (Show, Typeable)
+
+instance Property BidiClass_ Direction where
+    fromNative _  = toEnum . fromIntegral
+    toUProperty _ = (#const UCHAR_BIDI_CLASS)
+
+data Block_ = Block
+
+instance Property Block_ BlockCode where
+    fromNative _  = toEnum . fromIntegral
+    toUProperty _ = (#const UCHAR_BLOCK)
+
+data CanonicalCombiningClass_ = CanonicalCombiningClass deriving (Show,Typeable)
+
+instance Property CanonicalCombiningClass_ Int where
+    fromNative _  = fromIntegral
+    toUProperty _ = (#const UCHAR_CANONICAL_COMBINING_CLASS)
+
+data Decomposition_ = Decomposition deriving (Show, Typeable)
+
+data Decomposition =
+    None
+  | Canonical
+  | Compat
+  | Circle
+  | Final
+  | Font
+  | Fraction
+  | Initial
+  | Isolated
+  | Medial
+  | Narrow
+  | Nobreak
+  | Small
+  | Square
+  | Sub
+  | Super
+  | Vertical
+  | Wide
+  | Count
+    deriving (Eq, Enum, Show, Typeable)
+
+instance Property Decomposition_ Decomposition where
+    fromNative _  = toEnum . fromIntegral
+    toUProperty _ = (#const UCHAR_DECOMPOSITION_TYPE)
+
+data EastAsianWidth_ = EastAsianWidth deriving (Show, Typeable)
+
+data EastAsianWidth = Neutral
+                    | Ambiguous
+                    | HalfWidth
+                    | FullWidth
+                    | NarrowWidth
+                    | WideWidth
+                    | CountWidth
+                    deriving (Eq, Enum, Show, Typeable)
+
+instance Property EastAsianWidth_ EastAsianWidth where
+    fromNative _  = toEnum . fromIntegral
+    toUProperty _ = (#const UCHAR_EAST_ASIAN_WIDTH)
+
+instance Property Bool_ Bool where
+    fromNative _ = (/=0)
+    toUProperty  = fromIntegral . fromEnum
+
+data GeneralCategory_ = GeneralCategory deriving (Show, Typeable)
+
+data GeneralCategory =
+    GeneralOtherType
+  | UppercaseLetter
+  | LowercaseLetter
+  | TitlecaseLetter
+  | ModifierLetter
+  | OtherLetter
+  | NonSpacingMark
+  | EnclosingMark
+  | CombiningSpacingMark
+  | DecimalDigitNumber
+  | LetterNumber
+  | OtherNumber
+  | SpaceSeparator
+  | LineSeparator
+  | ParagraphSeparator
+  | ControlChar
+  | FormatChar
+  | PrivateUseChar
+  | Surrogate
+  | DashPunctuation
+  | StartPunctuation
+  | EndPunctuation
+  | ConnectorPunctuation
+  | OtherPunctuation
+  | MathSymbol
+  | CurrencySymbol
+  | ModifierSymbol
+  | OtherSymbol
+  | InitialPunctuation
+  | FinalPunctuation
+    deriving (Eq, Enum, Show, Typeable)
+
+instance Property GeneralCategory_ GeneralCategory where
+    fromNative _  = toEnum . fromIntegral
+    toUProperty _ = (#const UCHAR_GENERAL_CATEGORY)
+
+property :: Property p v => p -> Char -> v
+property p c = fromNative p . u_getIntPropertyValue (fromIntegral (ord c)) .
+               toUProperty $ p
+{-# INLINE property #-}
 
 -- | Return the Unicode allocation block that contains the given
 -- character.
@@ -370,14 +490,14 @@ blockCode :: Char -> BlockCode
 blockCode = toEnum . fromIntegral . ublock_getCode . fromIntegral . ord
 {-# INLINE blockCode #-}
 
--- | Returns the bidirectional category value for the code point,
+-- | Return the bidirectional category value for the code point,
 -- which is used in the Unicode bidirectional algorithm (UAX #9
 -- <http://www.unicode.org/reports/tr9/>).
 direction :: Char -> Direction
 direction = toEnum . fromIntegral . u_charDirection . fromIntegral . ord
 {-# INLINE direction #-}
 
--- | Determines whether the code point has the @Bidi_Mirrored@
+-- | Determine whether the code point has the @Bidi_Mirrored@
 -- property.  This property is set for characters that are commonly
 -- used in Right-To-Left contexts and need to be displayed with a
 -- "mirrored" glyph.
@@ -493,5 +613,5 @@ foreign import ccall unsafe "hs_text_icu.h __hs_u_charName" u_charName
 foreign import ccall unsafe "hs_text_icu.h __hs_u_getISOComment" u_getISOComment
     :: UChar32 -> CString -> Int32 -> Ptr UErrorCode -> IO Int32
 
-foreign import ccall unsafe "hs_text_icu.h __hs_u_hasBinaryProperty" u_hasBinaryProperty
-    :: UChar32 -> UProperty -> UBool
+foreign import ccall unsafe "hs_text_icu.h __hs_u_getIntPropertyValue" u_getIntPropertyValue
+    :: UChar32 -> UProperty -> Int32

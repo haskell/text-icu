@@ -319,7 +319,7 @@ int32_t __hs_u_getISOComment(UChar32 c, char *dest, int32_t destCapacity,
     return u_getISOComment(c, dest, destCapacity, pErrorCode);
 }
 
-UBool __hs_u_hasBinaryProperty(UChar32 c, UProperty which)
+int32_t __hs_u_getIntPropertyValue(UChar32 c, UProperty which)
 {
-    return u_hasBinaryProperty(c, which);
+    return u_getIntPropertyValue(c, which);
 }
