@@ -276,4 +276,7 @@ int32_t __hs_u_strCompareIter(UCharIterator *iter1, UCharIterator *iter2)
     return u_strCompareIter(iter1, iter2, TRUE);
 }
 
-
+UBlockCode __hs_ublock_getCode(UChar32 c)
+{
+    return ublock_getCode(c);
+}

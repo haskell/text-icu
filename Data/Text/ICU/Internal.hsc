@@ -5,6 +5,7 @@ module Data.Text.ICU.Internal
       LocaleName(..)
     , UBool
     , UChar
+    , UChar32
     , UCharIterator
     , CharIterator(..)
     , asBool
@@ -21,7 +22,7 @@ import Data.Int (Int8, Int32)
 import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8)
 import Data.Text.Foreign (useAsPtr)
-import Data.Word (Word16)
+import Data.Word (Word16, Word32)
 import Foreign.C.String (CString, withCString)
 import Foreign.C.Types (CChar)
 import Foreign.Marshal.Alloc (alloca)
@@ -59,8 +60,9 @@ withCharIterator (CIText t) act =
     alloca $ \i -> useAsPtr t $ \p l ->
     uiter_setString i p (fromIntegral l) >> act i
 
-type UBool = Int8
-type UChar = Word16
+type UBool   = Int8
+type UChar   = Word16
+type UChar32 = Word32
 
 asBool :: Integral a => a -> Bool
 {-# INLINE asBool #-}

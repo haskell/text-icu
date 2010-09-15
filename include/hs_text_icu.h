@@ -29,6 +29,10 @@ int32_t __hs_ubrk_getRuleStatus(UBreakIterator *bi);
 int32_t __hs_ubrk_getRuleStatusVec(UBreakIterator *bi, int32_t *fillInVec,
 				   int32_t capacity, UErrorCode *status);
 
+/* uchar.h */
+
+UBlockCode __hs_ublock_getCode(UChar32 c);
+
 /* ucol.h */
 
 UCollator* __hs_ucol_open(const char *loc, UErrorCode *status);
