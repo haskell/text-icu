@@ -280,3 +280,8 @@ UBlockCode __hs_ublock_getCode(UChar32 c)
 {
     return ublock_getCode(c);
 }
+
+UCharDirection __hs_u_charDirection(UChar32 c)
+{
+    return u_charDirection(c);
+}

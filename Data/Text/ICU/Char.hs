@@ -17,6 +17,7 @@ module Data.Text.ICU.Char
     , Direction(..)
     -- * Functions
     , blockCode
+    , direction
     ) where
 
 import Data.Char (ord)
@@ -24,28 +25,30 @@ import Data.Text.ICU.Internal (UChar32)
 import Data.Typeable (Typeable)
 import Foreign.C.Types (CInt)
 
+-- | The language directional property of a character set.
 data Direction =
-    LeftToRight                 -- ^ L
-  | RightToLeft                 -- ^ R
-  | EuropeanNumber              -- ^ EN
-  | EuropeanNumberSeparator     -- ^ ES
-  | EuropeanNumberTerminator    -- ^ ET
-  | ArabicNumber                -- ^ AN
-  | CommonNumberSeparator       -- ^ CS
-  | BlockSeparator              -- ^ B
-  | SegmentSeparator            -- ^ S
-  | WhiteSpaceNeutral           -- ^ WS
-  | OtherNeutral                -- ^ ON
-  | LeftToRightEmbedding        -- ^ LRE
-  | LeftToRightOverride         -- ^ LRO
-  | RightToLeftArabic           -- ^ AL
-  | RightToLeftEmbedding        -- ^ RLE
-  | RightToLeftOverride         -- ^ RLO
-  | PopDirectionalFormat        -- ^ PDF
-  | DirNonSpacingMark           -- ^ NSM
-  | BoundaryNeutral             -- ^ BN
+    LeftToRight
+  | RightToLeft
+  | EuropeanNumber
+  | EuropeanNumberSeparator
+  | EuropeanNumberTerminator
+  | ArabicNumber
+  | CommonNumberSeparator
+  | BlockSeparator
+  | SegmentSeparator
+  | WhiteSpaceNeutral
+  | OtherNeutral
+  | LeftToRightEmbedding
+  | LeftToRightOverride
+  | RightToLeftArabic
+  | RightToLeftEmbedding
+  | RightToLeftOverride
+  | PopDirectionalFormat
+  | DirNonSpacingMark
+  | BoundaryNeutral
   deriving (Eq, Enum, Bounded, Show, Typeable)
 
+-- | Descriptions of Unicode blocks.
 data BlockCode =
     NoBlock
   | BasicLatin
@@ -227,7 +230,18 @@ blockCode :: Char -> BlockCode
 blockCode = toEnum . fromIntegral . ublock_getCode . fromIntegral . ord
 {-# INLINE blockCode #-}
 
+-- | Returns the bidirectional category value for the code point,
+-- which is used in the Unicode bidirectional algorithm (UAX #9
+-- <http://www.unicode.org/reports/tr9/>).
+direction :: Char -> Direction
+direction = toEnum . fromIntegral . u_charDirection . fromIntegral . ord
+{-# INLINE direction #-}
+
 type UBlockCode = CInt
+type UCharDirection = CInt
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ublock_getCode" ublock_getCode
     :: UChar32 -> UBlockCode
+
+foreign import ccall unsafe "hs_text_icu.h __hs_u_charDirection" u_charDirection
+    :: UChar32 -> UCharDirection

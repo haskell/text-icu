@@ -5,6 +5,7 @@
 #include "unicode/utypes.h"
 
 #include "unicode/ubrk.h"
+#include "unicode/uchar.h"
 #include "unicode/ucol.h"
 #include "unicode/ucnv.h"
 #include "unicode/uiter.h"
@@ -32,6 +33,7 @@ int32_t __hs_ubrk_getRuleStatusVec(UBreakIterator *bi, int32_t *fillInVec,
 /* uchar.h */
 
 UBlockCode __hs_ublock_getCode(UChar32 c);
+UCharDirection __hs_u_charDirection(UChar32 c);
 
 /* ucol.h */
 
