@@ -17,6 +17,8 @@ module Data.Text.ICU.Char
     , Direction(..)
     -- * Functions
     , blockCode
+    , charFullName
+    , charName
     , combiningClass
     , digitToInt
     , direction
@@ -24,12 +26,21 @@ module Data.Text.ICU.Char
     , mirror
     ) where
 
+#include <unicode/uchar.h>
+
+import Control.Exception (throw)
 import Data.Char (chr, ord)
 import Data.Int (Int32)
 import Data.Text.ICU.Internal (UBool, UChar32, asBool)
+import Data.Text.ICU.Error (isFailure, u_BUFFER_OVERFLOW_ERROR)
+import Data.Text.ICU.Error.Internal (UErrorCode, withError)
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
+import Foreign.C.String (CString, peekCStringLen)
 import Foreign.C.Types (CInt)
+import Foreign.Marshal.Alloc (allocaBytes)
+import Foreign.Ptr (Ptr)
+import System.IO.Unsafe (unsafePerformIO)
 
 -- | The language directional property of a character set.
 data Direction =
@@ -288,8 +299,37 @@ digitToInt c
     | otherwise = Just $! fromIntegral i
   where i = u_charDigitValue . fromIntegral . ord $ c
 
+-- | Return the name of a Unicode character.
+--
+-- The names of all unassigned characters are empty.
+--
+-- The name contains only "invariant" characters like A-Z, 0-9, space,
+-- and \'-\'.
+charName :: Char -> String
+charName = charName' (#const U_UNICODE_CHAR_NAME)
+
+-- | Return the full name of a Unicode character.
+--
+-- Compared to 'charName', this function gives each Unicode code point
+-- a unique name.
+charFullName :: Char -> String
+charFullName = charName' (#const U_EXTENDED_CHAR_NAME)
+
+charName' :: UCharNameChoice -> Char -> String
+charName' choice c = unsafePerformIO $ loop 128
+ where
+  loop n =
+    allocaBytes n $ \ptr -> do
+      (err,r) <- withError $ u_charName (fromIntegral (ord c)) choice ptr
+                                        (fromIntegral n)
+      case undefined of
+       _| err == u_BUFFER_OVERFLOW_ERROR -> loop (fromIntegral r)
+        | isFailure err                  -> throw err
+        | otherwise                      -> peekCStringLen (ptr,fromIntegral r)
+
 type UBlockCode = CInt
 type UCharDirection = CInt
+type UCharNameChoice = CInt
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ublock_getCode" ublock_getCode
     :: UChar32 -> UBlockCode
@@ -303,8 +343,12 @@ foreign import ccall unsafe "hs_text_icu.h __hs_u_isMirrored" u_isMirrored
 foreign import ccall unsafe "hs_text_icu.h __hs_u_charMirror" u_charMirror
     :: UChar32 -> UChar32
 
-foreign import ccall unsafe "hs_text_icu.h __hs_u_getCombingingClass" u_getCombiningClass
+foreign import ccall unsafe "hs_text_icu.h __hs_u_getCombiningClass" u_getCombiningClass
     :: UChar32 -> Word8
 
 foreign import ccall unsafe "hs_text_icu.h __hs_u_charDigitValue" u_charDigitValue
     :: UChar32 -> Int32
+
+foreign import ccall unsafe "hs_text_icu.h __hs_u_charName" u_charName
+    :: UChar32 -> UCharNameChoice -> CString -> Int32 -> Ptr UErrorCode
+    -> IO Int32

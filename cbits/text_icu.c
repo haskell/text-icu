@@ -306,3 +306,9 @@ int32_t __hs_u_charDigitValue(UChar32 c)
     return u_charDigitValue(c);
 }
 
+int32_t __hs_u_charName(UChar32 code, UCharNameChoice nameChoice,
+			char *buffer, int32_t bufferLength,
+			UErrorCode *pErrorCode)
+{
+    return u_charName(code, nameChoice, buffer, bufferLength, pErrorCode);
+}
