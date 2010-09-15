@@ -25,9 +25,11 @@ module Data.Text.ICU.Char
     , CanonicalCombiningClass_(..)
     , EastAsianWidth_(..)
     , GeneralCategory_(..)
+    , JoiningGroup_(..)
     -- ** Property value types
     , EastAsianWidth(..)
     , GeneralCategory(..)
+    , JoiningGroup(..)
     -- * Functions
     , blockCode
     , charFullName
@@ -176,7 +178,7 @@ data BlockCode =
   | ByzantineMusicalSymbols
   | MusicalSymbols
   | MathematicalAlphanumericSymbols
-  | CJKUnifiedIdeographsExtensionB 
+  | CJKUnifiedIdeographsExtensionB
   | CJKCompatibilityIdeographsSupplement
   | Tags
   | CyrillicSupplement
@@ -370,7 +372,7 @@ data Bool_ =
   | POSIXXDigit
   -- ^ Hex digit character class.
     deriving (Eq, Enum, Show, Typeable)
-    
+
 class Property p v | p -> v where
     fromNative :: p -> Int32 -> v
     toUProperty :: p -> UProperty
@@ -478,6 +480,70 @@ data GeneralCategory =
 instance Property GeneralCategory_ GeneralCategory where
     fromNative _  = toEnum . fromIntegral
     toUProperty _ = (#const UCHAR_GENERAL_CATEGORY)
+
+data JoiningGroup_ = JoiningGroup deriving (Show, Typeable)
+
+data JoiningGroup =
+    NoJoiningGroup
+  | Ain
+  | Alaph
+  | Alef
+  | Beh
+  | Beth
+  | Dal
+  | DalathRish
+  | E
+  | Feh
+  | FinalSemkath
+  | Gaf
+  | Gamal
+  | Hah
+  | HamzaOnHehGoal
+  | He
+  | Heh
+  | HehGoal
+  | Heth
+  | Kaf
+  | Kaph
+  | KnottedHeh
+  | Lam
+  | Lamadh
+  | Meem
+  | Mim
+  | Noon
+  | Nun
+  | Pe
+  | Qaf
+  | Qaph
+  | Reh
+  | ReversedPe
+  | Sad
+  | Sadhe
+  | Seen
+  | Semkath
+  | Shin
+  | SwashKaf
+  | SyriacWaw
+  | Tah
+  | Taw
+  | TehMarbuta
+  | Teth
+  | Waw
+  | Yeh
+  | YehBarree
+  | YehWithTail
+  | Yudh
+  | YudhHe
+  | Zain
+  | Fe
+  | Khaph
+  | Zhain
+  | BurushaskiYehBarree
+    deriving (Eq, Enum, Show, Typeable)
+
+instance Property JoiningGroup_ JoiningGroup where
+    fromNative _  = toEnum . fromIntegral
+    toUProperty _ = (#const UCHAR_JOINING_GROUP)
 
 property :: Property p v => p -> Char -> v
 property p c = fromNative p . u_getIntPropertyValue (fromIntegral (ord c)) .
