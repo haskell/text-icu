@@ -18,10 +18,12 @@ module Data.Text.ICU.Char
     -- * Functions
     , blockCode
     , direction
+    , isMirrored
+    , mirror
     ) where
 
-import Data.Char (ord)
-import Data.Text.ICU.Internal (UChar32)
+import Data.Char (chr, ord)
+import Data.Text.ICU.Internal (UBool, UChar32, asBool)
 import Data.Typeable (Typeable)
 import Foreign.C.Types (CInt)
 
@@ -237,6 +239,31 @@ direction :: Char -> Direction
 direction = toEnum . fromIntegral . u_charDirection . fromIntegral . ord
 {-# INLINE direction #-}
 
+-- | Determines whether the code point has the @Bidi_Mirrored@
+-- property.  This property is set for characters that are commonly
+-- used in Right-To-Left contexts and need to be displayed with a
+-- "mirrored" glyph.
+isMirrored :: Char -> Bool
+isMirrored = asBool . u_isMirrored . fromIntegral . ord
+{-# INLINE isMirrored #-}
+
+-- Map the specified character to a "mirror-image" character.
+--
+-- For characters with the @Bidi_Mirrored@ property, implementations
+-- sometimes need a "poor man's" mapping to another Unicode (code
+-- point) such that the default glyph may serve as the mirror image of
+-- the default glyph of the specified character. This is useful for
+-- text conversion to and from codepages with visual order, and for
+-- displays without glyph selection capabilities.
+--
+-- The return value is another Unicode code point that may serve as a
+-- mirror-image substitute, or the original character itself if there
+-- is no such mapping or the character lacks the @Bidi_Mirrored@
+-- property.
+mirror :: Char -> Char
+mirror = chr . fromIntegral . u_charMirror . fromIntegral . ord
+{-# INLINE mirror #-}
+
 type UBlockCode = CInt
 type UCharDirection = CInt
 
@@ -245,3 +272,9 @@ foreign import ccall unsafe "hs_text_icu.h __hs_ublock_getCode" ublock_getCode
 
 foreign import ccall unsafe "hs_text_icu.h __hs_u_charDirection" u_charDirection
     :: UChar32 -> UCharDirection
+
+foreign import ccall unsafe "hs_text_icu.h __hs_u_isMirrored" u_isMirrored
+    :: UChar32 -> UBool
+
+foreign import ccall unsafe "hs_text_icu.h __hs_u_charMirror" u_charMirror
+    :: UChar32 -> UChar32

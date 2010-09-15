@@ -34,6 +34,8 @@ int32_t __hs_ubrk_getRuleStatusVec(UBreakIterator *bi, int32_t *fillInVec,
 
 UBlockCode __hs_ublock_getCode(UChar32 c);
 UCharDirection __hs_u_charDirection(UChar32 c);
+UBool __hs_u_isMirrored(UChar32 c);
+UChar32 __hs_u_charMirror(UChar32 c);
 
 /* ucol.h */
 

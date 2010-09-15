@@ -285,3 +285,13 @@ UCharDirection __hs_u_charDirection(UChar32 c)
 {
     return u_charDirection(c);
 }
+
+UBool __hs_u_isMirrored(UChar32 c)
+{
+    return u_isMirrored(c);
+}
+
+UChar32 __hs_u_charMirror(UChar32 c)
+{
+    return u_charMirror(c);
+}
