@@ -41,6 +41,7 @@ import Data.Text.Foreign (fromPtr, useAsPtr)
 import Data.Text.ICU.Error (u_BUFFER_OVERFLOW_ERROR)
 import Data.Text.ICU.Error.Internal (UErrorCode, isFailure, handleError, withError)
 import Data.Text.ICU.Internal (UBool, UChar, asBool, asOrdering)
+import Data.Text.ICU.Normalize.Internal (UNormalizationCheckResult, toNCR)
 import Data.Typeable (Typeable)
 import Data.Int (Int32)
 import Data.Word (Word32)
@@ -203,14 +204,6 @@ toNM NFKD = #const UNORM_NFKD
 toNM NFC  = #const UNORM_NFC
 toNM NFKC = #const UNORM_NFKC
 toNM FCD  = #const UNORM_FCD
-
-type UNormalizationCheckResult = CInt
-
-toNCR :: UNormalizationCheckResult -> Maybe Bool
-toNCR (#const UNORM_NO)    = Just False
-toNCR (#const UNORM_MAYBE) = Nothing
-toNCR (#const UNORM_YES)   = Just True
-toNCR _                    = error "toNormalizationCheckResult"
 
 -- | Normalize a string according the specified normalization mode.
 normalize :: NormalizationMode -> Text -> Text

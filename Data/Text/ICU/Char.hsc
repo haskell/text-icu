@@ -29,6 +29,10 @@ module Data.Text.ICU.Char
     , JoiningGroup_(..)
     , JoiningType_(..)
     , LineBreak_(..)
+    , NFCQuickCheck_(..)
+    , NFDQuickCheck_(..)
+    , NFKCQuickCheck_(..)
+    , NFKDQuickCheck_(..)
     , NumericType_(..)
     -- ** Property value types
     , EastAsianWidth(..)
@@ -55,9 +59,10 @@ module Data.Text.ICU.Char
 import Control.Exception (throw)
 import Data.Char (chr, ord)
 import Data.Int (Int32)
-import Data.Text.ICU.Internal (UBool, UChar32, asBool)
 import Data.Text.ICU.Error (isFailure, u_BUFFER_OVERFLOW_ERROR)
 import Data.Text.ICU.Error.Internal (UErrorCode, withError)
+import Data.Text.ICU.Internal (UBool, UChar32, asBool)
+import Data.Text.ICU.Normalize.Internal (toNCR)
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Foreign.C.String (CString, peekCStringLen)
@@ -634,6 +639,27 @@ data HangulSyllableType =
 instance Property HangulSyllableType_ (Maybe HangulSyllableType) where
     fromNative _  = maybeEnum
     toUProperty _ = (#const UCHAR_HANGUL_SYLLABLE_TYPE)
+
+data NFCQuickCheck_ = NFCQuickCheck deriving (Show, Typeable)
+data NFDQuickCheck_ = NFDQuickCheck deriving (Show, Typeable)
+data NFKCQuickCheck_ = NFKCQuickCheck deriving (Show, Typeable)
+data NFKDQuickCheck_ = NFKDQuickCheck deriving (Show, Typeable)
+
+instance Property NFCQuickCheck_ (Maybe Bool) where
+    fromNative  _ = toNCR . fromIntegral
+    toUProperty _ = (#const UCHAR_NFC_QUICK_CHECK)
+
+instance Property NFDQuickCheck_ (Maybe Bool) where
+    fromNative  _ = toNCR . fromIntegral
+    toUProperty _ = (#const UCHAR_NFD_QUICK_CHECK)
+
+instance Property NFKCQuickCheck_ (Maybe Bool) where
+    fromNative  _ = toNCR . fromIntegral
+    toUProperty _ = (#const UCHAR_NFKC_QUICK_CHECK)
+
+instance Property NFKDQuickCheck_ (Maybe Bool) where
+    fromNative  _ = toNCR . fromIntegral
+    toUProperty _ = (#const UCHAR_NFKD_QUICK_CHECK)
 
 property :: Property p v => p -> Char -> v
 property p c = fromNative p . u_getIntPropertyValue (fromIntegral (ord c)) .
