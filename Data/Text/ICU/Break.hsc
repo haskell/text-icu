@@ -20,7 +20,7 @@
 module Data.Text.ICU.Break
     (
     -- * Types
-      BreakIterator
+      Breaker
     , Line(..)
     , Word(..)
     -- * Breaking functions
@@ -72,8 +72,8 @@ data Word = Uncategorized       -- ^ A "word" that does not fit into another
           | Ideograph           -- ^ A word containing ideographic characters.
             deriving (Eq, Show, Enum)
 
--- A break iterator.
-data BreakIterator a = BI (IORef Text) (Int32 -> a) (ForeignPtr UBreakIterator)
+-- A boundary breaker.
+data Breaker a = BR (IORef Text) (Int32 -> a) (ForeignPtr UBreakIterator)
 
 -- | Break a string on character boundaries.
 --
@@ -83,7 +83,7 @@ data BreakIterator a = BI (IORef Text) (Int32 -> a) (ForeignPtr UBreakIterator)
 -- Unicode Standard Annex #29, Unicode Text Segmentation,
 -- <http://www.unicode.org/reports/tr29/> for additional information on
 -- grapheme clusters and guidelines on their use.
-breakCharacter :: LocaleName -> Text -> IO (BreakIterator ())
+breakCharacter :: LocaleName -> Text -> IO (Breaker ())
 breakCharacter = open (#const UBRK_CHARACTER) (const ())
 
 -- | Break a string on line boundaries.
@@ -91,7 +91,7 @@ breakCharacter = open (#const UBRK_CHARACTER) (const ())
 -- Line boundary analysis determines where a text string can be broken when
 -- line wrapping. The mechanism correctly handles punctuation and hyphenated
 -- words.
-breakLine :: LocaleName -> Text -> IO (BreakIterator Line)
+breakLine :: LocaleName -> Text -> IO (Breaker Line)
 breakLine = open (#const UBRK_LINE) asLine
   where
     asLine i
@@ -104,7 +104,7 @@ breakLine = open (#const UBRK_LINE) asLine
 -- Sentence boundary analysis allows selection with correct interpretation
 -- of periods within numbers and abbreviations, and trailing punctuation
 -- marks such as quotation marks and parentheses.
-breakSentence :: LocaleName -> Text -> IO (BreakIterator ())
+breakSentence :: LocaleName -> Text -> IO (Breaker ())
 breakSentence = open (#const UBRK_SENTENCE) (const ())
 
 -- | Break a string on word boundaries.
@@ -115,7 +115,7 @@ breakSentence = open (#const UBRK_SENTENCE) (const ())
 -- punctuation marks within and following words. Characters that are not
 -- part of a word, such as symbols or punctuation marks, have word breaks on
 -- both sides.
-breakWord :: LocaleName -> Text -> IO (BreakIterator Word)
+breakWord :: LocaleName -> Text -> IO (Breaker Word)
 breakWord = open (#const UBRK_WORD) asWord
   where
     asWord i
@@ -126,27 +126,27 @@ breakWord = open (#const UBRK_WORD) asWord
       | i < (#const UBRK_WORD_IDEO_LIMIT) = Ideograph
       | otherwise = error $ "unknown word break status " ++ show i
 
--- | Create a new 'BreakIterator' for locating text boundaries in the
+-- | Create a new 'Breaker' for locating text boundaries in the
 -- specified locale.
 open :: UBreakIteratorType -> (Int32 -> a) -> LocaleName -> Text
-     -> IO (BreakIterator a)
+     -> IO (Breaker a)
 open brk f loc t = withLocaleName loc $ \locale ->
   useAsPtr t $ \ptr len -> do
     bi <- handleError $ ubrk_open brk locale ptr (fromIntegral len)
     r <- newIORef t
-    BI r f `fmap` newForeignPtr ubrk_close bi
+    BR r f `fmap` newForeignPtr ubrk_close bi
 
--- | Point an existing 'BreakIterator' at a new piece of text.
-setText :: BreakIterator a -> Text -> IO ()
-setText (BI r _ bi) t =
+-- | Point an existing 'Breaker' at a new piece of text.
+setText :: Breaker a -> Text -> IO ()
+setText (BR r _ bi) t =
   useAsPtr t $ \ptr len -> do
     withForeignPtr bi $ \p -> handleError $
                               ubrk_setText p ptr (fromIntegral len)
     writeIORef r t
 
-asIndex :: (Ptr UBreakIterator -> IO Int32) -> BreakIterator a
+asIndex :: (Ptr UBreakIterator -> IO Int32) -> Breaker a
         -> IO (Maybe (Text, Text))
-asIndex act (BI r _ bi) = do
+asIndex act (BR r _ bi) = do
   ix <- withForeignPtr bi act
   if ix == (#const UBRK_DONE)
     then return Nothing
@@ -157,34 +157,34 @@ asIndex act (BI r _ bi) = do
 
 -- | Reset the iterator and break at the first character in the text being
 -- scanned.
-first :: BreakIterator a -> IO (Maybe (Text, Text))
+first :: Breaker a -> IO (Maybe (Text, Text))
 first = asIndex ubrk_first
 
 -- | Reset the iterator and break immediately /beyond/ the last character in
 -- the text being scanned.
-last :: BreakIterator a -> IO (Maybe (Text, Text))
+last :: Breaker a -> IO (Maybe (Text, Text))
 last = asIndex ubrk_last
 
 -- | Advance the iterator and break at the text boundary that follows the
 -- current text boundary.
-next :: BreakIterator a -> IO (Maybe (Text, Text))
+next :: Breaker a -> IO (Maybe (Text, Text))
 next = asIndex ubrk_next
 
 -- | Advance the iterator and break at the text boundary that precedes the
 -- current text boundary.
-previous :: BreakIterator a -> IO (Maybe (Text, Text))
+previous :: Breaker a -> IO (Maybe (Text, Text))
 previous = asIndex ubrk_previous
 
 -- | Return the status from the break rule that determined the most recently
 -- returned break position.  For rules that do not specify a status, a
 -- default value of @()@ is returned.
-getStatus :: BreakIterator a -> IO a
-getStatus (BI _ f bi) = f `fmap` withForeignPtr bi ubrk_getRuleStatus
+getStatus :: Breaker a -> IO a
+getStatus (BR _ f bi) = f `fmap` withForeignPtr bi ubrk_getRuleStatus
 
 -- | Return statuses from all of the break rules that determined the most
 -- recently returned break position.
-getStatuses :: BreakIterator a -> IO [a]
-getStatuses (BI _ f bi) =
+getStatuses :: Breaker a -> IO [a]
+getStatuses (BR _ f bi) =
   withForeignPtr bi $ \brk -> do
     n <- handleError $ ubrk_getRuleStatusVec brk nullPtr 0
     allocaArray (fromIntegral n) $ \ptr -> do
