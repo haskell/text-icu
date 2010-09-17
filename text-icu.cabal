@@ -1,5 +1,5 @@
 name:           text-icu
-version:        0.6.0.0
+version:        0.5.0.0
 synopsis:       Bindings to the ICU library
 description:    Haskell bindings to the International Components for
                 Unicode (ICU) libraries.  These libraries provide
