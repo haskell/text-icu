@@ -1,4 +1,5 @@
-{-# LANGUAGE BangPatterns, EmptyDataDecls, ForeignFunctionInterface #-}
+{-# LANGUAGE BangPatterns, EmptyDataDecls, ForeignFunctionInterface,
+    RecordWildCards #-}
 -- |
 -- Module      : Data.Text.ICU.Break
 -- Copyright   : (c) 2010 Bryan O'Sullivan
@@ -73,7 +74,11 @@ data Word = Uncategorized       -- ^ A "word" that does not fit into another
             deriving (Eq, Show, Enum)
 
 -- A boundary breaker.
-data Breaker a = BR (IORef Text) (Int32 -> a) (ForeignPtr UBreakIterator)
+data Breaker a = BR {
+      brText :: IORef Text
+    , brStatus :: Int32 -> a
+    , brIter :: ForeignPtr UBreakIterator
+    }
 
 -- | Break a string on character boundaries.
 --
@@ -138,21 +143,21 @@ open brk f loc t = withLocaleName loc $ \locale ->
 
 -- | Point an existing 'Breaker' at a new piece of text.
 setText :: Breaker a -> Text -> IO ()
-setText (BR r _ bi) t =
+setText BR{..} t =
   useAsPtr t $ \ptr len -> do
-    withForeignPtr bi $ \p -> handleError $
-                              ubrk_setText p ptr (fromIntegral len)
-    writeIORef r t
+    withForeignPtr brIter $ \p -> handleError $
+                                  ubrk_setText p ptr (fromIntegral len)
+    writeIORef brText t
 
 asIndex :: (Ptr UBreakIterator -> IO Int32) -> Breaker a
         -> IO (Maybe (Text, Text))
-asIndex act (BR r _ bi) = do
-  ix <- withForeignPtr bi act
+asIndex act BR{..} = do
+  ix <- withForeignPtr brIter act
   if ix == (#const UBRK_DONE)
     then return Nothing
     else do
       let n = fromIntegral ix
-      t <- readIORef r
+      t <- readIORef brText
       return $! Just (takeWord16 n t, dropWord16 n t)
 
 -- | Reset the iterator and break at the first character in the text being
@@ -179,17 +184,17 @@ previous = asIndex ubrk_previous
 -- returned break position.  For rules that do not specify a status, a
 -- default value of @()@ is returned.
 getStatus :: Breaker a -> IO a
-getStatus (BR _ f bi) = f `fmap` withForeignPtr bi ubrk_getRuleStatus
+getStatus BR{..} = brStatus `fmap` withForeignPtr brIter ubrk_getRuleStatus
 
 -- | Return statuses from all of the break rules that determined the most
 -- recently returned break position.
 getStatuses :: Breaker a -> IO [a]
-getStatuses (BR _ f bi) =
-  withForeignPtr bi $ \brk -> do
+getStatuses BR{..} =
+  withForeignPtr brIter $ \brk -> do
     n <- handleError $ ubrk_getRuleStatusVec brk nullPtr 0
     allocaArray (fromIntegral n) $ \ptr -> do
       _ <- handleError $ ubrk_getRuleStatusVec brk ptr n
-      map f `fmap` peekArray (fromIntegral n) ptr
+      map brStatus `fmap` peekArray (fromIntegral n) ptr
 
 type UBreakIteratorType = CInt
 data UBreakIterator
