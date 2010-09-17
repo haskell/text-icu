@@ -12,41 +12,58 @@
 --
 -- Access to the Unicode Character Database, implemented as bindings
 -- to the International Components for Unicode (ICU) libraries.
+--
+-- Unicode assigns each code point (not just assigned character) values for
+-- many properties.  Most are simple boolean flags, or constants from a
+-- small enumerated list.  For some, values are relatively more complex
+-- types.
+--
+-- For more information see \"About the Unicode Character Database\"
+-- <http://www.unicode.org/ucd/> and the ICU User Guide chapter on
+-- Properties <http://icu-project.org/userguide/properties.html>.
 module Data.Text.ICU.Char
     (
-      BlockCode(..)
-    , Direction(..)
-    -- * Character property types
-    -- ** Property identifier types
-    , Property
+    -- * Working with character properties
+    -- $properties
+      Property
+    -- * Property identifier types
     , BidiClass_(..)
     , Block_(..)
     , Bool_(..)
-    , CanonicalCombiningClass_(..)
-    , LeadCanonicalCombiningClass_(..)
-    , TrailingCanonicalCombiningClass_(..)
+    , Decomposition_(..)
     , EastAsianWidth_(..)
     , GeneralCategory_(..)
-    , GraphemeClusterBreak_(..)
     , HangulSyllableType_(..)
     , JoiningGroup_(..)
     , JoiningType_(..)
-    , LineBreak_(..)
+    , NumericType_(..)
+    -- ** Combining class
+    , CanonicalCombiningClass_(..)
+    , LeadCanonicalCombiningClass_(..)
+    , TrailingCanonicalCombiningClass_(..)
+    -- ** Normalization checking
     , NFCQuickCheck_(..)
     , NFDQuickCheck_(..)
     , NFKCQuickCheck_(..)
     , NFKDQuickCheck_(..)
-    , NumericType_(..)
+    -- ** Text boundaries
+    , GraphemeClusterBreak_(..)
+    , LineBreak_(..)
     , SentenceBreak_(..)
     , WordBreak_(..)
-    -- ** Property value types
+    -- * Property value types
+    , BlockCode(..)
+    , Direction(..)
+    , Decomposition(..)
     , EastAsianWidth(..)
     , GeneralCategory(..)
-    , GraphemeClusterBreak(..)
     , HangulSyllableType(..)
     , JoiningGroup(..)
     , JoiningType(..)
     , NumericType(..)
+    -- ** Text boundaries
+    , GraphemeClusterBreak(..)
+    , LineBreak(..)
     , SentenceBreak(..)
     , WordBreak(..)
     -- * Functions
@@ -80,6 +97,16 @@ import Foreign.C.Types (CInt)
 import Foreign.Marshal.Alloc (allocaBytes)
 import Foreign.Ptr (Ptr)
 import System.IO.Unsafe (unsafePerformIO)
+
+-- $properties
+--
+-- The 'property' function provides the main view onto the Unicode Character
+-- Database.  Because Unicode character properties have a variety of types,
+-- the 'property' function is polymorphic.  The type of its first argument
+-- dictates the type of its result, by use of the 'Property' typeclass.
+--
+-- For instance, @'property' 'Alphabetic'@ returns a 'Bool', while @'property'
+-- 'NFCQuickCheck'@ returns a @'Maybe' 'Bool'@.
 
 -- | The language directional property of a character set.
 data Direction =
@@ -430,7 +457,7 @@ data Decomposition =
   | Isolated
   | Medial
   | Narrow
-  | Nobreak
+  | NoBreak
   | Small
   | Square
   | Sub
@@ -767,26 +794,25 @@ direction :: Char -> Direction
 direction = toEnum . fromIntegral . u_charDirection . fromIntegral . ord
 {-# INLINE direction #-}
 
--- | Determine whether the code point has the @Bidi_Mirrored@
--- property.  This property is set for characters that are commonly
--- used in Right-To-Left contexts and need to be displayed with a
--- "mirrored" glyph.
+-- | Determine whether the code point has the 'BidiMirrored' property.  This
+-- property is set for characters that are commonly used in Right-To-Left
+-- contexts and need to be displayed with a "mirrored" glyph.
 isMirrored :: Char -> Bool
 isMirrored = asBool . u_isMirrored . fromIntegral . ord
 {-# INLINE isMirrored #-}
 
 -- Map the specified character to a "mirror-image" character.
 --
--- For characters with the @Bidi_Mirrored@ property, implementations
--- sometimes need a "poor man's" mapping to another Unicode (code
--- point) such that the default glyph may serve as the mirror image of
--- the default glyph of the specified character. This is useful for
--- text conversion to and from codepages with visual order, and for
--- displays without glyph selection capabilities.
+-- For characters with the 'BidiMirrored' property, implementations
+-- sometimes need a "poor man's" mapping to another Unicode (code point)
+-- such that the default glyph may serve as the mirror image of the default
+-- glyph of the specified character. This is useful for text conversion to
+-- and from codepages with visual order, and for displays without glyph
+-- selection capabilities.
 --
 -- The return value is another Unicode code point that may serve as a
 -- mirror-image substitute, or the original character itself if there
--- is no such mapping or the character lacks the @Bidi_Mirrored@
+-- is no such mapping or the character lacks the 'BidiMirrored'
 -- property.
 mirror :: Char -> Char
 mirror = chr . fromIntegral . u_charMirror . fromIntegral . ord
@@ -798,14 +824,14 @@ combiningClass = fromIntegral . u_getCombiningClass . fromIntegral . ord
 
 -- | Return the decimal digit value of a decimal digit character.
 -- Such characters have the general category @Nd@ (decimal digit
--- numbers) and a @Numeric_Type@ of @Decimal@.
+-- numbers) and a 'NumericType' of 'NTDecimal'.
 --
 -- No digit values are returned for any Han characters, because Han
 -- number characters are often used with a special Chinese-style
 -- number format (with characters for powers of 10 in between) instead
 -- of in decimal-positional notation.  Unicode 4 explicitly assigns
--- Han number characters a @Numeric_Type@ of @Numeric@ instead of
--- @Decimal@.
+-- Han number characters a 'NumericType' of 'NTNumeric' instead of
+-- 'NTDecimal'.
 digitToInt :: Char -> Maybe Int
 digitToInt c
     | i == -1   = Nothing
