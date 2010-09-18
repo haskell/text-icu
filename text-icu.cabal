@@ -16,7 +16,7 @@ extra-source-files:
   README include/hs_text_icu.h
 
 library
-  build-depends:     base < 5, bytestring, text
+  build-depends:     base < 5, bytestring, text == 0.8.*
   if impl(ghc >= 6.10)
     build-depends:   base >= 4
 
