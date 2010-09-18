@@ -19,6 +19,7 @@ module Data.Text.ICU.Internal
 
 import Data.ByteString.Internal (ByteString(..))
 import Data.Int (Int8, Int32)
+import Data.String (IsString(..))
 import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8)
 import Data.Text.Foreign (useAsPtr)
@@ -88,6 +89,9 @@ data LocaleName = Root
                 | Locale String -- ^ A specific locale.
                 | Current       -- ^ The program's current locale. 
                   deriving (Eq, Ord, Read, Show)
+
+instance IsString LocaleName where
+    fromString = Locale
 
 withLocaleName :: LocaleName -> (CString -> IO a) -> IO a
 withLocaleName Current act = act nullPtr
