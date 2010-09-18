@@ -27,8 +27,6 @@ module Data.Text.ICU.Collate.Pure
     , uca
     ) where
 
-#include <unicode/ucol.h>
-
 import Data.ByteString (ByteString)
 import Data.Text (Text)
 import Data.Text.ICU.Collate.Internal (Collator(..))
