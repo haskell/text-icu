@@ -22,13 +22,19 @@ UBreakIterator* __hs_ubrk_open(UBreakIteratorType type, const char *locale,
 void __hs_ubrk_close(UBreakIterator *bi);
 void __hs_ubrk_setText(UBreakIterator* bi, const UChar *text,
 		       int32_t textLength, UErrorCode *status);
+int32_t __hs_ubrk_current(UBreakIterator *bi);
 int32_t __hs_ubrk_first(UBreakIterator *bi);
 int32_t __hs_ubrk_last(UBreakIterator *bi);
 int32_t __hs_ubrk_next(UBreakIterator *bi);
 int32_t __hs_ubrk_previous(UBreakIterator *bi);
+int32_t __hs_ubrk_preceding(UBreakIterator *bi, int32_t offset);
+int32_t __hs_ubrk_following(UBreakIterator *bi, int32_t offset);
 int32_t __hs_ubrk_getRuleStatus(UBreakIterator *bi);
 int32_t __hs_ubrk_getRuleStatusVec(UBreakIterator *bi, int32_t *fillInVec,
 				   int32_t capacity, UErrorCode *status);
+UBool __hs_ubrk_isBoundary(UBreakIterator *bi, int32_t offset);
+int32_t __hs_ubrk_countAvailable(void);
+const char* __hs_ubrk_getAvailable(int32_t index);
 
 /* uchar.h */
 

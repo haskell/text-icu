@@ -18,6 +18,11 @@ void __hs_ubrk_setText(UBreakIterator* bi, const UChar *text,
     ubrk_setText(bi, text, textLength, status);
 }
 
+int32_t __hs_ubrk_current(UBreakIterator *bi)
+{
+    return ubrk_current(bi);
+}
+
 int32_t __hs_ubrk_first(UBreakIterator *bi)
 {
     return ubrk_first(bi);
@@ -38,6 +43,16 @@ int32_t __hs_ubrk_previous(UBreakIterator *bi)
     return ubrk_previous(bi);
 }
 
+int32_t __hs_ubrk_preceding(UBreakIterator *bi, int32_t offset)
+{
+    return ubrk_preceding(bi, offset);
+}
+
+int32_t __hs_ubrk_following(UBreakIterator *bi, int32_t offset)
+{
+    return ubrk_following(bi, offset);
+}
+
 int32_t __hs_ubrk_getRuleStatus(UBreakIterator *bi)
 {
     return ubrk_getRuleStatus(bi);
@@ -47,6 +62,21 @@ int32_t __hs_ubrk_getRuleStatusVec(UBreakIterator *bi, int32_t *fillInVec,
 				   int32_t capacity, UErrorCode *status)
 {
     return ubrk_getRuleStatusVec(bi, fillInVec, capacity, status);
+}
+
+UBool __hs_ubrk_isBoundary(UBreakIterator *bi, int32_t offset)
+{
+    return ubrk_isBoundary(bi, offset);
+}
+
+int32_t __hs_ubrk_countAvailable(void)
+{
+    return ubrk_countAvailable();
+}
+
+const char* __hs_ubrk_getAvailable(int32_t index)
+{
+    return ubrk_getAvailable(index);
 }
 
 UCollator* __hs_ucol_open(const char *loc, UErrorCode *status)
