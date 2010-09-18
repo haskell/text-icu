@@ -1,7 +1,7 @@
 {-# LANGUAGE BangPatterns, EmptyDataDecls, ForeignFunctionInterface,
     RecordWildCards #-}
 -- |
--- Module      : Data.Text.ICU.Break
+-- Module      : Data.Text.ICU.Break.IO
 -- Copyright   : (c) 2010 Bryan O'Sullivan
 --
 -- License     : BSD-style
@@ -18,7 +18,7 @@
 -- <http://www.unicode.org/reports/tr14/> and
 -- <http://www.unicode.org/reports/tr29/>.
 
-module Data.Text.ICU.Break
+module Data.Text.ICU.Break.IO
     (
     -- * Types
       Breaker
