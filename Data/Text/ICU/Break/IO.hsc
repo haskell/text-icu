@@ -28,6 +28,7 @@ module Data.Text.ICU.Break.IO
     , breakLine
     , breakSentence
     , breakWord
+    , clone
     , setText
     -- * Iteration functions
     -- $indices
@@ -60,6 +61,7 @@ import Foreign.C.String (CString, peekCString)
 import Foreign.C.Types (CInt)
 import Foreign.ForeignPtr (newForeignPtr, withForeignPtr)
 import Foreign.Marshal.Array (allocaArray, peekArray)
+import Foreign.Marshal.Utils (with)
 import Foreign.Ptr (FunPtr, Ptr, nullPtr)
 import Prelude hiding (last)
 import System.IO.Unsafe (unsafePerformIO)
@@ -158,7 +160,15 @@ setText BR{..} t =
                                   ubrk_setText p ptr (fromIntegral len)
     writeIORef brText t
 
-asIndex :: (Ptr UBreakIterator -> IO Int32) -> BreakIterator a -> IO (Maybe Int)
+-- | Thread safe cloning operation.  This is substantially faster than
+-- creating a new 'BreakIterator' from scratch.
+clone :: BreakIterator a -> IO (BreakIterator a)
+clone BR{..} = do
+  bi <- withForeignPtr brIter $ \p ->
+        with 1 $ handleError . ubrk_safeClone p nullPtr
+  BR brText brStatus `fmap` newForeignPtr ubrk_close bi
+
+asIndex :: (Ptr UBreakIterator -> IO Int32) -> BreakIterator a -> IO (Maybe I16)
 asIndex act BR{..} = do
   i <- withForeignPtr brIter act
   return $! if i == (#const UBRK_DONE)
@@ -236,6 +246,10 @@ foreign import ccall unsafe "hs_text_icu.h __hs_ubrk_open" ubrk_open
 foreign import ccall unsafe "hs_text_icu.h __hs_ubrk_setText" ubrk_setText
     :: Ptr UBreakIterator -> Ptr UChar -> Int32 -> Ptr UErrorCode
     -> IO ()
+
+foreign import ccall unsafe "hs_text_icu.h __hs_ubrk_safeClone" ubrk_safeClone
+    :: Ptr UBreakIterator -> Ptr a -> Ptr Int32 -> Ptr UErrorCode
+    -> IO (Ptr UBreakIterator)
 
 foreign import ccall unsafe "hs_text_icu.h &__hs_ubrk_close" ubrk_close
     :: FunPtr (Ptr UBreakIterator -> IO ())
