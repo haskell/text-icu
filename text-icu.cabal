@@ -23,7 +23,6 @@ library
   exposed-modules:
       Data.Text.ICU
       Data.Text.ICU.Break
-      Data.Text.ICU.Break.IO
       Data.Text.ICU.Char
       Data.Text.ICU.Collate
       Data.Text.ICU.Convert
@@ -31,6 +30,7 @@ library
       Data.Text.ICU.Normalize
       Data.Text.ICU.Types
   other-modules:
+      Data.Text.ICU.Break.Pure
       Data.Text.ICU.Break.Types
       Data.Text.ICU.Collate.Internal
       Data.Text.ICU.Collate.Pure

@@ -1,6 +1,6 @@
 {-# LANGUAGE BangPatterns, ForeignFunctionInterface, RecordWildCards #-}
 -- |
--- Module      : Data.Text.ICU.Break.IO
+-- Module      : Data.Text.ICU.Break
 -- Copyright   : (c) 2010 Bryan O'Sullivan
 --
 -- License     : BSD-style
@@ -17,7 +17,7 @@
 -- <http://www.unicode.org/reports/tr14/> and
 -- <http://www.unicode.org/reports/tr29/>.
 
-module Data.Text.ICU.Break.IO
+module Data.Text.ICU.Break
     (
     -- * Types
       BreakIterator

@@ -20,6 +20,22 @@ module Data.Text.ICU
 
     -- * Types
       LocaleName(..)
+    -- * Boundary analysis
+    -- $break
+    , Breaker
+    , Break
+    , brkPrefix
+    , brkBreak
+    , brkSuffix
+    , brkStatus
+    , Line(..)
+    , Word(..)
+    , breakCharacter
+    , breakLine
+    , breakSentence
+    , breakWord
+    , breaks
+    , breaksRight
     -- * Case mapping
     , toCaseFold
     , toLower
@@ -48,6 +64,7 @@ module Data.Text.ICU
     , uca
     ) where
 
+import Data.Text.ICU.Break.Pure
 import Data.Text.ICU.Collate.Pure
 import Data.Text.ICU.Internal
 import Data.Text.ICU.Iterator
@@ -71,6 +88,12 @@ import Data.Text (Text)
 -- system heap.  The copied strings are still managed automatically,
 -- but the need to duplicate data does add some performance and memory
 -- overhead.
+
+-- $break
+--
+-- For the impure boundary analysis API (which is richer, but less
+-- easy to use than the pure API), see the 'Data.Text.ICU.Break'
+-- module.
 
 -- $collate
 --

@@ -5,8 +5,8 @@
 import Control.Monad
 import qualified Data.Text as T
 import Data.Text.IO as T
-import Data.Text.ICU.Break.IO as IO
-import Data.Text.ICU.Break as B
+import Data.Text.ICU.Break as IO
+import Data.Text.ICU as ICU
 import System.Environment
 
 consume b = go
@@ -37,8 +37,8 @@ cloneBreakers ts = do
     consume b'
 
 pureBreaker ts = do
-  let b = B.breakWord "en"
-  forM_ ts $ \t -> length (B.breaks b t) `seq` return ()
+  let b = ICU.breakWord "en"
+  forM_ ts $ \t -> length (breaks b t) `seq` return ()
 
 main = do
   (kind:files) <- getArgs
