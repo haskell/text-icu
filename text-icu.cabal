@@ -22,6 +22,7 @@ library
 
   exposed-modules:
       Data.Text.ICU
+      Data.Text.ICU.Break
       Data.Text.ICU.Break.IO
       Data.Text.ICU.Char
       Data.Text.ICU.Collate
