@@ -220,8 +220,8 @@ normalize mode t = unsafePerformIO . useAsPtr t $ \sptr slen ->
           let newLen' = fromIntegral newLen
           if newLen' > dlen
             then return (Left newLen')
-            else Right `fmap` fromPtr dptr newLen'
-  in loop slen
+            else Right `fmap` fromPtr dptr (fromIntegral newLen')
+  in loop (fromIntegral slen)
     
       
 -- | Perform an efficient check on a string, to quickly determine if

@@ -54,8 +54,8 @@ toCaseFold excludeI s = unsafePerformIO .
                                   (fromIntegral slen) opts
           if n > len
             then go n
-            else fromPtr dptr n
-    go slen
+            else fromPtr dptr (fromIntegral n)
+    go (fromIntegral slen)
 
 type CaseMapper = Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> CString
                 -> Ptr UErrorCode -> IO Int32
@@ -70,8 +70,8 @@ caseMap mapFn loc s = unsafePerformIO .
                               (fromIntegral slen) locale
             if n > len
               then go n
-              else fromPtr dptr n
-      go slen
+              else fromPtr dptr (fromIntegral n)
+      go (fromIntegral slen)
 
 -- | Lowercase the characters in a string.
 --

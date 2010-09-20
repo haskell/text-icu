@@ -1,5 +1,4 @@
-{-# LANGUAGE BangPatterns, EmptyDataDecls, ForeignFunctionInterface,
-    RecordWildCards #-}
+{-# LANGUAGE BangPatterns, ForeignFunctionInterface, RecordWildCards #-}
 -- |
 -- Module      : Data.Text.ICU.Break.IO
 -- Copyright   : (c) 2010 Bryan O'Sullivan
@@ -31,6 +30,7 @@ module Data.Text.ICU.Break.IO
     , breakWord
     , setText
     -- * Iteration functions
+    -- $indices
     , current
     , first
     , last
@@ -49,19 +49,26 @@ module Data.Text.ICU.Break.IO
 #include <unicode/ubrk.h>
 
 import Control.Monad (forM)
-import Data.IORef (IORef, newIORef, writeIORef)
+import Data.IORef (newIORef, writeIORef)
 import Data.Int (Int32)
 import Data.Text (Text)
-import Data.Text.Foreign (useAsPtr)
+import Data.Text.Foreign (I16, useAsPtr)
+import Data.Text.ICU.Break.Types (BreakIterator(..), UBreakIterator)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
 import Data.Text.ICU.Internal (LocaleName(..), UBool, UChar, asBool, withLocaleName)
 import Foreign.C.String (CString, peekCString)
 import Foreign.C.Types (CInt)
-import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, withForeignPtr)
+import Foreign.ForeignPtr (newForeignPtr, withForeignPtr)
 import Foreign.Marshal.Array (allocaArray, peekArray)
 import Foreign.Ptr (FunPtr, Ptr, nullPtr)
 import Prelude hiding (last)
 import System.IO.Unsafe (unsafePerformIO)
+
+-- $indices
+--
+-- /Important note/: All of the indices accepted and returned by
+-- functions in this module are offsets into the raw UTF-16 text
+-- array, /not/ a count of code points.
 
 -- | Line break status.
 data Line = Soft                -- ^ A soft line break is a position at
@@ -81,13 +88,6 @@ data Word = Uncategorized       -- ^ A "word" that does not fit into another
           | Kana                -- ^ A word containing kana characters.
           | Ideograph           -- ^ A word containing ideographic characters.
             deriving (Eq, Show, Enum)
-
--- A boundary breaker.
-data BreakIterator a = BR {
-      brText :: IORef Text
-    , brStatus :: Int32 -> a
-    , brIter :: ForeignPtr UBreakIterator
-    }
 
 -- | Break a string on character boundaries.
 --
@@ -166,34 +166,34 @@ asIndex act BR{..} = do
             else Just $! fromIntegral i
 
 -- | Reset the breaker to the beginning of the text to be scanned.
-first :: BreakIterator a -> IO Int
+first :: BreakIterator a -> IO I16
 first BR{..} = fromIntegral `fmap` withForeignPtr brIter ubrk_first
 
 -- | Reset the breaker to the end of the text to be scanned.
-last :: BreakIterator a -> IO Int
+last :: BreakIterator a -> IO I16
 last BR{..} = fromIntegral `fmap` withForeignPtr brIter ubrk_last
 
 -- | Advance the iterator and break at the text boundary that follows the
 -- current text boundary.
-next :: BreakIterator a -> IO (Maybe Int)
+next :: BreakIterator a -> IO (Maybe I16)
 next = asIndex ubrk_next
 
 -- | Advance the iterator and break at the text boundary that precedes the
 -- current text boundary.
-previous :: BreakIterator a -> IO (Maybe Int)
+previous :: BreakIterator a -> IO (Maybe I16)
 previous = asIndex ubrk_previous
 
 -- | Determine the text boundary preceding the specified offset.
-preceding :: BreakIterator a -> Int -> IO (Maybe Int)
+preceding :: BreakIterator a -> Int -> IO (Maybe I16)
 preceding bi i = asIndex (flip ubrk_preceding (fromIntegral i)) bi
 
 -- | Determine the text boundary following the specified offset.
-following :: BreakIterator a -> Int -> IO (Maybe Int)
+following :: BreakIterator a -> Int -> IO (Maybe I16)
 following bi i = asIndex (flip ubrk_following (fromIntegral i)) bi
 
 -- | Return the character index most recently returned by 'next',
 -- 'previous', 'first', or 'last'.
-current :: BreakIterator a -> IO (Maybe Int)
+current :: BreakIterator a -> IO (Maybe I16)
 current = asIndex ubrk_current
 
 -- | Return the status from the break rule that determined the most recently
@@ -228,7 +228,6 @@ available = unsafePerformIO $ do
 {-# NOINLINE available #-}
 
 type UBreakIteratorType = CInt
-data UBreakIterator
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ubrk_open" ubrk_open
     :: UBreakIteratorType -> CString -> Ptr UChar -> Int32 -> Ptr UErrorCode
