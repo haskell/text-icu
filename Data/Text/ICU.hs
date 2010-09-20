@@ -91,9 +91,38 @@ import Data.Text (Text)
 
 -- $break
 --
+-- Text boundary analysis is the process of locating linguistic
+-- boundaries while formatting and handling text. Examples of this
+-- process include:
+--
+-- * Locating appropriate points to word-wrap text to fit within
+--   specific margins while displaying or printing.
+--
+-- * Counting characters, words, sentences, or paragraphs.
+--
+-- * Making a list of the unique words in a document.
+--
+-- * Figuring out if a given range of text contains only whole words.
+--
+-- * Capitalizing the first letter of each word.
+--
+-- * Locating a particular unit of the text (For example, finding the
+--   third word in the document).
+--
+-- The 'Breaker' type was designed to support these kinds of
+-- tasks. 
+--
 -- For the impure boundary analysis API (which is richer, but less
 -- easy to use than the pure API), see the 'Data.Text.ICU.Break'
--- module.
+-- module.  The impure API supports some uses that may be less
+-- efficient via the pure API, including:
+--
+-- * Locating the beginning of a word that the user has selected.
+--
+-- * Determining how far to move the text cursor when the user hits an
+--   arrow key (Some characters require more than one position in the
+--   text store and some characters in the text store do not display
+--   at all).
 
 -- $collate
 --

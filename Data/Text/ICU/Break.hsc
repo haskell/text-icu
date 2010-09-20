@@ -80,7 +80,7 @@ data Line = Soft                -- ^ A soft line break is a position at
             deriving (Eq, Show, Enum)
 
 -- | Word break status.
-data Word = Uncategorized       -- ^ A "word" that does not fit into another
+data Word = Uncategorized       -- ^ A \"word\" that does not fit into another
                                 -- category.  Includes spaces and most
                                 -- punctuation.
           | Number              -- ^ A word that appears to be a number.
@@ -93,8 +93,8 @@ data Word = Uncategorized       -- ^ A "word" that does not fit into another
 
 -- | Break a string on character boundaries.
 --
--- Character boundary analysis identifies the boundaries of "Extended
--- Grapheme Clusters", which are groupings of codepoints that should be
+-- Character boundary analysis identifies the boundaries of \"Extended
+-- Grapheme Clusters\", which are groupings of codepoints that should be
 -- treated as character-like units for many text operations.  Please see
 -- Unicode Standard Annex #29, Unicode Text Segmentation,
 -- <http://www.unicode.org/reports/tr29/> for additional information on

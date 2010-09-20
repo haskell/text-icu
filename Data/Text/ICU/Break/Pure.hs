@@ -46,6 +46,7 @@ import Data.Text.ICU.Internal (LocaleName)
 import System.IO.Unsafe (unsafeInterleaveIO, unsafePerformIO)
 import qualified Data.Text.ICU.Break as IO
 
+-- | A boundary analyser.
 newtype Breaker a = B (BreakIterator a)
 
 new :: (LocaleName -> Text -> IO (BreakIterator a)) -> LocaleName -> Breaker a
