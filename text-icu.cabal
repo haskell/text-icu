@@ -28,6 +28,7 @@ library
       Data.Text.ICU.Convert
       Data.Text.ICU.Error
       Data.Text.ICU.Normalize
+      Data.Text.ICU.Regex
       Data.Text.ICU.Types
   other-modules:
       Data.Text.ICU.Break.Pure
