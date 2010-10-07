@@ -373,6 +373,18 @@ URegularExpression * __hs_uregex_open(const UChar *pattern,
     return uregex_open(pattern, patternLength, flags, pe, status);
 }
 
+void __hs_uregex_setTimeLimit(URegularExpression *regexp,
+			      int32_t limit, UErrorCode *status)
+{
+    return uregex_setTimeLimit(regexp, limit, status);
+}
+
+void __hs_uregex_setStackLimit(URegularExpression *regexp,
+			       int32_t limit, UErrorCode *status)
+{
+    return uregex_setStackLimit(regexp, limit, status);
+}
+
 void __hs_uregex_close(URegularExpression *regexp)
 {
     return uregex_close(regexp);
@@ -400,6 +412,18 @@ void __hs_uregex_setText(URegularExpression *regexp, const UChar *text,
 			 int32_t textLength, UErrorCode *status)
 {
     return uregex_setText(regexp, text, textLength, status);
+}
+
+const UChar *__hs_uregex_getText(URegularExpression *regexp,
+				 int32_t *textLength, UErrorCode *status)
+{
+    return uregex_getText(regexp, textLength, status);
+}
+
+UBool __hs_uregex_find(URegularExpression *regexp, int32_t startIndex, 
+		       UErrorCode *status)
+{
+    return uregex_find(regexp, startIndex, status);
 }
 
 UBool __hs_uregex_findNext(URegularExpression *regexp, UErrorCode *status)

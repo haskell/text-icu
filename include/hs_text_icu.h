@@ -136,6 +136,10 @@ int32_t __hs_unorm_normalize(const UChar *source, int32_t sourceLength,
 URegularExpression * __hs_uregex_open(const UChar *pattern,
 				      int32_t patternLength, uint32_t flags,
 				      UParseError *pe, UErrorCode *status);
+void __hs_uregex_setTimeLimit(URegularExpression *regexp,
+			      int32_t limit, UErrorCode *status);
+void __hs_uregex_setStackLimit(URegularExpression *regexp,
+			       int32_t limit, UErrorCode *status);
 void __hs_uregex_close(URegularExpression *regexp);
 URegularExpression *__hs_uregex_clone(URegularExpression *regexp,
 				      UErrorCode *pErrorCode);
@@ -145,6 +149,10 @@ int32_t __hs_uregex_flags(const URegularExpression *regexp,
 			  UErrorCode *status);
 void __hs_uregex_setText(URegularExpression *regexp, const UChar *text,
 			 int32_t textLength, UErrorCode *status);
+const UChar *__hs_uregex_getText(URegularExpression *regexp,
+				 int32_t *textLength, UErrorCode *status);
+UBool __hs_uregex_find(URegularExpression *regexp, int32_t startIndex, 
+		       UErrorCode *status);
 UBool __hs_uregex_findNext(URegularExpression *regexp, UErrorCode *status);
 int32_t __hs_uregex_start(URegularExpression *regexp, int32_t groupNum,
 			  UErrorCode *status);
