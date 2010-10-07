@@ -29,6 +29,7 @@ library
       Data.Text.ICU.Error
       Data.Text.ICU.Normalize
       Data.Text.ICU.Regex
+      Data.Text.ICU.Regex.IO
       Data.Text.ICU.Types
   other-modules:
       Data.Text.ICU.Break.Pure
@@ -40,6 +41,7 @@ library
       Data.Text.ICU.Internal
       Data.Text.ICU.Iterator
       Data.Text.ICU.Normalize.Internal
+      Data.Text.ICU.Regex.Internal
       Data.Text.ICU.Text
   c-sources: cbits/text_icu.c
   include-dirs: include
