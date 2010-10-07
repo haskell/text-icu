@@ -13,6 +13,8 @@ module Data.Text.ICU.Types
     (
     -- * Widely used types
       LocaleName(..)
+    , ParseError(errError, errLine, errOffset)
     ) where
 
+import Data.Text.ICU.Error.Internal (ParseError(..))
 import Data.Text.ICU.Internal (LocaleName(..))

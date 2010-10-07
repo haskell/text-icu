@@ -11,10 +11,13 @@
 -- Unicode (ICU) libraries.
 --
 -- Most ICU functions can throw an 'ICUError' value as an exception.
+-- Some can additionally throw a 'ParseError', if more detailed error
+-- information is necessary.
 module Data.Text.ICU.Error
     (
      -- * Types
      ICUError,
+     ParseError(errError, errLine, errOffset),
 
      -- * Functions
      isSuccess,
