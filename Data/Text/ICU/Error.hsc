@@ -23,6 +23,7 @@ module Data.Text.ICU.Error
      isSuccess,
      isFailure,
      errorName,
+     isRegexError,
 
      -- * Warnings
      u_USING_FALLBACK_WARNING,
@@ -293,3 +294,7 @@ import Data.Text.ICU.Error.Internal
   u_IDNA_ZERO_LENGTH_LABEL_ERROR = U_IDNA_ZERO_LENGTH_LABEL_ERROR,
   u_IDNA_DOMAIN_NAME_TOO_LONG_ERROR = U_IDNA_DOMAIN_NAME_TOO_LONG_ERROR
 }
+
+isRegexError :: ICUError -> Bool
+isRegexError (ICUError err) =
+    err >= #{const U_REGEX_ERROR_START} && err < #{const U_REGEX_ERROR_LIMIT}

@@ -10,6 +10,7 @@
 #include "unicode/ucnv.h"
 #include "unicode/uiter.h"
 #include "unicode/unorm.h"
+#include "unicode/uregex.h"
 #include "unicode/ustring.h"
 
 #include <stdint.h>
@@ -129,6 +130,30 @@ int32_t __hs_unorm_normalize(const UChar *source, int32_t sourceLength,
 			     UNormalizationMode mode, int32_t options,
 			     UChar *result, int32_t resultLength,
 			     UErrorCode *status);
+
+/* uregex.h */
+
+URegularExpression * __hs_uregex_open(const UChar *pattern,
+				      int32_t patternLength, uint32_t flags,
+				      UParseError *pe, UErrorCode *status);
+void __hs_uregex_close(URegularExpression *regexp);
+URegularExpression *__hs_uregex_clone(URegularExpression *regexp,
+				      UErrorCode *pErrorCode);
+const UChar *__hs_uregex_pattern(const URegularExpression *regexp,
+				 int32_t *patLength, UErrorCode *status);
+int32_t __hs_uregex_flags(const URegularExpression *regexp,
+			  UErrorCode *status);
+void __hs_uregex_setText(URegularExpression *regexp, const UChar *text,
+			 int32_t textLength, UErrorCode *status);
+UBool __hs_uregex_findNext(URegularExpression *regexp, UErrorCode *status);
+int32_t __hs_uregex_start(URegularExpression *regexp, int32_t groupNum,
+			  UErrorCode *status);
+int32_t __hs_uregex_end(URegularExpression *regexp, int32_t groupNum,
+			UErrorCode *status);
+int32_t __hs_uregex_groupCount(URegularExpression *regexp, UErrorCode *status);
+int32_t __hs_uregex_group(URegularExpression *regexp, int32_t groupNum,
+			  UChar *dest, int32_t destCapacity,
+			  UErrorCode *status);
 
 /* ustring.h */
 
