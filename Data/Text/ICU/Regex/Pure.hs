@@ -38,12 +38,13 @@ module Data.Text.ICU.Regex.Pure
     , find
     , findAll
     -- ** Match groups
-    -- $groups
+    -- $group
     , groupCount
+    , unfold
+    , span
     , group
     , prefix
     , suffix
-    , context
     ) where
 
 import Control.Exception (catch)
@@ -59,7 +60,7 @@ import Foreign.ForeignPtr (ForeignPtr, withForeignPtr)
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Marshal.Array (advancePtr)
 import Foreign.Storable (peek)
-import Prelude hiding (catch)
+import Prelude hiding (catch, span)
 import System.IO.Unsafe (unsafeInterleaveIO, unsafePerformIO)
 
 -- | A compiled regular expression.
@@ -80,14 +81,13 @@ instance IsString Regex where
     fromString = regex [] . T.pack
 
 -- | A match for a regular expression.
-newtype Match = Match {
+data Match = Match {
       matchRe :: Internal.Regex
+    , _matchPrev :: T.I16
     }
 
 instance Show Match where
-    show m = "Match" ++ case context 0 m of
-                          Nothing -> ""
-                          Just x -> ' ' : show x
+    show m = "Match " ++ show (unfold group m)
 
 -- | A typeclass for functions common to both 'Match' and 'Regex'
 -- types.
@@ -130,7 +130,7 @@ find :: Regex -> Text -> Maybe Match
 find re0 haystack = unsafePerformIO .
   matching re0 haystack $ \re -> do
     m <- IO.findNext re
-    return $! if m then Nothing else Just (Match re)
+    return $! if m then Nothing else Just (Match re 0)
 
 -- | Lazily find all matches for the regular expression in the given
 -- text.
@@ -140,7 +140,9 @@ findAll re0 haystack = unsafePerformIO . unsafeInterleaveIO $ go 0
     go !n = matching re0 haystack $ \re -> do
       f <- IO.find re n
       if f
-        then maybe (return []) (fmap (Match re:) . go) =<< IO.end re 0
+        then do
+          n' <- IO.end_ re 0
+          (Match re n:) `fmap` go n'
         else return []
 
 matching :: Regex -> Text -> (IO.Regex -> IO a) -> IO a
@@ -149,7 +151,7 @@ matching (Regex re0) haystack act = do
   IO.setText re haystack
   act re
 
--- $groups
+-- $group
 --
 -- Capturing groups are numbered starting from zero.  Group zero is
 -- always the entire matching text.  Groups greater than zero contain
@@ -159,6 +161,14 @@ matching (Regex re0) haystack act = do
 -- expression or match's pattern.
 groupCount :: Regular r => r -> Int
 groupCount = unsafePerformIO . IO.groupCount . regRe
+
+-- | A combinator for returning a list of all capturing groups on a
+-- 'Match'.
+unfold :: (Int -> Match -> Maybe Text) -> Match -> [Text]
+unfold f m = go 0
+  where go !n = case f n m of
+                  Nothing -> []
+                  Just z  -> z : go (n+1)
 
 -- | Return the /n/th capturing group in a match, or 'Nothing' if /n/
 -- is out of bounds.
@@ -180,6 +190,15 @@ prefix n m = grouping n m $ \re -> do
   (fp,_) <- IO.getText re
   withForeignPtr fp (`T.fromPtr` start)
 
+-- | Return the span of text between the end of the previous match and
+-- the beginning of the current match.
+span :: Match -> Text
+span (Match re p) = unsafePerformIO $ do
+  start <- IO.start_ re 0
+  (fp,_) <- IO.getText re
+  withForeignPtr fp $ \ptr ->
+    T.fromPtr (ptr `advancePtr` fromIntegral p) (start - p)
+
 -- | Return the suffix of the /n/th capturing group in a match (the
 -- text from the end of the match to the end of the string), or
 -- 'Nothing' if /n/ is out of bounds.
@@ -190,21 +209,8 @@ suffix n m = grouping n m $ \re -> do
   withForeignPtr fp $ \ptr -> do
     T.fromPtr (ptr `advancePtr` fromIntegral end) (len - end)
 
--- | Return ('prefix','group','suffix') of the /n/th capturing group
--- in a match, or 'Nothing' if /n/ is out of bounds.
-context :: Int -> Match -> Maybe (Text,Text,Text)
-context n m = grouping n m $ \re -> do
-  start <- fromIntegral `fmap` IO.start_ re n
-  end <- fromIntegral `fmap` IO.end_ re n
-  (fp,len) <- IO.getText re
-  withForeignPtr fp $ \ptr -> do
-    pre <- T.fromPtr ptr start
-    grp <- T.fromPtr (ptr `advancePtr` fromIntegral start) (end - start)
-    suf <- T.fromPtr (ptr `advancePtr` fromIntegral end) (len - end)
-    return (pre,grp,suf)
-
 grouping :: Int -> Match -> (Internal.Regex -> IO a) -> Maybe a
-grouping n (Match m) act = unsafePerformIO $ do
+grouping n (Match m _) act = unsafePerformIO $ do
   count <- IO.groupCount m
   let n' = fromIntegral n
   if n < 0 || (n' >= count && count > 0)

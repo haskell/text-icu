@@ -77,12 +77,13 @@ module Data.Text.ICU
     , find
     , findAll
     -- ** Match groups
-    -- $groups
+    -- $group
     , groupCount
+    , unfold
+    , span
     , group
     , prefix
     , suffix
-    , context
     ) where
 
 import Data.Text.ICU.Break.Pure
@@ -152,7 +153,7 @@ import Data.Text (Text)
 -- use than the pure API), see the 'Data.Text.ICU.Collate'
 -- module.
 
--- $groups
+-- $group
 --
 -- Capturing groups are numbered starting from zero.  Group zero is
 -- always the entire matching text.  Groups greater than zero contain
