@@ -62,6 +62,27 @@ module Data.Text.ICU
     , collateIter
     , sortKey
     , uca
+    -- * Regular expressions
+    , MatchOption(..)
+    , ParseError(errError, errLine, errOffset)
+    , Match
+    , Regex
+    , Regular
+    -- ** Construction
+    , regex
+    , regex'
+    -- ** Inspection
+    , pattern
+    -- ** Searching
+    , find
+    , findAll
+    -- ** Match groups
+    -- $groups
+    , groupCount
+    , group
+    , prefix
+    , suffix
+    , context
     ) where
 
 import Data.Text.ICU.Break.Pure
@@ -69,6 +90,7 @@ import Data.Text.ICU.Collate.Pure
 import Data.Text.ICU.Internal
 import Data.Text.ICU.Iterator
 import Data.Text.ICU.Normalize
+import Data.Text.ICU.Regex
 import Data.Text.ICU.Text
 #if defined(__HADDOCK__)
 import Data.Text.Foreign

@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns, EmptyDataDecls, MagicHash, RecordWildCards,
     ScopedTypeVariables #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -- |
 -- Module      : Data.Text.ICU.Regex.IO
@@ -18,12 +19,12 @@
 -- <http://userguide.icu-project.org/strings/regexp>.
 --
 -- /Note/: The functions in this module are not thread safe.  For
--- thread safe use, see 'clone' below.
+-- thread safe use, see 'clone' below, or use the pure functions.
 
 module Data.Text.ICU.Regex.IO
     (
     -- * Types
-      Option(..)
+      MatchOption(..)
     , ParseError(errError, errLine, errOffset)
     , Regex
     -- * Functions
@@ -44,30 +45,28 @@ module Data.Text.ICU.Regex.IO
     , groupCount
     , start
     , end
+    , start_
+    , end_
     ) where
 
 import Data.Text.ICU.Regex.Internal
 import Control.Exception (catch)
-import Control.Monad (when)
-import Data.IORef (IORef, newIORef, readIORef, writeIORef)
-import Data.Int (Int32)
+import Data.IORef (newIORef, readIORef, writeIORef)
 import Data.Text (Text)
-import qualified Data.Text as T
 import qualified Data.Text.Foreign as T
 import Data.Text.Foreign (I16)
-import Data.Text.ICU.Internal (UBool, UChar, asBool)
-import Data.Text.ICU.Error (isRegexError)
-import Data.Text.ICU.Error.Internal (ParseError(..), UParseError, UErrorCode,
-                                     handleError, handleParseError)
-import Data.Word (Word16, Word32)
-import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, touchForeignPtr,
-                           withForeignPtr)
+import Data.Text.ICU.Internal (asBool)
+import Data.Text.ICU.Error.Internal (ParseError(..), handleError)
+import Data.Word (Word16)
+import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, withForeignPtr)
 import Foreign.Marshal.Alloc (alloca)
-import Foreign.Ptr (FunPtr, Ptr)
 import Foreign.Storable (peek)
 import Prelude hiding (catch)
 import System.IO.Unsafe (unsafePerformIO)
                    
+instance Show Regex where
+    show re = "Regex " ++ show (pattern re)
+
 -- $groups
 --
 -- Capturing groups are numbered starting from zero.  Group zero is
@@ -76,7 +75,7 @@ import System.IO.Unsafe (unsafePerformIO)
 
 -- | Compile a regular expression with the given options.  This is
 -- safest to use when the pattern is constructed at run time.
-regex' :: [Option] -> Text -> IO (Either ParseError Regex)
+regex' :: [MatchOption] -> Text -> IO (Either ParseError Regex)
 regex' opts pat = (Right `fmap` regex opts pat) `catch` \(err::ParseError) ->
                   return (Left err)
 
@@ -94,7 +93,7 @@ setText Regex{..} t = do
 
 -- | Get the subject text that is currently associated with this
 -- regular expression object.
-getText :: Regex -> IO (ForeignPtr Word16, Int)
+getText :: Regex -> IO (ForeignPtr Word16, I16)
 getText Regex{..} =
   alloca $ \lenPtr -> do
     _ <- withForeignPtr reRe $ \rePtr -> handleError $
@@ -105,8 +104,8 @@ getText Regex{..} =
 
 -- | Return the source form of the pattern used to construct this
 -- regular expression or match.
-pattern :: Regex -> IO Text
-pattern Regex{..} = withForeignPtr reRe $ \rePtr ->
+pattern :: Regex -> Text
+pattern Regex{..} = unsafePerformIO . withForeignPtr reRe $ \rePtr ->
   alloca $ \lenPtr -> do
     textPtr <- handleError $ uregex_pattern rePtr lenPtr
     (T.fromPtr textPtr . fromIntegral) =<< peek lenPtr
@@ -122,7 +121,7 @@ pattern Regex{..} = withForeignPtr reRe $ \rePtr ->
 --
 -- If a match is found, 'start', 'end', and 'group' will provide more
 -- information regarding the match.
-find :: Regex -> Int -> IO Bool
+find :: Regex -> I16 -> IO Bool
 find Regex{..} n =
     fmap asBool . withForeignPtr reRe $ \rePtr -> handleError $
     uregex_find rePtr (fromIntegral n)
@@ -163,20 +162,36 @@ groupCount Regex{..} =
 
 -- | Returns the index in the input string of the start of the text
 -- matched by the specified capture group during the previous match
+-- operation.  Returns @-1@ if the capture group was not part of the
+-- last match.
+start_ :: Regex -> Int -> IO I16
+start_ Regex{..} n =
+    fmap fromIntegral . withForeignPtr reRe $ \rePtr -> handleError $
+    uregex_start rePtr (fromIntegral n)
+
+-- | Returns the index in the input string of the end of the text
+-- matched by the specified capture group during the previous match
+-- operation.  Returns @-1@ if the capture group was not part of
+-- the last match.
+end_ :: Regex -> Int -> IO I16
+end_ Regex{..} n =
+  fmap fromIntegral . withForeignPtr reRe $ \rePtr -> handleError $
+  uregex_end rePtr (fromIntegral n)
+
+-- | Returns the index in the input string of the start of the text
+-- matched by the specified capture group during the previous match
 -- operation.  Returns 'Nothing' if the capture group was not part of
 -- the last match.
 start :: Regex -> Int -> IO (Maybe I16)
-start Regex{..} n = do
-  idx <- fmap fromIntegral . withForeignPtr reRe $ \rePtr -> handleError $
-         uregex_start rePtr (fromIntegral n)
-  return $! if idx == -1 then Nothing else Just idx
+start r n = check `fmap` start_ r n
 
 -- | Returns the index in the input string of the end of the text
 -- matched by the specified capture group during the previous match
 -- operation.  Returns 'Nothing' if the capture group was not part of
 -- the last match.
 end :: Regex -> Int -> IO (Maybe I16)
-end Regex{..} n = do
-  idx <- fmap fromIntegral . withForeignPtr reRe $ \rePtr -> handleError $
-         uregex_end rePtr (fromIntegral n)
-  return $! if idx == -1 then Nothing else Just idx
+end r n = check `fmap` end_ r n
+
+check :: I16 -> Maybe I16
+check (-1) = Nothing
+check k    = Just $! fromIntegral k

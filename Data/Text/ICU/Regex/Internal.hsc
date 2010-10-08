@@ -1,5 +1,6 @@
-{-# LANGUAGE BangPatterns, EmptyDataDecls, ForeignFunctionInterface,
-    MagicHash, RecordWildCards, ScopedTypeVariables #-}
+{-# LANGUAGE BangPatterns, DeriveDataTypeable, EmptyDataDecls,
+    ForeignFunctionInterface, MagicHash, RecordWildCards,
+    ScopedTypeVariables #-}
 
 -- |
 -- Module      : Data.Text.ICU.Regex.Internal
@@ -20,7 +21,7 @@
 module Data.Text.ICU.Regex.Internal
     (
     -- * Types
-      Option(..)
+      MatchOption(..)
     , Regex(..)
     , URegularExpression
     -- * Functions
@@ -49,6 +50,7 @@ import Data.Text.ICU.Internal (UBool, UChar)
 import Data.Text.ICU.Error (isRegexError)
 import Data.Text.ICU.Error.Internal (UParseError, UErrorCode,
                                      handleError, handleParseError)
+import Data.Typeable (Typeable)
 import Data.Word (Word16, Word32)
 import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, touchForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr)
@@ -58,7 +60,7 @@ import System.IO.Unsafe (unsafePerformIO)
 #include <unicode/uregex.h>
 
 -- | Options for controlling matching behaviour.
-data Option
+data MatchOption
     = CaseInsensitive
     -- ^ Enable case insensitive matching.
     | Comments
@@ -122,6 +124,7 @@ data Option
     -- A limit is desirable because a malicious or poorly designed
     -- pattern can use excessive memory, potentially crashing the
     -- process.  A limit is enabled by default.
+      deriving (Eq, Show, Typeable)
 
 -- | A compiled regular expression.
 --
@@ -141,7 +144,7 @@ emptyForeignPtr = unsafePerformIO $ fst `fmap` T.asForeignPtr T.empty
 
 -- | Compile a regular expression with the given options.  This
 -- function throws a 'ParseError' if the pattern is invalid.
-regex :: [Option] -> Text -> IO Regex
+regex :: [MatchOption] -> Text -> IO Regex
 regex opts pat = T.useAsPtr pat $ \pptr plen -> do
   let (flags,workLimit,stackLimit) = toURegexpOpts opts
   ptr <- handleParseError isRegexError $
@@ -158,7 +161,7 @@ data URegularExpression
 
 type URegexpFlag = Word32
 
-toURegexpOpts :: [Option] -> (URegexpFlag,Int,Int)
+toURegexpOpts :: [MatchOption] -> (URegexpFlag,Int,Int)
 toURegexpOpts = foldl go (0,-1,-1)
   where
     go (!flag,work,stack) opt = (flag+flag',work',stack')
