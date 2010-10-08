@@ -90,7 +90,7 @@ import Data.Text.ICU.Collate.Pure
 import Data.Text.ICU.Internal
 import Data.Text.ICU.Iterator
 import Data.Text.ICU.Normalize
-import Data.Text.ICU.Regex
+import Data.Text.ICU.Regex.Pure
 import Data.Text.ICU.Text
 #if defined(__HADDOCK__)
 import Data.Text.Foreign
@@ -151,3 +151,9 @@ import Data.Text (Text)
 -- For the impure collation API (which is richer, but less easy to
 -- use than the pure API), see the 'Data.Text.ICU.Collate'
 -- module.
+
+-- $groups
+--
+-- Capturing groups are numbered starting from zero.  Group zero is
+-- always the entire matching text.  Groups greater than zero contain
+-- the text matching each capturing group in a regular expression.
