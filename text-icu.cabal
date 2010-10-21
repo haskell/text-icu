@@ -1,6 +1,8 @@
 name:           text-icu
 version:        0.6.2.0
 synopsis:       Bindings to the ICU library
+homepage:       http://bitbucket.org/bos/text-icu
+bug-reports:    http://bitbucket.org/bos/text-icu/issues
 description:
   Haskell bindings to the International Components for Unicode (ICU)
   libraries.  These libraries provide robust and full-featured Unicode
@@ -35,7 +37,7 @@ license-file:   LICENSE
 build-type:     Simple
 cabal-version:  >= 1.6
 extra-source-files:
-  README include/hs_text_icu.h tests/benchmarks/Breaker.hs
+  README.markdown include/hs_text_icu.h tests/benchmarks/Breaker.hs
 
 library
   build-depends:     base < 5, bytestring, text == 0.9.1.*
@@ -78,5 +80,9 @@ library
     ghc-options: -fwarn-tabs
 
 source-repository head
-  type:     darcs
-  location: http://code.haskell.org/text-icu/
+  type:     mercurial
+  location: http://bitbucket.org/bos/text-icu
+
+source-repository head
+  type:     git
+  location: http://github.com/bos/text-icu
