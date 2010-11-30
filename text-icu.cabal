@@ -1,5 +1,5 @@
 name:           text-icu
-version:        0.6.2.1
+version:        0.6.2.2
 synopsis:       Bindings to the ICU library
 homepage:       http://bitbucket.org/bos/text-icu
 bug-reports:    http://bitbucket.org/bos/text-icu/issues
@@ -40,7 +40,7 @@ extra-source-files:
   README.markdown include/hs_text_icu.h tests/benchmarks/Breaker.hs
 
 library
-  build-depends:     base < 5, bytestring, text >= 0.9.1.0 && <= 0.11.0.0
+  build-depends:     base < 5, bytestring, text >= 0.9.1.0 && <= 0.12.0.0
   if impl(ghc >= 6.10)
     build-depends:   base >= 4
 
