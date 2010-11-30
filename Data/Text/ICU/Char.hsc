@@ -70,6 +70,8 @@ module Data.Text.ICU.Char
     , blockCode
     , charFullName
     , charName
+    , charFromFullName
+    , charFromName
     , combiningClass
     , direction
     , property
@@ -86,13 +88,14 @@ module Data.Text.ICU.Char
 import Control.Exception (throw)
 import Data.Char (chr, ord)
 import Data.Int (Int32)
-import Data.Text.ICU.Error (isFailure, u_BUFFER_OVERFLOW_ERROR)
+import Data.Text.ICU.Error (isFailure, u_BUFFER_OVERFLOW_ERROR,
+                            u_INVALID_CHAR_FOUND)
 import Data.Text.ICU.Error.Internal (UErrorCode, withError)
 import Data.Text.ICU.Internal (UBool, UChar32, asBool)
 import Data.Text.ICU.Normalize.Internal (toNCR)
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
-import Foreign.C.String (CString, peekCStringLen)
+import Foreign.C.String (CString, peekCStringLen, withCString)
 import Foreign.C.Types (CInt)
 import Foreign.Marshal.Alloc (allocaBytes)
 import Foreign.Ptr (Ptr)
@@ -861,9 +864,41 @@ charName = charName' (#const U_UNICODE_CHAR_NAME)
 -- | Return the full name of a Unicode character.
 --
 -- Compared to 'charName', this function gives each Unicode code point
--- a unique name.
+-- a unique extended name. Extended names are lowercase followed by an
+-- uppercase hexadecimal number, within angle brackets.
 charFullName :: Char -> String
 charFullName = charName' (#const U_EXTENDED_CHAR_NAME)
+
+-- | Find a Unicode character by its full name, and return its code
+-- point value.
+--
+-- The name is matched exactly and completely.
+--
+-- A Unicode 1.0 name is matched only if it differs from the modern
+-- name.  Unicode names are all uppercase.
+charFromName :: String -> Maybe Char
+charFromName = charFromName' (#const U_UNICODE_CHAR_NAME)
+
+-- | Find a Unicode character by its full or extended name, and return
+-- its code point value.
+--
+-- The name is matched exactly and completely.
+--
+-- A Unicode 1.0 name is matched only if it differs from the modern
+-- name.
+--
+-- Compared to 'charFromName', this function gives each Unicode code
+-- point a unique extended name. Extended names are lowercase followed
+-- by an uppercase hexadecimal number, within angle brackets.
+charFromFullName :: String -> Maybe Char
+charFromFullName = charFromName' (#const U_EXTENDED_CHAR_NAME)
+
+charFromName' :: UCharNameChoice -> String -> Maybe Char
+charFromName' choice name = unsafePerformIO . withCString name $ \ptr -> do
+  (err,r) <- withError $ u_charFromName choice ptr
+  return $! if err == u_INVALID_CHAR_FOUND || r == 0xffff
+            then Nothing
+            else Just $! chr (fromIntegral r)
 
 -- | Return the ISO 10646 comment for a character.
 --
@@ -916,6 +951,10 @@ foreign import ccall unsafe "hs_text_icu.h __hs_u_charDigitValue" u_charDigitVal
 foreign import ccall unsafe "hs_text_icu.h __hs_u_charName" u_charName
     :: UChar32 -> UCharNameChoice -> CString -> Int32 -> Ptr UErrorCode
     -> IO Int32
+
+foreign import ccall unsafe "hs_text_icu.h __hs_u_charFromName" u_charFromName
+    :: UCharNameChoice -> CString -> Ptr UErrorCode
+    -> IO UChar32
 
 foreign import ccall unsafe "hs_text_icu.h __hs_u_getISOComment" u_getISOComment
     :: UChar32 -> CString -> Int32 -> Ptr UErrorCode -> IO Int32

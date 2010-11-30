@@ -350,6 +350,12 @@ int32_t __hs_u_charName(UChar32 code, UCharNameChoice nameChoice,
     return u_charName(code, nameChoice, buffer, bufferLength, pErrorCode);
 }
 
+UChar32 __hs_u_charFromName(UCharNameChoice nameChoice, const char *name,
+			    UErrorCode *pErrorCode)
+{
+    return u_charFromName(nameChoice, name, pErrorCode);
+}
+
 int32_t __hs_u_getISOComment(UChar32 c, char *dest, int32_t destCapacity,
 			     UErrorCode *pErrorCode)
 {
