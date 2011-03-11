@@ -22,6 +22,7 @@ module Data.Text.ICU.Regex.Internal
     (
     -- * Types
       MatchOption(..)
+    , Haystack(..)
     , Regex(..)
     , URegularExpression
     -- * Functions
@@ -126,6 +127,8 @@ data MatchOption
     -- process.  A limit is enabled by default.
       deriving (Eq, Show, Typeable)
 
+data Haystack = H (ForeignPtr Word16) {-# UNPACK #-} !T.I16
+
 -- | A compiled regular expression.
 --
 -- 'Regex' values are usually constructed using the 'regex' or
@@ -135,7 +138,7 @@ data MatchOption
 -- quotes (though this does not allow you to specify any 'Option's).
 data Regex = Regex {
       reRe :: ForeignPtr URegularExpression
-    , reText :: IORef (ForeignPtr Word16)
+    , reText :: IORef Haystack
     }
 
 emptyForeignPtr :: ForeignPtr Word16
@@ -161,7 +164,7 @@ regex opts pat = T.useAsPtr pat $ \pptr plen -> do
   when (stackLimit > -1) .
     handleError $ uregex_setStackLimit ptr (fromIntegral stackLimit)
   touchForeignPtr refp
-  Regex refp `fmap` newIORef hayfp
+  Regex refp `fmap` newIORef (H hayfp 0)
 
 data URegularExpression
 

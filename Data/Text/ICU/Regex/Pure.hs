@@ -137,9 +137,11 @@ find re0 haystack = unsafePerformIO .
 findAll :: Regex -> Text -> [Match]
 findAll re0 haystack = unsafePerformIO . unsafeInterleaveIO $ go 0
   where
-    go !n = matching re0 haystack $ \re -> do
-      f <- IO.find re n
-      if f
+    len = fromIntegral . T.lengthWord16 $ haystack
+    go !n | n >= len  = return []
+          | otherwise = matching re0 haystack $ \re -> do
+      found <- IO.find re n
+      if found
         then do
           n' <- IO.end_ re 0
           (Match re n:) `fmap` go n'
@@ -161,6 +163,7 @@ matching (Regex re0) haystack act = do
 -- expression or match's pattern.
 groupCount :: Regular r => r -> Int
 groupCount = unsafePerformIO . IO.groupCount . regRe
+{-# INLINE groupCount #-}
 
 -- | A combinator for returning a list of all capturing groups on a
 -- 'Match'.
@@ -213,6 +216,6 @@ grouping :: Int -> Match -> (Internal.Regex -> IO a) -> Maybe a
 grouping n (Match m _) act = unsafePerformIO $ do
   count <- IO.groupCount m
   let n' = fromIntegral n
-  if n < 0 || (n' >= count && count > 0)
-    then return Nothing
-    else Just `fmap` act m
+  if n' == 0 || (n' >= 0 && n' < count)
+    then Just `fmap` act m
+    else return Nothing

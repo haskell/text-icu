@@ -90,18 +90,14 @@ setText Regex{..} t = do
   withForeignPtr reRe $ \rePtr ->
     withForeignPtr hayfp $ \hayPtr -> handleError $
       uregex_setText rePtr hayPtr (fromIntegral hayLen)
-  writeIORef reText hayfp
+  writeIORef reText $! H hayfp hayLen
 
 -- | Get the subject text that is currently associated with this
 -- regular expression object.
 getText :: Regex -> IO (ForeignPtr Word16, I16)
-getText Regex{..} =
-  alloca $ \lenPtr -> do
-    _ <- withForeignPtr reRe $ \rePtr -> handleError $
-         uregex_getText rePtr lenPtr
-    len <- peek lenPtr
-    fp <- readIORef reText
-    return (fp, fromIntegral len)
+getText Regex{..} = do
+  H fp len <- readIORef reText
+  return (fp, len)
 
 -- | Return the source form of the pattern used to construct this
 -- regular expression or match.
@@ -153,7 +149,7 @@ clone :: Regex -> IO Regex
 {-# INLINE clone #-}
 clone Regex{..} = do
   fp <- newForeignPtr uregex_close =<< withForeignPtr reRe (handleError . uregex_clone)
-  Regex fp `fmap` newIORef emptyForeignPtr
+  Regex fp `fmap` newIORef (H emptyForeignPtr 0)
 
 -- | Return the number of capturing groups in this regular
 -- expression's pattern.
