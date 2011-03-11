@@ -52,7 +52,7 @@ import Data.Text.ICU.Error.Internal (UParseError, UErrorCode,
                                      handleError, handleParseError)
 import Data.Typeable (Typeable)
 import Data.Word (Word16, Word32)
-import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, touchForeignPtr)
+import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, touchForeignPtr, withForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr)
 import Prelude hiding (catch)
 import System.IO.Unsafe (unsafePerformIO)
@@ -144,18 +144,24 @@ emptyForeignPtr = unsafePerformIO $ fst `fmap` T.asForeignPtr T.empty
 
 -- | Compile a regular expression with the given options.  This
 -- function throws a 'ParseError' if the pattern is invalid.
+--
+-- The 'Regex' is initialized with empty text to search against.
 regex :: [MatchOption] -> Text -> IO Regex
 regex opts pat = T.useAsPtr pat $ \pptr plen -> do
   let (flags,workLimit,stackLimit) = toURegexpOpts opts
   ptr <- handleParseError isRegexError $
          uregex_open pptr (fromIntegral plen) flags
-  fp <- newForeignPtr uregex_close ptr
-  when (workLimit /= -1) .
+  refp <- newForeignPtr uregex_close ptr
+  (hayfp, hayLen) <- T.asForeignPtr T.empty
+  withForeignPtr refp $ \rePtr ->
+    withForeignPtr hayfp $ \hayPtr -> handleError $
+      uregex_setText rePtr hayPtr (fromIntegral hayLen)
+  when (workLimit > -1) .
     handleError $ uregex_setTimeLimit ptr (fromIntegral workLimit)
-  when (stackLimit /= -1) .
+  when (stackLimit > -1) .
     handleError $ uregex_setStackLimit ptr (fromIntegral stackLimit)
-  touchForeignPtr fp
-  Regex fp `fmap` newIORef emptyForeignPtr
+  touchForeignPtr refp
+  Regex refp `fmap` newIORef hayfp
 
 data URegularExpression
 
