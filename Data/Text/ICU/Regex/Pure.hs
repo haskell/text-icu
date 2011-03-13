@@ -216,6 +216,6 @@ grouping :: Int -> Match -> (Internal.Regex -> IO a) -> Maybe a
 grouping n (Match m _) act = unsafePerformIO $ do
   count <- IO.groupCount m
   let n' = fromIntegral n
-  if n' == 0 || (n' >= 0 && n' < count)
+  if n' == 0 || (n' >= 0 && n' <= count)
     then Just `fmap` act m
     else return Nothing
