@@ -130,7 +130,7 @@ find :: Regex -> Text -> Maybe Match
 find re0 haystack = unsafePerformIO .
   matching re0 haystack $ \re -> do
     m <- IO.findNext re
-    return $! if m then Nothing else Just (Match re 0)
+    return $! if m then Just (Match re 0) else Nothing
 
 -- | Lazily find all matches for the regular expression in the given
 -- text.
