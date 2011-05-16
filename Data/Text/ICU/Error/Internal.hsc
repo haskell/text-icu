@@ -14,6 +14,7 @@ module Data.Text.ICU.Error.Internal
     , isSuccess
     , errorName
     , handleError
+    , handleOverflowError
     , handleParseError
     , throwOnError
     , withError
@@ -113,6 +114,18 @@ handleError action = with 0 $ \errPtr -> do
                        ret <- action errPtr
                        throwOnError =<< peek errPtr
                        return ret
+
+handleOverflowError :: (Ptr UErrorCode -> IO a) -> IO (Either a a)
+{-# INLINE handleOverflowError #-}
+handleOverflowError action =
+    with 0 $ \uerrPtr -> do
+      ret <- action uerrPtr
+      err <- peek uerrPtr
+      if err > 0
+        then if err == #const U_BUFFER_OVERFLOW_ERROR
+             then return (Left ret)
+             else throwIO (ICUError err)
+        else return (Right ret)
 
 handleParseError :: (ICUError -> Bool)
                  -> (Ptr UParseError -> Ptr UErrorCode -> IO a) -> IO a
