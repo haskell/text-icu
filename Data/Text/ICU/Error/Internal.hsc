@@ -21,9 +21,11 @@ module Data.Text.ICU.Error.Internal
     ) where
 
 import Control.Exception (Exception, throwIO)
+import Data.Function (fix)
 import Foreign.Ptr (Ptr)
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Marshal.Utils (with)
+import Foreign.Marshal.Array (allocaArray)
 import Data.Int (Int32)
 import Data.Typeable (Typeable)
 import Foreign.C.String (CString, peekCString)
@@ -115,17 +117,30 @@ handleError action = with 0 $ \errPtr -> do
                        throwOnError =<< peek errPtr
                        return ret
 
-handleOverflowError :: (Ptr UErrorCode -> IO a) -> IO (Either a a)
-{-# INLINE handleOverflowError #-}
-handleOverflowError action =
-    with 0 $ \uerrPtr -> do
-      ret <- action uerrPtr
+-- | Deal with ICU functions that report a buffer overflow error if we
+-- give them an insufficiently large buffer.  Our first call will
+-- report a buffer overflow, in which case we allocate a correctly
+-- sized buffer and try again.
+handleOverflowError :: (Storable a) =>
+                       Int
+                    -- ^ Initial guess at buffer size.
+                    -> (Ptr a -> Int32 -> Ptr UErrorCode -> IO Int32)
+                    -- ^ Function that retrieves data.
+                    -> (Ptr a -> Int -> IO b)
+                    -- ^ Function that fills destination buffer if no
+                    -- overflow occurred.
+                    -> IO b
+handleOverflowError guess fill retrieve =
+  alloca $ \uerrPtr -> flip fix guess $ \loop n ->
+    (either (loop . fromIntegral) return =<<) . allocaArray n $ \ptr -> do
+      poke uerrPtr 0
+      ret <- fill ptr (fromIntegral n) uerrPtr
       err <- peek uerrPtr
-      if err > 0
-        then if err == #const U_BUFFER_OVERFLOW_ERROR
-             then return (Left ret)
-             else throwIO (ICUError err)
-        else return (Right ret)
+      case undefined of
+        _| err == (#const U_BUFFER_OVERFLOW_ERROR)
+                     -> return (Left ret)
+         | err > 0   -> throwIO (ICUError err)
+         | otherwise -> Right `fmap` retrieve ptr (fromIntegral ret)
 
 handleParseError :: (ICUError -> Bool)
                  -> (Ptr UParseError -> Ptr UErrorCode -> IO a) -> IO a

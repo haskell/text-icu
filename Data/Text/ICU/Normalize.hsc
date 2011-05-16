@@ -34,20 +34,16 @@ module Data.Text.ICU.Normalize
 #include <unicode/uchar.h>
 #include <unicode/unorm.h>
 
-import Control.Exception (throwIO)
-import Control.Monad (when)
 import Data.Text (Text)
 import Data.Text.Foreign (fromPtr, useAsPtr)
-import Data.Text.ICU.Error (u_BUFFER_OVERFLOW_ERROR)
-import Data.Text.ICU.Error.Internal (UErrorCode, isFailure, handleError, withError)
+import Data.Text.ICU.Error.Internal (UErrorCode, handleError, handleOverflowError)
 import Data.Text.ICU.Internal (UBool, UChar, asBool, asOrdering)
 import Data.Text.ICU.Normalize.Internal (UNormalizationCheckResult, toNCR)
 import Data.Typeable (Typeable)
 import Data.Int (Int32)
 import Data.Word (Word32)
 import Foreign.C.Types (CInt)
-import Foreign.Marshal.Array (allocaArray)
-import Foreign.Ptr (Ptr)
+import Foreign.Ptr (Ptr, castPtr)
 import System.IO.Unsafe (unsafePerformIO)
 import Prelude hiding (compare)
 import Data.List (foldl')
@@ -210,18 +206,9 @@ normalize :: NormalizationMode -> Text -> Text
 normalize mode t = unsafePerformIO . useAsPtr t $ \sptr slen ->
   let slen' = fromIntegral slen
       mode' = toNM mode
-      loop dlen =
-        (either loop return =<<) .
-        allocaArray dlen $ \dptr -> do
-          (err, newLen) <- withError $
-              unorm_normalize sptr slen' mode' 0 dptr (fromIntegral dlen)
-          when (isFailure err && err /= u_BUFFER_OVERFLOW_ERROR) $
-            throwIO err
-          let newLen' = fromIntegral newLen
-          if newLen' > dlen
-            then return (Left newLen')
-            else Right `fmap` fromPtr dptr (fromIntegral newLen')
-  in loop (fromIntegral slen)
+  in handleOverflowError (fromIntegral slen)
+     (\dptr dlen -> unorm_normalize sptr slen' mode' 0 dptr (fromIntegral dlen))
+     (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
     
       
 -- | Perform an efficient check on a string, to quickly determine if

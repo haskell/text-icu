@@ -27,7 +27,7 @@ import Data.Text.ICU.Internal (LocaleName, UChar, withLocaleName)
 import Data.Word (Word32)
 import Foreign.C.String (CString)
 import Foreign.Marshal.Array (allocaArray)
-import Foreign.Ptr (Ptr)
+import Foreign.Ptr (Ptr, castPtr)
 import System.IO.Unsafe (unsafePerformIO)
 
 -- $case
@@ -63,17 +63,10 @@ type CaseMapper = Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> CString
 caseMap :: CaseMapper -> LocaleName -> Text -> Text
 caseMap mapFn loc s = unsafePerformIO .
   withLocaleName loc $ \locale ->
-    useAsPtr s $ \sptr slen -> do
-      let go len = do
-            ret <- allocaArray len $ \dptr -> do
-                  ret <- handleOverflowError $
-                         mapFn dptr (fromIntegral len) sptr
-                                    (fromIntegral slen) locale
-                  case ret of
-                    Left overflow -> return (Left overflow)
-                    Right n       -> Right `fmap` fromPtr dptr (fromIntegral n)
-            either (go . fromIntegral) return ret
-      go (fromIntegral slen)
+    useAsPtr s $ \sptr slen ->
+      handleOverflowError (fromIntegral slen)
+      (\dptr dlen -> mapFn dptr dlen sptr (fromIntegral slen) locale)
+      (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
 
 -- | Lowercase the characters in a string.
 --

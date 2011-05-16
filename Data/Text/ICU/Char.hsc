@@ -95,7 +95,6 @@ import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Foreign.C.String (CString, peekCStringLen, withCString)
 import Foreign.C.Types (CInt)
-import Foreign.Marshal.Alloc (allocaBytes)
 import Foreign.Ptr (Ptr)
 import System.IO.Unsafe (unsafePerformIO)
 
@@ -913,15 +912,8 @@ charName' :: UCharNameChoice -> Char -> String
 charName' choice c = fillString $ u_charName (fromIntegral (ord c)) choice
 
 fillString :: (CString -> Int32 -> Ptr UErrorCode -> IO Int32) -> String
-fillString act = unsafePerformIO $ loop 128
- where
-  loop !n = do
-    ret <- allocaBytes n $ \ptr -> do
-             ret <- handleOverflowError $ act ptr (fromIntegral n)
-             case ret of
-              Left overflow -> return (Left overflow)
-              Right r       -> Right `fmap` peekCStringLen (ptr,fromIntegral r)
-    either (loop . fromIntegral) return ret
+fillString act = unsafePerformIO $
+                 handleOverflowError 128 act (curry peekCStringLen)
 
 type UBlockCode = CInt
 type UCharDirection = CInt
