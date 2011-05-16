@@ -85,7 +85,7 @@ module Data.Text.ICU.Char
 
 #include <unicode/uchar.h>
 
-import Control.Exception (throw)
+import Control.Exception (throwIO)
 import Data.Char (chr, ord)
 import Data.Int (Int32)
 import Data.Text.ICU.Error (isFailure, u_BUFFER_OVERFLOW_ERROR,
@@ -922,7 +922,7 @@ fillString act = unsafePerformIO $ loop 128
       (err,r) <- withError $ act ptr (fromIntegral n)
       case undefined of
        _| err == u_BUFFER_OVERFLOW_ERROR -> loop (fromIntegral r)
-        | isFailure err                  -> throw err
+        | isFailure err                  -> throwIO err
         | otherwise                      -> peekCStringLen (ptr,fromIntegral r)
 
 type UBlockCode = CInt

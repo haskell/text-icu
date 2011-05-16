@@ -19,7 +19,7 @@ module Data.Text.ICU.Error.Internal
     , withError
     ) where
 
-import Control.Exception (Exception, throw)
+import Control.Exception (Exception, throwIO)
 import Foreign.Ptr (Ptr)
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Marshal.Utils (with)
@@ -97,7 +97,7 @@ throwOnError :: UErrorCode -> IO ()
 throwOnError code = do
   let err = (ICUError code)
   if isFailure err
-    then throw err
+    then throwIO err
     else return ()
 
 withError :: (Ptr UErrorCode -> IO a) -> IO (ICUError, a)
@@ -124,9 +124,9 @@ handleParseError isParseError action =
         if isParseError err
           then do
             perr <- peek perrPtr
-            throw perr { errError = err }
+            throwIO perr { errError = err }
           else if isFailure err
-               then throw err
+               then throwIO err
                else return ret
 
 -- | Return a string representing the name of the given error code.

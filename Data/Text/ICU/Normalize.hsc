@@ -34,7 +34,7 @@ module Data.Text.ICU.Normalize
 #include <unicode/uchar.h>
 #include <unicode/unorm.h>
 
-import Control.Exception (throw)
+import Control.Exception (throwIO)
 import Control.Monad (when)
 import Data.Text (Text)
 import Data.Text.Foreign (fromPtr, useAsPtr)
@@ -216,7 +216,7 @@ normalize mode t = unsafePerformIO . useAsPtr t $ \sptr slen ->
           (err, newLen) <- withError $
               unorm_normalize sptr slen' mode' 0 dptr (fromIntegral dlen)
           when (isFailure err && err /= u_BUFFER_OVERFLOW_ERROR) $
-            throw err
+            throwIO err
           let newLen' = fromIntegral newLen
           if newLen' > dlen
             then return (Left newLen')
