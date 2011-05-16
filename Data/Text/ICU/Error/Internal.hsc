@@ -144,18 +144,16 @@ handleOverflowError guess fill retrieve =
 
 handleParseError :: (ICUError -> Bool)
                  -> (Ptr UParseError -> Ptr UErrorCode -> IO a) -> IO a
-handleParseError isParseError action =
-    with 0 $ \uerrPtr ->
-      alloca $ \perrPtr -> do
-        ret <- action perrPtr uerrPtr
-        err <- ICUError `fmap` peek uerrPtr
-        if isParseError err
-          then do
-            perr <- peek perrPtr
-            throwIO perr { errError = err }
-          else if isFailure err
-               then throwIO err
-               else return ret
+handleParseError isParseError action = with 0 $ \uerrPtr ->
+  alloca $ \perrPtr -> do
+    ret <- action perrPtr uerrPtr
+    err <- ICUError `fmap` peek uerrPtr
+    case undefined of
+     _| isParseError err -> do
+                         perr <- peek perrPtr
+                         throwIO perr { errError = err }
+      | isFailure err -> throwIO err
+      | otherwise     -> return ret
 
 -- | Return a string representing the name of the given error code.
 errorName :: ICUError -> String
