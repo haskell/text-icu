@@ -22,7 +22,7 @@ module Data.Text.ICU.Text
 import Data.Int (Int32)
 import Data.Text (Text)
 import Data.Text.Foreign (fromPtr, useAsPtr)
-import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
+import Data.Text.ICU.Error.Internal (UErrorCode, handleError, handleOverflowError)
 import Data.Text.ICU.Internal (LocaleName, UChar, withLocaleName)
 import Data.Word (Word32)
 import Foreign.C.String (CString)
@@ -64,13 +64,15 @@ caseMap :: CaseMapper -> LocaleName -> Text -> Text
 caseMap mapFn loc s = unsafePerformIO .
   withLocaleName loc $ \locale ->
     useAsPtr s $ \sptr slen -> do
-      let go len = allocaArray len $ \dptr -> do
-            n <- fmap fromIntegral . handleError $
-                 mapFn dptr (fromIntegral len) sptr
-                              (fromIntegral slen) locale
-            if n > len
-              then go n
-              else fromPtr dptr (fromIntegral n)
+      let go len = do
+            ret <- allocaArray len $ \dptr -> do
+                  ret <- handleOverflowError $
+                         mapFn dptr (fromIntegral len) sptr
+                                    (fromIntegral slen) locale
+                  case ret of
+                    Left overflow -> return (Left overflow)
+                    Right n       -> Right `fmap` fromPtr dptr (fromIntegral n)
+            either (go . fromIntegral) return ret
       go (fromIntegral slen)
 
 -- | Lowercase the characters in a string.
