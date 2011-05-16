@@ -1,5 +1,5 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, ForeignFunctionInterface,
-    FunctionalDependencies, MultiParamTypeClasses #-}
+{-# LANGUAGE BangPatterns, DeriveDataTypeable, FlexibleInstances,
+    ForeignFunctionInterface, FunctionalDependencies, MultiParamTypeClasses #-}
 
 -- |
 -- Module      : Data.Text.ICU.Char
@@ -85,12 +85,10 @@ module Data.Text.ICU.Char
 
 #include <unicode/uchar.h>
 
-import Control.Exception (throwIO)
 import Data.Char (chr, ord)
 import Data.Int (Int32)
-import Data.Text.ICU.Error (isFailure, u_BUFFER_OVERFLOW_ERROR,
-                            u_INVALID_CHAR_FOUND)
-import Data.Text.ICU.Error.Internal (UErrorCode, withError)
+import Data.Text.ICU.Error (u_INVALID_CHAR_FOUND)
+import Data.Text.ICU.Error.Internal (UErrorCode, handleOverflowError, withError)
 import Data.Text.ICU.Internal (UBool, UChar32, asBool)
 import Data.Text.ICU.Normalize.Internal (toNCR)
 import Data.Typeable (Typeable)
@@ -917,13 +915,13 @@ charName' choice c = fillString $ u_charName (fromIntegral (ord c)) choice
 fillString :: (CString -> Int32 -> Ptr UErrorCode -> IO Int32) -> String
 fillString act = unsafePerformIO $ loop 128
  where
-  loop n =
-    allocaBytes n $ \ptr -> do
-      (err,r) <- withError $ act ptr (fromIntegral n)
-      case undefined of
-       _| err == u_BUFFER_OVERFLOW_ERROR -> loop (fromIntegral r)
-        | isFailure err                  -> throwIO err
-        | otherwise                      -> peekCStringLen (ptr,fromIntegral r)
+  loop !n = do
+    ret <- allocaBytes n $ \ptr -> do
+             ret <- handleOverflowError $ act ptr (fromIntegral n)
+             case ret of
+              Left overflow -> return (Left overflow)
+              Right r       -> Right `fmap` peekCStringLen (ptr,fromIntegral r)
+    either (loop . fromIntegral) return ret
 
 type UBlockCode = CInt
 type UCharDirection = CInt
