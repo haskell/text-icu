@@ -913,7 +913,7 @@ charName' choice c = fillString $ u_charName (fromIntegral (ord c)) choice
 
 fillString :: (CString -> Int32 -> Ptr UErrorCode -> IO Int32) -> String
 fillString act = unsafePerformIO $
-                 handleOverflowError 128 act (curry peekCStringLen)
+                 handleOverflowError 83 act (curry peekCStringLen)
 
 type UBlockCode = CInt
 type UCharDirection = CInt
