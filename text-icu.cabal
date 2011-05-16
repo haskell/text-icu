@@ -1,8 +1,8 @@
 name:           text-icu
-version:        0.6.3.3
+version:        0.6.3.4
 synopsis:       Bindings to the ICU library
-homepage:       http://bitbucket.org/bos/text-icu
-bug-reports:    http://bitbucket.org/bos/text-icu/issues
+homepage:       https://bitbucket.org/bos/text-icu
+bug-reports:    https://bitbucket.org/bos/text-icu/issues
 description:
   Haskell bindings to the International Components for Unicode (ICU)
   libraries.  These libraries provide robust and full-featured Unicode
@@ -81,8 +81,8 @@ library
 
 source-repository head
   type:     mercurial
-  location: http://bitbucket.org/bos/text-icu
+  location: https://bitbucket.org/bos/text-icu
 
 source-repository head
   type:     git
-  location: http://github.com/bos/text-icu
+  location: https://github.com/bos/text-icu
