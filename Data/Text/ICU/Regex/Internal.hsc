@@ -55,7 +55,6 @@ import Data.Typeable (Typeable)
 import Data.Word (Word16, Word32)
 import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, touchForeignPtr, withForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr)
-import Prelude hiding (catch)
 import System.IO.Unsafe (unsafePerformIO)
 
 #include <unicode/uregex.h>

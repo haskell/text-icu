@@ -51,7 +51,7 @@ module Data.Text.ICU.Regex
     ) where
 
 import Data.Text.ICU.Regex.Internal
-import Control.Exception (catch)
+import qualified Control.Exception as E
 import Data.IORef (newIORef, readIORef, writeIORef)
 import Data.Text (Text)
 import qualified Data.Text.Foreign as T
@@ -62,7 +62,6 @@ import Data.Word (Word16)
 import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, withForeignPtr)
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Storable (peek)
-import Prelude hiding (catch)
 import System.IO.Unsafe (unsafePerformIO)
                    
 instance Show Regex where
@@ -77,7 +76,7 @@ instance Show Regex where
 -- | Compile a regular expression with the given options.  This is
 -- safest to use when the pattern is constructed at run time.
 regex' :: [MatchOption] -> Text -> IO (Either ParseError Regex)
-regex' opts pat = (Right `fmap` regex opts pat) `catch` \(err::ParseError) ->
+regex' opts pat = (Right `fmap` regex opts pat) `E.catch` \(err::ParseError) ->
                   return (Left err)
 
 -- | Set the subject text string upon which the regular expression

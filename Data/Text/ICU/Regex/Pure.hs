@@ -47,7 +47,7 @@ module Data.Text.ICU.Regex.Pure
     , suffix
     ) where
 
-import Control.Exception (catch)
+import qualified Control.Exception as E
 import Data.String (IsString(..))
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -60,7 +60,7 @@ import Foreign.ForeignPtr (ForeignPtr, withForeignPtr)
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Marshal.Array (advancePtr)
 import Foreign.Storable (peek)
-import Prelude hiding (catch, span)
+import Prelude hiding (span)
 import System.IO.Unsafe (unsafeInterleaveIO, unsafePerformIO)
 
 -- | A compiled regular expression.
@@ -114,7 +114,7 @@ regex opts pat = Regex . unsafePerformIO $ IO.regex opts pat
 -- safest to use when the pattern is constructed at run time.
 regex' :: [MatchOption] -> Text -> Either ParseError Regex
 regex' opts pat = unsafePerformIO $
-  ((Right . Regex) `fmap` Internal.regex opts pat) `catch`
+  ((Right . Regex) `fmap` Internal.regex opts pat) `E.catch`
   \(err::ParseError) -> return (Left err)
 
 -- | Return the source form of the pattern used to construct this
