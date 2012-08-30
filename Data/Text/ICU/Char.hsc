@@ -94,7 +94,7 @@ import Data.Text.ICU.Normalize.Internal (toNCR)
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Foreign.C.String (CString, peekCStringLen, withCString)
-import Foreign.C.Types (CInt)
+import Foreign.C.Types (CInt(..))
 import Foreign.Ptr (Ptr)
 import System.IO.Unsafe (unsafePerformIO)
 

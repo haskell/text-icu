@@ -43,7 +43,7 @@ import Data.Text.ICU.Convert.Internal
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
 import Data.Word (Word16)
 import Foreign.C.String (CString, peekCString, withCString)
-import Foreign.C.Types (CInt)
+import Foreign.C.Types (CInt(..))
 import Foreign.ForeignPtr (newForeignPtr)
 import Foreign.Marshal.Array (allocaArray)
 import Foreign.Ptr (FunPtr, Ptr, castPtr)

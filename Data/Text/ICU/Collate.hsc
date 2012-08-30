@@ -51,7 +51,7 @@ import Data.Text.ICU.Internal
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Foreign.C.String (CString)
-import Foreign.C.Types (CInt)
+import Foreign.C.Types (CInt(..))
 import Foreign.ForeignPtr (withForeignPtr)
 import Foreign.Marshal.Utils (with)
 import Foreign.Ptr (Ptr, nullPtr)

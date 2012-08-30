@@ -29,7 +29,7 @@ import Foreign.Marshal.Array (allocaArray)
 import Data.Int (Int32)
 import Data.Typeable (Typeable)
 import Foreign.C.String (CString, peekCString)
-import Foreign.C.Types (CInt)
+import Foreign.C.Types (CInt(..))
 import Foreign.Storable (Storable(..))
 import System.IO.Unsafe (unsafePerformIO)
 
