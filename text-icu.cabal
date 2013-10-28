@@ -1,8 +1,8 @@
 name:           text-icu
 version:        0.6.3.5
 synopsis:       Bindings to the ICU library
-homepage:       https://bitbucket.org/bos/text-icu
-bug-reports:    https://bitbucket.org/bos/text-icu/issues
+homepage:       https://github.com/bos/text-icu
+bug-reports:    https://github.com/bos/text-icu/issues
 description:
   Haskell bindings to the International Components for Unicode (ICU)
   libraries.  These libraries provide robust and full-featured Unicode
@@ -30,20 +30,21 @@ description:
   .
   * Regular expression search and replace.
 maintainer:     Bryan O'Sullivan <bos@serpentine.com>
-copyright:      2009, 2010 Bryan O'Sullivan
+copyright:      2009-2013 Bryan O'Sullivan
 category:       Data, Text
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
 cabal-version:  >= 1.10
 extra-source-files:
-  README.markdown include/hs_text_icu.h tests/benchmarks/Breaker.hs
+  README.markdown include/hs_text_icu.h benchmarks/Breaker.hs
 
 library
   default-language:  Haskell98
-  build-depends:     base < 5, bytestring, text >= 0.9.1.0 && <= 0.12.0.0
-  if impl(ghc >= 6.10)
-    build-depends:   base >= 4
+  build-depends:
+    base >= 4 && < 5,
+    bytestring,
+    text >= 0.9.1.0
 
   exposed-modules:
       Data.Text.ICU
@@ -93,7 +94,7 @@ test-suite tests
     HUnit >= 1.2,
     QuickCheck >= 2.4,
     array,
-    base,
+    base >= 4 && < 5,
     bytestring,
     deepseq,
     directory,
@@ -106,9 +107,9 @@ test-suite tests
     text-icu
 
 source-repository head
-  type:     mercurial
-  location: https://bitbucket.org/bos/text-icu
-
-source-repository head
   type:     git
   location: https://github.com/bos/text-icu
+
+source-repository head
+  type:     mercurial
+  location: https://bitbucket.org/bos/text-icu
