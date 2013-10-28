@@ -1,5 +1,5 @@
 name:           text-icu
-version:        0.6.3.5
+version:        0.6.3.6
 synopsis:       Bindings to the ICU library
 homepage:       https://github.com/bos/text-icu
 bug-reports:    https://github.com/bos/text-icu/issues
