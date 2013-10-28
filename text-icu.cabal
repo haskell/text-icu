@@ -35,11 +35,12 @@ category:       Data, Text
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
-cabal-version:  >= 1.6
+cabal-version:  >= 1.10
 extra-source-files:
   README.markdown include/hs_text_icu.h tests/benchmarks/Breaker.hs
 
 library
+  default-language:  Haskell98
   build-depends:     base < 5, bytestring, text >= 0.9.1.0 && <= 0.12.0.0
   if impl(ghc >= 6.10)
     build-depends:   base >= 4
@@ -78,6 +79,31 @@ library
   ghc-options: -Wall
   if impl(ghc >= 6.8)
     ghc-options: -fwarn-tabs
+
+test-suite tests
+  default-language: Haskell98
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   tests
+  main-is:          Tests.hs
+
+  ghc-options:
+    -Wall -threaded -O0 -rtsopts
+
+  build-depends:
+    HUnit >= 1.2,
+    QuickCheck >= 2.4,
+    array,
+    base,
+    bytestring,
+    deepseq,
+    directory,
+    ghc-prim,
+    random,
+    test-framework >= 0.4,
+    test-framework-hunit >= 0.2,
+    test-framework-quickcheck2 >= 0.2,
+    text,
+    text-icu
 
 source-repository head
   type:     mercurial
