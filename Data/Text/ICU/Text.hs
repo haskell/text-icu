@@ -22,11 +22,10 @@ module Data.Text.ICU.Text
 import Data.Int (Int32)
 import Data.Text (Text)
 import Data.Text.Foreign (fromPtr, useAsPtr)
-import Data.Text.ICU.Error.Internal (UErrorCode, handleError, handleOverflowError)
+import Data.Text.ICU.Error.Internal (UErrorCode, handleOverflowError)
 import Data.Text.ICU.Internal (LocaleName, UChar, withLocaleName)
 import Data.Word (Word32)
 import Foreign.C.String (CString)
-import Foreign.Marshal.Array (allocaArray)
 import Foreign.Ptr (Ptr, castPtr)
 import System.IO.Unsafe (unsafePerformIO)
 
@@ -48,14 +47,9 @@ toCaseFold :: Bool -- ^ Whether to include or exclude mappings for
 toCaseFold excludeI s = unsafePerformIO .
   useAsPtr s $ \sptr slen -> do
     let opts = fromIntegral . fromEnum $ excludeI
-        go len = allocaArray len $ \dptr -> do
-          n <- fmap fromIntegral . handleError $
-               u_strFoldCase dptr (fromIntegral len) sptr
-                                  (fromIntegral slen) opts
-          if n > len
-            then go n
-            else fromPtr dptr (fromIntegral n)
-    go (fromIntegral slen)
+    handleOverflowError (fromIntegral slen)
+        (\dptr dlen -> u_strFoldCase dptr dlen sptr (fromIntegral slen) opts)
+        (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
 
 type CaseMapper = Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> CString
                 -> Ptr UErrorCode -> IO Int32
