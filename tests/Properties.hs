@@ -3,7 +3,9 @@ module Properties (tests) where
 
 import Control.DeepSeq (NFData(..))
 import Data.Function (on)
+import Data.Maybe (fromMaybe)
 import Data.Text (Text)
+import Data.Text.ICU (NormalizationMode(..))
 import QuickCheckUtils ()
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
@@ -33,6 +35,19 @@ t_charIterator_Text a b = (compare `on` I.fromText) a b == compare a b
 t_charIterator_Utf8 a b = (compare `on` I.fromUtf8) ba bb == compare ba bb
   where ba = T.encodeUtf8 a; bb = T.encodeUtf8 b
 
+-- Normalization
+
+t_normalize mode = t_nonEmpty $ I.normalize mode
+
+t_quickCheck_isNormalized mode normMode txt
+  | mode `elem` [NFD, NFKD, FCD]
+              =                        quickCheck == Just isNormalized
+  | otherwise = fromMaybe isNormalized quickCheck ==      isNormalized
+  where quickCheck   = I.quickCheck mode normTxt
+        isNormalized = I.isNormalized mode normTxt
+        normTxt      = I.normalize normMode txt
+
+
 tests :: Test
 tests =
   testGroup "Properties" [
@@ -42,4 +57,6 @@ tests =
   , testProperty "t_charIterator_String" t_charIterator_String
   , testProperty "t_charIterator_Text" t_charIterator_Text
   , testProperty "t_charIterator_Utf8" t_charIterator_Utf8
+  , testProperty "t_normalize" t_normalize
+  , testProperty "t_quickCheck_isNormalized" t_quickCheck_isNormalized
   ]

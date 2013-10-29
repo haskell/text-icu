@@ -2,10 +2,10 @@
 
 module QuickCheckUtils () where
 
-import Data.Text.ICU (LocaleName(..))
+import Data.Text.ICU (LocaleName(..), NormalizationMode(..))
+import Data.Text.ICU.Break (available)
 import Test.QuickCheck (Arbitrary(..), elements)
 import qualified Data.Text as T
-import Data.Text.ICU.Break (available)
 
 instance Arbitrary T.Text where
     arbitrary = T.pack `fmap` arbitrary
@@ -13,3 +13,6 @@ instance Arbitrary T.Text where
 
 instance Arbitrary LocaleName where
     arbitrary = elements (Root:available)
+
+instance Arbitrary NormalizationMode where
+    arbitrary = elements [None ..FCD]
