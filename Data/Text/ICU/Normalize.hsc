@@ -192,7 +192,7 @@ data NormalizationMode
     | NFKC   -- ^ Compatibility decomposition followed by canonical composition.
     | FCD    -- ^ \"Fast C or D\" form.
       deriving (Eq, Show, Enum, Typeable)
-                       
+
 toNM :: NormalizationMode -> UNormalizationMode
 toNM None = #const UNORM_NONE
 toNM NFD  = #const UNORM_NFD
@@ -209,8 +209,8 @@ normalize mode t = unsafePerformIO . useAsPtr t $ \sptr slen ->
   in handleOverflowError (fromIntegral slen)
      (\dptr dlen -> unorm_normalize sptr slen' mode' 0 dptr (fromIntegral dlen))
      (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
-    
-      
+
+
 -- | Perform an efficient check on a string, to quickly determine if
 -- the string is in a particular normalization form.
 --

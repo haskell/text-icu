@@ -63,7 +63,7 @@ import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, withForeignPtr)
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Storable (peek)
 import System.IO.Unsafe (unsafePerformIO)
-                   
+
 instance Show Regex where
     show re = "Regex " ++ show (pattern re)
 

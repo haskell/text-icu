@@ -87,7 +87,7 @@ data LocaleName = Root
                 -- and the root resource, see
                 -- <http://userguide.icu-project.org/locale/resources>.
                 | Locale String -- ^ A specific locale.
-                | Current       -- ^ The program's current locale. 
+                | Current       -- ^ The program's current locale.
                   deriving (Eq, Ord, Read, Show)
 
 instance IsString LocaleName where

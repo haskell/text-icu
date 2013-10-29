@@ -133,7 +133,7 @@ import Data.Text (Text)
 --   third word in the document).
 --
 -- The 'Breaker' type was designed to support these kinds of
--- tasks. 
+-- tasks.
 --
 -- For the impure boundary analysis API (which is richer, but less
 -- easy to use than the pure API), see the 'Data.Text.ICU.Break'

@@ -37,7 +37,7 @@ import System.IO.Unsafe (unsafePerformIO)
 #include <unicode/utypes.h>
 
 type UErrorCode = CInt
-    
+
 -- | ICU error type.  This is an instance of the 'Exception' type
 -- class.  A value of this type may be thrown as an exception by most
 -- ICU functions.

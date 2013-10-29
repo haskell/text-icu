@@ -120,7 +120,7 @@ toUnicode cnv bs =
   unsafePerformIO . unsafeUseAsCStringLen bs $ \(sptr, slen) ->
     withConverter cnv $ \cptr -> do
       let capacity = slen * 2
-      allocaArray capacity $ \tptr -> 
+      allocaArray capacity $ \tptr ->
         fromPtr tptr =<< (fmap fromIntegral . handleError $
                           ucnv_toUChars cptr tptr (fromIntegral capacity) sptr
                                         (fromIntegral slen))

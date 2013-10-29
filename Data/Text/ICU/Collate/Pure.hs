@@ -36,7 +36,7 @@ import qualified Data.Text.ICU.Collate as IO
 
 -- $api
 --
-                         
+
 -- | Create an immutable 'Collator' for comparing strings.
 --
 -- If 'Root' is passed as the locale, UCA collation rules will be
