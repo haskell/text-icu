@@ -58,6 +58,7 @@ module Data.Text.ICU
     -- $collate
     , Collator
     , collator
+    , collatorWith
     , collate
     , collateIter
     , sortKey

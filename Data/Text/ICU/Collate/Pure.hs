@@ -21,12 +21,14 @@ module Data.Text.ICU.Collate.Pure
     -- $api
       Collator
     , collator
+    , collatorWith
     , collate
     , collateIter
     , sortKey
     , uca
     ) where
 
+import Control.Monad (forM_)
 import Data.ByteString (ByteString)
 import Data.Text (Text)
 import Data.Text.ICU.Collate.Internal (Collator(..))
@@ -43,6 +45,13 @@ import qualified Data.Text.ICU.Collate as IO
 -- used.
 collator :: LocaleName -> Collator
 collator loc = unsafePerformIO $ C `fmap` IO.open loc
+
+-- | Create an immutable 'Collator' with the given 'Attribute's.
+collatorWith :: LocaleName -> [IO.Attribute] -> Collator
+collatorWith loc atts = unsafePerformIO $ do
+  mc <- IO.open loc
+  forM_ atts $ IO.setAttribute mc
+  return (C mc)
 
 -- | Compare two strings.
 collate :: Collator -> Text -> Text -> Ordering

@@ -30,6 +30,7 @@ module Data.Text.ICU.Collate
     , getAttribute
     , setAttribute
     , sortKey
+    , clone
     , freeze
     ) where
 
@@ -289,11 +290,17 @@ sortKey c t
 -- Subsequent changes to the 'MCollator' will not affect the state of
 -- the returned 'Collator'.
 freeze :: MCollator -> IO Collator
-freeze c = do
+freeze = fmap C . clone
+
+-- | Make a copy of a mutable 'MCollator'.
+-- Subsequent changes to the input 'MCollator' will not affect the state of
+-- the returned 'MCollator'.
+clone :: MCollator -> IO MCollator
+clone c = do
   p <- withCollator c $ \cptr ->
     with (#const U_COL_SAFECLONE_BUFFERSIZE)
       (handleError . ucol_safeClone cptr nullPtr)
-  C `fmap` wrap p
+  wrap p
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ucol_open" ucol_open
     :: CString -> Ptr UErrorCode -> IO (Ptr UCollator)
