@@ -137,7 +137,7 @@ import Data.Text (Text)
 -- tasks.
 --
 -- For the impure boundary analysis API (which is richer, but less
--- easy to use than the pure API), see the 'Data.Text.ICU.Break'
+-- easy to use than the pure API), see the "Data.Text.ICU.Break"
 -- module.  The impure API supports some uses that may be less
 -- efficient via the pure API, including:
 --
@@ -151,7 +151,7 @@ import Data.Text (Text)
 -- $collate
 --
 -- For the impure collation API (which is richer, but less easy to
--- use than the pure API), see the 'Data.Text.ICU.Collate'
+-- use than the pure API), see the "Data.Text.ICU.Collate"
 -- module.
 
 -- $group

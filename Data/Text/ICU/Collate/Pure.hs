@@ -13,7 +13,7 @@
 -- libraries.
 --
 -- For the impure collation API (which is richer, but less easy to
--- use), see the 'Data.Text.ICU.CollateO' module.
+-- use), see the "Data.Text.ICU.Collate" module.
 
 module Data.Text.ICU.Collate.Pure
     (
