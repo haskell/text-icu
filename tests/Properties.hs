@@ -1,3 +1,10 @@
+-- Tester beware!
+--
+-- Many of the tests below are "weak", i.e. they ensure that functions
+-- return results, without checking whether the results are correct.
+-- Weak tests are described as such.
+
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 module Properties (tests) where
 
@@ -24,6 +31,8 @@ t_nonEmpty f t
 
 -- Case mapping
 
+-- These tests are all fairly weak.
+
 t_toCaseFold bool = t_nonEmpty $ I.toCaseFold bool
 t_toLower locale = t_nonEmpty $ I.toLower locale
 t_toUpper locale = t_nonEmpty $ I.toUpper locale
@@ -47,6 +56,12 @@ t_quickCheck_isNormalized mode normMode txt
         isNormalized = I.isNormalized mode normTxt
         normTxt      = I.normalize normMode txt
 
+-- Collation
+
+-- This test is weak.
+
+t_collate_root txt = t_rnf $ I.collate I.uca txt
+
 
 tests :: Test
 tests =
@@ -59,4 +74,5 @@ tests =
   , testProperty "t_charIterator_Utf8" t_charIterator_Utf8
   , testProperty "t_normalize" t_normalize
   , testProperty "t_quickCheck_isNormalized" t_quickCheck_isNormalized
+  , testProperty "t_collate_root" t_collate_root
   ]
