@@ -61,7 +61,8 @@ fromText = CIText
 {-# INLINE fromText #-}
 
 -- | Construct a 'CharIterator' from a Unicode string encoded as a
--- UTF-8 'ByteString'.
+-- UTF-8 'ByteString'. The validity of the encoded string is *not*
+-- checked.
 fromUtf8 :: ByteString -> CharIterator
 fromUtf8 = CIUTF8
 {-# INLINE fromUtf8 #-}

@@ -2,11 +2,13 @@
 module Properties (tests) where
 
 import Control.DeepSeq (NFData(..))
+import Data.Function (on)
 import Data.Text (Text)
 import QuickCheckUtils ()
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import qualified Data.Text.ICU as I
 
 t_rnf :: (NFData a) => (Text -> a) -> Text -> Bool
@@ -18,9 +20,18 @@ t_nonEmpty f t
     | otherwise = T.length ft > 0
   where ft = f t
 
+-- Case mapping
+
 t_toCaseFold bool = t_nonEmpty $ I.toCaseFold bool
 t_toLower locale = t_nonEmpty $ I.toLower locale
 t_toUpper locale = t_nonEmpty $ I.toUpper locale
+
+-- Iteration
+
+t_charIterator_String a b = (compare `on` I.fromString) a b == compare a b
+t_charIterator_Text a b = (compare `on` I.fromText) a b == compare a b
+t_charIterator_Utf8 a b = (compare `on` I.fromUtf8) ba bb == compare ba bb
+  where ba = T.encodeUtf8 a; bb = T.encodeUtf8 b
 
 tests :: Test
 tests =
@@ -28,4 +39,7 @@ tests =
     testProperty "t_toCaseFold" t_toCaseFold
   , testProperty "t_toLower" t_toLower
   , testProperty "t_toUpper" t_toUpper
+  , testProperty "t_charIterator_String" t_charIterator_String
+  , testProperty "t_charIterator_Text" t_charIterator_Text
+  , testProperty "t_charIterator_Utf8" t_charIterator_Utf8
   ]
