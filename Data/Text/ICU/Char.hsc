@@ -305,6 +305,55 @@ data BlockCode =
   | Lydian
   | MahjongTiles
   | DominoTiles
+  | Samaritan
+  | UnifiedCanadianAboriginalSyllabicsExtended
+  | TaiTham
+  | VedicExtensions
+  | Lisu
+  | Bamum
+  | CommonIndicNumberForms
+  | DevanagariExtended
+  | HangulJamoExtendedA
+  | Javanese
+  | MyanmarExtendedA
+  | TaiViet
+  | MeeteiMayek
+  | HangulJamoExtendedB
+  | ImperialAramaic
+  | OldSouthArabian
+  | Avestan
+  | InscriptionalParthian
+  | InscriptionalPahlavi
+  | OldTurkic
+  | RumiNumeralSymbols
+  | Kaithi
+  | EgyptianHieroglyphs
+  | EnclosedAlphanumericSupplement
+  | EnclosedIdeographicSupplement
+  | CJKUnifiedIdeographsExtensionC
+  | Mandaic
+  | Batak
+  | EthiopicExtendedA
+  | Brahmi
+  | BamumSupplement
+  | KanaSupplement
+  | PlayingCards
+  | MiscellaneousSymbolsAndPictographs
+  | Emoticons
+  | TransportAndMapSymbols
+  | AlchemicalSymbols
+  | CJKUnifiedIdeographsExtensionD
+  | ArabicExtendedA
+  | ArabicMathematicalAlphabeticSymbols
+  | Chakma
+  | MeeteiMayekExtensions
+  | MeroiticCursive
+  | MeroiticHieroglyphs
+  | Miao
+  | Sharada
+  | SoraSompeng
+  | SundaneseSupplement
+  | Takri
   deriving (Eq, Enum, Show, Typeable)
 
 data Bool_ =
