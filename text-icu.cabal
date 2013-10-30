@@ -1,5 +1,5 @@
 name:           text-icu
-version:        0.6.3.6
+version:        0.6.3.7
 synopsis:       Bindings to the ICU library
 homepage:       https://github.com/bos/text-icu
 bug-reports:    https://github.com/bos/text-icu/issues
@@ -86,6 +86,7 @@ test-suite tests
   type:             exitcode-stdio-1.0
   hs-source-dirs:   tests
   main-is:          Tests.hs
+  other-modules:    Properties QuickCheckUtils
 
   ghc-options:
     -Wall -threaded -O0 -rtsopts
