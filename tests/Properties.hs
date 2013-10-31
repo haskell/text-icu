@@ -19,8 +19,9 @@ import Test.Framework.Providers.QuickCheck2 (testProperty)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.ICU as I
+import qualified Data.Text.ICU.Char as I
 
-t_rnf :: (NFData a) => (Text -> a) -> Text -> Bool
+t_rnf :: (NFData b) => (a -> b) -> a -> Bool
 t_rnf f t = rnf (f t) == ()
 
 t_nonEmpty :: (Text -> Text) -> Text -> Bool
@@ -62,6 +63,22 @@ t_quickCheck_isNormalized mode normMode txt
 
 t_collate_root txt = t_rnf $ I.collate I.uca txt
 
+-- Unicode character database
+
+-- These tests are weak.
+
+t_blockCode = t_rnf I.blockCode
+t_charFullName c = I.charFromFullName (I.charFullName c) == Just c
+t_charName c = maybe True (==c) $ I.charFromName (I.charName c)
+t_combiningClass = t_rnf I.combiningClass
+t_direction = t_rnf I.direction
+-- t_property p = t_rnf $ I.property p
+t_isoComment = t_rnf $ I.isoComment
+t_isMirrored = t_rnf $ I.isMirrored
+t_mirror = t_rnf $ I.mirror
+t_digitToInt = t_rnf $ I.digitToInt
+t_numericValue = t_rnf $ I.numericValue
+
 
 tests :: Test
 tests =
@@ -75,4 +92,15 @@ tests =
   , testProperty "t_normalize" t_normalize
   , testProperty "t_quickCheck_isNormalized" t_quickCheck_isNormalized
   , testProperty "t_collate_root" t_collate_root
+  , testProperty "t_blockCode" t_blockCode
+  , testProperty "t_charFullName" t_charFullName
+  , testProperty "t_charName" t_charName
+  , testProperty "t_combiningClass" t_combiningClass
+  , testProperty "t_direction" t_direction
+--, testProperty "t_property" t_property
+  , testProperty "t_isoComment" t_isoComment
+  , testProperty "t_isMirrored" t_isMirrored
+  , testProperty "t_mirror" t_mirror
+  , testProperty "t_digitToInt" t_digitToInt
+  , testProperty "t_numericValue" t_numericValue
   ]
