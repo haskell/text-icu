@@ -1,5 +1,5 @@
-{-# LANGUAGE DeriveDataTypeable, ForeignFunctionInterface,
-    ScopedTypeVariables #-}
+{-# LANGUAGE BangPatterns, DeriveDataTypeable, ForeignFunctionInterface,
+    RecordWildCards, ScopedTypeVariables #-}
 
 module Data.Text.ICU.Error.Internal
     (
@@ -20,6 +20,7 @@ module Data.Text.ICU.Error.Internal
     , withError
     ) where
 
+import Control.DeepSeq (NFData(..))
 import Control.Exception (Exception, throwIO)
 import Data.Function (fix)
 import Foreign.Ptr (Ptr)
@@ -50,6 +51,9 @@ instance Show ICUError where
 
 instance Exception ICUError
 
+instance NFData ICUError where
+    rnf !_ = ()
+
 -- | Detailed information about parsing errors.  Used by ICU parsing
 -- engines that parse long rules, patterns, or programs, where the
 -- text being parsed is long enough that more information than an
@@ -70,6 +74,9 @@ data ParseError = ParseError {
     -- parser does not support this field, it will have a value of
     -- 'Nothing'.
     } deriving (Show, Typeable)
+
+instance NFData ParseError where
+    rnf ParseError{..} = rnf errError `seq` rnf errLine `seq` rnf errOffset
 
 type UParseError = ParseError
 

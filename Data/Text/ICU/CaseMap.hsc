@@ -43,6 +43,9 @@ data CaseOption = FoldCaseExcludeSpecialI
                 | TitleCaseNoBreakAdjustment
                   deriving (Eq, Enum)
 
+instance NFData CaseOption where
+    rnf !_ = ()
+
 fromCaseMapOption :: CaseOption -> Word32
 fromCaseMapOption FoldCaseExcludeSpecialI    = #const U_FOLD_CASE_EXCLUDE_SPECIAL_I
 fromCaseMapOption TitleCaseNoLowerCase       = #const U_TITLECASE_NO_LOWERCASE

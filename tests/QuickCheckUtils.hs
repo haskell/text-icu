@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module QuickCheckUtils () where
@@ -11,7 +12,7 @@ import qualified Data.Text as T
 import qualified Data.Text.ICU as I
 
 instance NFData Ordering where
-    rnf v  = v `seq` ()
+    rnf !_  = ()
 
 instance Arbitrary T.Text where
     arbitrary = T.pack `fmap` arbitrary

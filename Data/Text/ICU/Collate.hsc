@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, DeriveDataTypeable, ForeignFunctionInterface #-}
+{-# LANGUAGE BangPatterns, CPP, DeriveDataTypeable, ForeignFunctionInterface #-}
 -- |
 -- Module      : Data.Text.ICU.Collate
 -- Copyright   : (c) 2010 Bryan O'Sullivan
@@ -36,6 +36,7 @@ module Data.Text.ICU.Collate
 
 #include <unicode/ucol.h>
 
+import Control.DeepSeq (NFData(..))
 import Data.ByteString (empty)
 import Data.ByteString.Internal (ByteString(..), create, mallocByteString,
                                  memcpy)
@@ -71,12 +72,18 @@ data AlternateHandling = NonIgnorable
                          -- quaternary level.
                          deriving (Eq, Bounded, Enum, Show, Typeable)
 
+instance NFData AlternateHandling where
+    rnf !_ = ()
+
 -- | Control the ordering of upper and lower case letters.
 data CaseFirst = UpperFirst     -- ^ Force upper case letters to sort before
                                 -- lower case.
                | LowerFirst     -- ^ Force lower case letters to sort before
                                 -- upper case.
                 deriving (Eq, Bounded, Enum, Show, Typeable)
+
+instance NFData CaseFirst where
+    rnf !_ = ()
 
 -- | The strength attribute. The usual strength for most locales (except
 -- Japanese) is tertiary. Quaternary strength is useful when combined with
@@ -92,6 +99,9 @@ data Strength = Primary
               | Quaternary
               | Identical
                 deriving (Eq, Bounded, Enum, Show, Typeable)
+
+instance NFData Strength where
+    rnf !_ = ()
 
 data Attribute = French Bool
                -- ^ Direction of secondary weights, used in French.  'True',
@@ -134,6 +144,16 @@ data Attribute = French Bool
                  -- for the numeric value of substrings of digits.  This is
                  -- a way to get '100' to sort /after/ '2'.
                  deriving (Eq, Show, Typeable)
+
+instance NFData Attribute where
+    rnf (French !_)                 = ()
+    rnf (AlternateHandling !_)      = ()
+    rnf (CaseFirst c)               = rnf c
+    rnf (CaseLevel !_)              = ()
+    rnf (NormalizationMode !_)      = ()
+    rnf (Strength !_)               = ()
+    rnf (HiraganaQuaternaryMode !_) = ()
+    rnf (Numeric !_)                = ()
 
 type UColAttribute = CInt
 type UColAttributeValue = CInt

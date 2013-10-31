@@ -85,6 +85,7 @@ module Data.Text.ICU.Char
 
 #include <unicode/uchar.h>
 
+import Control.DeepSeq (NFData(..))
 import Data.Char (chr, ord)
 import Data.Int (Int32)
 import Data.Text.ICU.Error (u_INVALID_CHAR_FOUND)
@@ -130,6 +131,9 @@ data Direction =
   | DirNonSpacingMark
   | BoundaryNeutral
   deriving (Eq, Enum, Show, Typeable)
+
+instance NFData Direction where
+    rnf !_ = ()
 
 -- | Descriptions of Unicode blocks.
 data BlockCode =
@@ -354,7 +358,10 @@ data BlockCode =
   | SoraSompeng
   | SundaneseSupplement
   | Takri
-  deriving (Eq, Enum, Show, Typeable)
+  deriving (Eq, Enum, Bounded, Show, Typeable)
+
+instance NFData BlockCode where
+    rnf !_ = ()
 
 data Bool_ =
     Alphabetic
@@ -471,11 +478,17 @@ data Bool_ =
   -- ^ Hex digit character class.
     deriving (Eq, Enum, Show, Typeable)
 
+instance NFData Bool_ where
+    rnf !_ = ()
+
 class Property p v | p -> v where
     fromNative :: p -> Int32 -> v
     toUProperty :: p -> UProperty
 
 data BidiClass_ = BidiClass deriving (Show, Typeable)
+
+instance NFData BidiClass_ where
+    rnf !_ = ()
 
 instance Property BidiClass_ Direction where
     fromNative _  = toEnum . fromIntegral
@@ -483,17 +496,26 @@ instance Property BidiClass_ Direction where
 
 data Block_ = Block
 
+instance NFData Block_ where
+    rnf !_ = ()
+
 instance Property Block_ BlockCode where
     fromNative _  = toEnum . fromIntegral
     toUProperty _ = (#const UCHAR_BLOCK)
 
 data CanonicalCombiningClass_ = CanonicalCombiningClass deriving (Show,Typeable)
 
+instance NFData CanonicalCombiningClass_ where
+    rnf !_ = ()
+
 instance Property CanonicalCombiningClass_ Int where
     fromNative _  = fromIntegral
     toUProperty _ = (#const UCHAR_CANONICAL_COMBINING_CLASS)
 
 data Decomposition_ = Decomposition deriving (Show, Typeable)
+
+instance NFData Decomposition_ where
+    rnf !_ = ()
 
 data Decomposition =
     Canonical
@@ -516,11 +538,17 @@ data Decomposition =
   | Count
     deriving (Eq, Enum, Show, Typeable)
 
+instance NFData Decomposition where
+    rnf !_ = ()
+
 instance Property Decomposition_ (Maybe Decomposition) where
     fromNative _  = maybeEnum
     toUProperty _ = (#const UCHAR_DECOMPOSITION_TYPE)
 
 data EastAsianWidth_ = EastAsianWidth deriving (Show, Typeable)
+
+instance NFData EastAsianWidth_ where
+    rnf !_ = ()
 
 data EastAsianWidth = EANeutral
                     | EAAmbiguous
@@ -531,6 +559,9 @@ data EastAsianWidth = EANeutral
                     | EACount
                     deriving (Eq, Enum, Show, Typeable)
 
+instance NFData EastAsianWidth where
+    rnf !_ = ()
+
 instance Property EastAsianWidth_ EastAsianWidth where
     fromNative _  = toEnum . fromIntegral
     toUProperty _ = (#const UCHAR_EAST_ASIAN_WIDTH)
@@ -540,6 +571,9 @@ instance Property Bool_ Bool where
     toUProperty  = fromIntegral . fromEnum
 
 data GeneralCategory_ = GeneralCategory deriving (Show, Typeable)
+
+instance NFData GeneralCategory_ where
+    rnf !_ = ()
 
 data GeneralCategory =
     GeneralOtherType
@@ -574,11 +608,17 @@ data GeneralCategory =
   | FinalPunctuation
     deriving (Eq, Enum, Show, Typeable)
 
+instance NFData GeneralCategory where
+    rnf !_ = ()
+
 instance Property GeneralCategory_ GeneralCategory where
     fromNative _  = toEnum . fromIntegral
     toUProperty _ = (#const UCHAR_GENERAL_CATEGORY)
 
 data JoiningGroup_ = JoiningGroup deriving (Show, Typeable)
+
+instance NFData JoiningGroup_ where
+    rnf !_ = ()
 
 maybeEnum :: Enum a => Int32 -> Maybe a
 maybeEnum 0 = Nothing
@@ -641,11 +681,17 @@ data JoiningGroup =
   | BurushaskiYehBarree
     deriving (Eq, Enum, Show, Typeable)
 
+instance NFData JoiningGroup where
+    rnf !_ = ()
+
 instance Property JoiningGroup_ (Maybe JoiningGroup) where
     fromNative _  = maybeEnum
     toUProperty _ = (#const UCHAR_JOINING_GROUP)
 
 data JoiningType_ = JoiningType deriving (Show, Typeable)
+
+instance NFData JoiningType_ where
+    rnf !_ = ()
 
 data JoiningType =
     JoinCausing
@@ -655,11 +701,17 @@ data JoiningType =
   | Transparent
     deriving (Eq, Enum, Show, Typeable)
 
+instance NFData JoiningType where
+    rnf !_ = ()
+
 instance Property JoiningType_ (Maybe JoiningType) where
     fromNative _  = maybeEnum
     toUProperty _ = (#const UCHAR_JOINING_TYPE)
 
 data LineBreak_ = LineBreak deriving (Show, Typeable)
+
+instance NFData LineBreak_ where
+    rnf !_ = ()
 
 data LineBreak =
     Ambiguous
@@ -699,20 +751,32 @@ data LineBreak =
   | JV
     deriving (Eq, Enum, Show, Typeable)
 
+instance NFData LineBreak where
+    rnf !_ = ()
+
 instance Property LineBreak_ (Maybe LineBreak) where
     fromNative _  = maybeEnum
     toUProperty _ = (#const UCHAR_LINE_BREAK)
 
 data NumericType_ = NumericType deriving (Show, Typeable)
 
+instance NFData NumericType_ where
+    rnf !_ = ()
+
 data NumericType = NTDecimal | NTDigit | NTNumeric
                    deriving (Eq, Enum, Show, Typeable)
+
+instance NFData NumericType where
+    rnf !_ = ()
 
 instance Property NumericType_ (Maybe NumericType) where
     fromNative _  = maybeEnum
     toUProperty _ = (#const UCHAR_NUMERIC_TYPE)
 
 data HangulSyllableType_ = HangulSyllableType deriving (Show, Typeable)
+
+instance NFData HangulSyllableType_ where
+    rnf !_ = ()
 
 data HangulSyllableType =
     LeadingJamo
@@ -722,6 +786,9 @@ data HangulSyllableType =
   | LVTSyllable
     deriving (Eq, Enum, Show, Typeable)
 
+instance NFData HangulSyllableType where
+    rnf !_ = ()
+
 instance Property HangulSyllableType_ (Maybe HangulSyllableType) where
     fromNative _  = maybeEnum
     toUProperty _ = (#const UCHAR_HANGUL_SYLLABLE_TYPE)
@@ -730,6 +797,18 @@ data NFCQuickCheck_ = NFCQuickCheck deriving (Show, Typeable)
 data NFDQuickCheck_ = NFDQuickCheck deriving (Show, Typeable)
 data NFKCQuickCheck_ = NFKCQuickCheck deriving (Show, Typeable)
 data NFKDQuickCheck_ = NFKDQuickCheck deriving (Show, Typeable)
+
+instance NFData NFCQuickCheck_ where
+    rnf !_ = ()
+
+instance NFData NFDQuickCheck_ where
+    rnf !_ = ()
+
+instance NFData NFKCQuickCheck_ where
+    rnf !_ = ()
+
+instance NFData NFKDQuickCheck_ where
+    rnf !_ = ()
 
 instance Property NFCQuickCheck_ (Maybe Bool) where
     fromNative  _ = toNCR . fromIntegral
@@ -750,6 +829,9 @@ instance Property NFKDQuickCheck_ (Maybe Bool) where
 data LeadCanonicalCombiningClass_ = LeadCanonicalCombiningClass
                                     deriving (Show, Typeable)
 
+instance NFData LeadCanonicalCombiningClass_ where
+    rnf !_ = ()
+
 instance Property LeadCanonicalCombiningClass_ Int where
     fromNative  _ = fromIntegral
     toUProperty _ = (#const UCHAR_LEAD_CANONICAL_COMBINING_CLASS)
@@ -757,11 +839,17 @@ instance Property LeadCanonicalCombiningClass_ Int where
 data TrailingCanonicalCombiningClass_ = TrailingCanonicalCombiningClass
                                    deriving (Show, Typeable)
 
+instance NFData TrailingCanonicalCombiningClass_ where
+    rnf !_ = ()
+
 instance Property TrailingCanonicalCombiningClass_ Int where
     fromNative  _ = fromIntegral
     toUProperty _ = (#const UCHAR_TRAIL_CANONICAL_COMBINING_CLASS)
 
 data GraphemeClusterBreak_ = GraphemeClusterBreak deriving (Show, Typeable)
+
+instance NFData GraphemeClusterBreak_ where
+    rnf !_ = ()
 
 data GraphemeClusterBreak =
     Control
@@ -777,11 +865,17 @@ data GraphemeClusterBreak =
   | Prepend
     deriving (Eq, Enum, Show, Typeable)
 
+instance NFData GraphemeClusterBreak where
+    rnf !_ = ()
+
 instance Property GraphemeClusterBreak_ (Maybe GraphemeClusterBreak) where
     fromNative  _ = maybeEnum
     toUProperty _ = (#const UCHAR_GRAPHEME_CLUSTER_BREAK)
 
 data SentenceBreak_ = SentenceBreak deriving (Show, Typeable)
+
+instance NFData SentenceBreak_ where
+    rnf !_ = ()
 
 data SentenceBreak =
     SBATerm
@@ -800,11 +894,17 @@ data SentenceBreak =
   | SBSContinue
     deriving (Eq, Enum, Show, Typeable)
 
+instance NFData SentenceBreak where
+    rnf !_ = ()
+
 instance Property SentenceBreak_ (Maybe SentenceBreak) where
     fromNative  _ = maybeEnum
     toUProperty _ = (#const UCHAR_SENTENCE_BREAK)
 
 data WordBreak_ = WordBreak deriving (Show, Typeable)
+
+instance NFData WordBreak_ where
+    rnf !_ = ()
 
 data WordBreak =
     WBALetter
@@ -820,6 +920,9 @@ data WordBreak =
   | WBMidNumLet
   | WBNewline
     deriving (Eq, Enum, Show, Typeable)
+
+instance NFData WordBreak where
+    rnf !_ = ()
 
 instance Property WordBreak_ (Maybe WordBreak) where
     fromNative  _ = maybeEnum

@@ -38,6 +38,7 @@ module Data.Text.ICU.Break.Pure
     , breaksRight
     ) where
 
+import Control.DeepSeq (NFData(..))
 import Data.Text (Text, empty)
 import Data.Text.Foreign (dropWord16, takeWord16)
 import Data.Text.ICU.Break (Line, Word)
@@ -98,6 +99,9 @@ data Break a = Break {
     , brkStatus :: !a
     -- ^ Status of the current break (only meaningful if 'Line' or 'Word').
     } deriving (Eq, Show)
+
+instance (NFData a) => NFData (Break a) where
+    rnf Break{..} = rnf brkStatus
 
 -- | Return a list of all breaks in a string, from left to right.
 breaks :: Breaker a -> Text -> [Break a]

@@ -17,6 +17,7 @@ module Data.Text.ICU.Internal
 
 #include <unicode/uiter.h>
 
+import Control.DeepSeq (NFData(..))
 import Data.ByteString.Internal (ByteString(..))
 import Data.Int (Int8, Int32)
 import Data.String (IsString(..))
@@ -89,6 +90,11 @@ data LocaleName = Root
                 | Locale String -- ^ A specific locale.
                 | Current       -- ^ The program's current locale.
                   deriving (Eq, Ord, Read, Show)
+
+instance NFData LocaleName where
+    rnf Root       = ()
+    rnf (Locale l) = rnf l
+    rnf Current    = ()
 
 instance IsString LocaleName where
     fromString = Locale

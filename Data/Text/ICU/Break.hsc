@@ -49,6 +49,7 @@ module Data.Text.ICU.Break
 
 #include <unicode/ubrk.h>
 
+import Control.DeepSeq (NFData(..))
 import Control.Monad (forM)
 import Data.IORef (newIORef, writeIORef)
 import Data.Int (Int32)
@@ -79,6 +80,9 @@ data Line = Soft                -- ^ A soft line break is a position at
           | Hard
             deriving (Eq, Show, Enum)
 
+instance NFData Line where
+    rnf !_ = ()
+
 -- | Word break status.
 data Word = Uncategorized       -- ^ A \"word\" that does not fit into another
                                 -- category.  Includes spaces and most
@@ -90,6 +94,9 @@ data Word = Uncategorized       -- ^ A \"word\" that does not fit into another
           | Kana                -- ^ A word containing kana characters.
           | Ideograph           -- ^ A word containing ideographic characters.
             deriving (Eq, Show, Enum)
+
+instance NFData Word where
+    rnf !_ = ()
 
 -- | Break a string on character boundaries.
 --
