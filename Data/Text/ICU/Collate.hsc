@@ -234,7 +234,7 @@ fromUAttribute key val =
     _ -> valueError "fromUAttribute" key
 
 valueError :: Show a => String -> a -> z
-valueError func bad = error ("Data.Text.ICU.Collate.IO." ++ func ++
+valueError func bad = error ("Data.Text.ICU.Collate." ++ func ++
                              ": invalid value " ++ show bad)
 
 type UCollationResult = CInt
@@ -299,7 +299,7 @@ sortKey c t
             i <- withForeignPtr fp $ \p -> ucol_getSortKey cptr tptr len p n
             let j = fromIntegral i
             case undefined of
-              _ | i == 0         -> error "Data.Text.ICU.Collate.IO.sortKey: internal error"
+              _ | i == 0         -> error "Data.Text.ICU.Collate.sortKey: internal error"
                 | i > n          -> loop i
                 | i <= n `div` 2 -> create j $ \p -> withForeignPtr fp $ \op ->
                                     memcpy p op (fromIntegral i)
