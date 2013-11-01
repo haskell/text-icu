@@ -20,7 +20,7 @@
 --
 -- /Note/: The functions in this module are not thread safe.  For
 -- thread safe use, see 'clone' below, or use the pure functions in
--- 'Data.Text.ICU'.
+-- "Data.Text.ICU".
 
 module Data.Text.ICU.Regex
     (

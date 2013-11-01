@@ -108,7 +108,7 @@ import Data.Text (Text)
 -- a fixed address.
 --
 -- To accommodate this need, these bindings use the functions from
--- 'Data.Text.Foreign' to copy data between the Haskell heap and the
+-- "Data.Text.Foreign" to copy data between the Haskell heap and the
 -- system heap.  The copied strings are still managed automatically,
 -- but the need to duplicate data does add some performance and memory
 -- overhead.

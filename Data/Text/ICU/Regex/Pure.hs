@@ -14,7 +14,7 @@
 --
 -- The functions in this module are pure and hence thread safe, but
 -- may not be as fast or as flexible as those in the
--- 'Data.Text.ICU.Regex.IO' module.
+-- "Data.Text.ICU.Regex" module.
 --
 -- The syntax and behaviour of ICU regular expressions are Perl-like.
 -- For complete details, see the ICU User Guide entry at
