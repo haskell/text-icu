@@ -101,8 +101,7 @@ open name mf = do
     _ -> return ()
   return c
 
--- | Convert the Unicode string into a codepage string using the given
--- converter.
+-- | Encode a Unicode string into a codepage string using the given converter.
 fromUnicode :: Converter -> Text -> ByteString
 fromUnicode cnv t =
   unsafePerformIO . useAsPtr t $ \tptr tlen ->
@@ -113,8 +112,7 @@ fromUnicode cnv t =
         fmap fromIntegral . handleError $
            ucnv_fromUChars cptr (castPtr sptr) capacity tptr (fromIntegral tlen)
 
--- | Convert the codepage string into a Unicode string using the given
--- converter.
+-- | Decode an encoded string into a Unicode string using the given converter.
 toUnicode :: Converter -> ByteString -> Text
 toUnicode cnv bs =
   unsafePerformIO . unsafeUseAsCStringLen bs $ \(sptr, slen) ->
