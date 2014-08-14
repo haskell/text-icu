@@ -1059,6 +1059,7 @@ charFromName' choice name = unsafePerformIO . withCString name $ \ptr -> do
 -- 10646 names list.
 isoComment :: Char -> String
 isoComment c = fillString $ u_getISOComment (fromIntegral (ord c))
+{-# DEPRECATED isoComment "Will be removed from next major release." #-}
 
 charName' :: UCharNameChoice -> Char -> String
 charName' choice c = fillString $ u_charName (fromIntegral (ord c)) choice

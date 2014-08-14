@@ -27,10 +27,9 @@ import Data.Text.Foreign (useAsPtr)
 import Data.Word (Word16, Word32)
 import Foreign.C.String (CString, withCString)
 import Foreign.C.Types (CChar)
-import Foreign.Marshal.Alloc (alloca)
+import Foreign.Marshal.Alloc (allocaBytes)
 import Foreign.ForeignPtr (withForeignPtr)
 import Foreign.Ptr (Ptr, castPtr, nullPtr)
-import Foreign.Storable (Storable(..))
 
 -- | A type that supports efficient iteration over Unicode characters.
 --
@@ -48,18 +47,14 @@ instance Show CharIterator where
 
 data UCharIterator
 
-instance Storable UCharIterator where
-    sizeOf _    = #{size UCharIterator}
-    alignment _ = alignment (undefined :: CString)
-
 -- | Temporarily allocate a 'UCharIterator' and use it with the
 -- contents of the to-be-iterated-over string.
 withCharIterator :: CharIterator -> (Ptr UCharIterator -> IO a) -> IO a
 withCharIterator (CIUTF8 (PS fp _ l)) act =
-    alloca $ \i -> withForeignPtr fp $ \p ->
+    allocaBytes (#{size UCharIterator}) $ \i -> withForeignPtr fp $ \p ->
     uiter_setUTF8 i (castPtr p) (fromIntegral l) >> act i
 withCharIterator (CIText t) act =
-    alloca $ \i -> useAsPtr t $ \p l ->
+    allocaBytes (#{size UCharIterator}) $ \i -> useAsPtr t $ \p l ->
     uiter_setString i p (fromIntegral l) >> act i
 
 type UBool   = Int8
