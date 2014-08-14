@@ -139,11 +139,6 @@ int32_t __hs_ucol_getSortKey(const UCollator *coll,
     return ucol_getSortKey(coll, source, sourceLength, result, resultLength);
 }
 
-UBool __hs_ucol_equals(const UCollator *source, const UCollator *target)
-{
-    return ucol_equals(source, target);
-}
-
 int __get_max_bytes_for_string(UConverter *cnv, int src_length)
 {
     return UCNV_GET_MAX_BYTES_FOR_STRING(src_length, ucnv_getMaxCharSize(cnv));
@@ -426,7 +421,7 @@ const UChar *__hs_uregex_getText(URegularExpression *regexp,
     return uregex_getText(regexp, textLength, status);
 }
 
-UBool __hs_uregex_find(URegularExpression *regexp, int32_t startIndex, 
+UBool __hs_uregex_find(URegularExpression *regexp, int32_t startIndex,
 		       UErrorCode *status)
 {
     return uregex_find(regexp, startIndex, status);
@@ -460,4 +455,3 @@ int32_t __hs_uregex_group(URegularExpression *regexp, int32_t groupNum,
 {
     return uregex_group(regexp, groupNum, dest, destCapacity, status);
 }
-

@@ -26,7 +26,6 @@ module Data.Text.ICU.Collate
     , collate
     , collateIter
     -- ** Utility functions
-    , equals
     , getAttribute
     , setAttribute
     , sortKey
@@ -45,7 +44,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.Foreign (useAsPtr)
 import Data.Text.ICU.Collate.Internal (Collator(..), MCollator, UCollator,
-                                       equals, withCollator, wrap)
+                                       withCollator, wrap)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
 import Data.Text.ICU.Internal
     (LocaleName, UChar, CharIterator, UCharIterator,
