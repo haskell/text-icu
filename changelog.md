@@ -1,5 +1,7 @@
 0.7.0.0
 
+* Built and tested against ICU 53.
+
 * The isoComment function has been deprecated, and will be removed in
   the next major release.
 
