@@ -1,5 +1,5 @@
 name:           text-icu
-version:        0.6.3.7
+version:        0.7.0.0
 synopsis:       Bindings to the ICU library
 homepage:       https://github.com/bos/text-icu
 bug-reports:    https://github.com/bos/text-icu/issues
@@ -30,7 +30,7 @@ description:
   .
   * Regular expression search and replace.
 maintainer:     Bryan O'Sullivan <bos@serpentine.com>
-copyright:      2009-2013 Bryan O'Sullivan
+copyright:      2009-2014 Bryan O'Sullivan
 category:       Data, Text
 license:        BSD3
 license-file:   LICENSE
@@ -78,9 +78,7 @@ library
   else
     extra-libraries: icui18n icudata
 
-  ghc-options: -Wall
-  if impl(ghc >= 6.8)
-    ghc-options: -fwarn-tabs
+  ghc-options: -Wall -fwarn-tabs
 
 test-suite tests
   default-language: Haskell98
