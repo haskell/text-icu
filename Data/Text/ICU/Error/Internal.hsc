@@ -24,7 +24,7 @@ import Control.DeepSeq (NFData(..))
 import Control.Exception (Exception, throwIO)
 import Data.Function (fix)
 import Foreign.Ptr (Ptr)
-import Foreign.Marshal.Alloc (alloca)
+import Foreign.Marshal.Alloc (alloca, allocaBytes)
 import Foreign.Marshal.Utils (with)
 import Foreign.Marshal.Array (allocaArray)
 import Data.Int (Int32)
@@ -81,15 +81,6 @@ instance NFData ParseError where
 type UParseError = ParseError
 
 instance Exception ParseError
-
-instance Storable ParseError where
-    sizeOf _    = #{size UParseError}
-    alignment _ = alignment (undefined :: CString)
-    peek ptr = do
-      (line::Int32) <- #{peek UParseError, line} ptr
-      (offset::Int32) <- #{peek UParseError, offset} ptr
-      let wrap k = if k == -1 then Nothing else Just $! fromIntegral k
-      return $! ParseError undefined (wrap line) (wrap offset)
 
 -- | Indicate whether the given error code is a success.
 isSuccess :: ICUError -> Bool
@@ -152,15 +143,20 @@ handleOverflowError guess fill retrieve =
 handleParseError :: (ICUError -> Bool)
                  -> (Ptr UParseError -> Ptr UErrorCode -> IO a) -> IO a
 handleParseError isParseError action = with 0 $ \uerrPtr ->
-  alloca $ \perrPtr -> do
+  allocaBytes (#{size UParseError}) $ \perrPtr -> do
     ret <- action perrPtr uerrPtr
     err <- ICUError `fmap` peek uerrPtr
     case undefined of
-     _| isParseError err -> do
-                         perr <- peek perrPtr
-                         throwIO perr { errError = err }
+     _| isParseError err -> throwParseError perrPtr err
       | isFailure err -> throwIO err
       | otherwise     -> return ret
+
+throwParseError :: Ptr UParseError -> ICUError -> IO a
+throwParseError ptr err = do
+  (line::Int32) <- #{peek UParseError, line} ptr
+  (offset::Int32) <- #{peek UParseError, offset} ptr
+  let wrap k = if k == -1 then Nothing else Just $! fromIntegral k
+  throwIO $! ParseError err (wrap line) (wrap offset)
 
 -- | Return a string representing the name of the given error code.
 errorName :: ICUError -> String
