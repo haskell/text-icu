@@ -74,6 +74,7 @@ library
       Data.Text.ICU.Regex.Pure
       Data.Text.ICU.Text
   c-sources: cbits/text_icu.c
+  cc-options: -fPIC
   include-dirs: include
   extra-libraries: icuuc
   if os(mingw32)
