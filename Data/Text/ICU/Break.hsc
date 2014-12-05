@@ -22,7 +22,7 @@ module Data.Text.ICU.Break
     -- * Types
       BreakIterator
     , Line(..)
-    , Word(..)
+    , Data.Text.ICU.Break.Word(..)
     -- * Breaking functions
     , breakCharacter
     , breakLine
@@ -95,7 +95,7 @@ data Word = Uncategorized       -- ^ A \"word\" that does not fit into another
           | Ideograph           -- ^ A word containing ideographic characters.
             deriving (Eq, Show, Enum)
 
-instance NFData Word where
+instance NFData Data.Text.ICU.Break.Word where
     rnf !_ = ()
 
 -- | Break a string on character boundaries.
@@ -138,7 +138,7 @@ breakSentence = open (#const UBRK_SENTENCE) (const ())
 -- punctuation marks within and following words. Characters that are not
 -- part of a word, such as symbols or punctuation marks, have word breaks on
 -- both sides.
-breakWord :: LocaleName -> Text -> IO (BreakIterator Word)
+breakWord :: LocaleName -> Text -> IO (BreakIterator Data.Text.ICU.Break.Word)
 breakWord = open (#const UBRK_WORD) asWord
   where
     asWord i
