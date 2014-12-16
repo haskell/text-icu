@@ -351,12 +351,6 @@ UChar32 __hs_u_charFromName(UCharNameChoice nameChoice, const char *name,
     return u_charFromName(nameChoice, name, pErrorCode);
 }
 
-int32_t __hs_u_getISOComment(UChar32 c, char *dest, int32_t destCapacity,
-			     UErrorCode *pErrorCode)
-{
-    return u_getISOComment(c, dest, destCapacity, pErrorCode);
-}
-
 int32_t __hs_u_getIntPropertyValue(UChar32 c, UProperty which)
 {
     return u_getIntPropertyValue(c, which);

@@ -54,8 +54,6 @@ int32_t __hs_u_charName(UChar32 code, UCharNameChoice nameChoice,
 UChar32 __hs_u_charFromName(UCharNameChoice nameChoice,
 			    const char *name,
 			    UErrorCode *pErrorCode);
-int32_t __hs_u_getISOComment(UChar32 c, char *dest, int32_t destCapacity,
-			     UErrorCode *pErrorCode);
 int32_t __hs_u_getIntPropertyValue(UChar32 c, UProperty which);
 double __hs_u_getNumericValue(UChar32 c);
 
@@ -154,7 +152,7 @@ void __hs_uregex_setText(URegularExpression *regexp, const UChar *text,
 			 int32_t textLength, UErrorCode *status);
 const UChar *__hs_uregex_getText(URegularExpression *regexp,
 				 int32_t *textLength, UErrorCode *status);
-UBool __hs_uregex_find(URegularExpression *regexp, int32_t startIndex, 
+UBool __hs_uregex_find(URegularExpression *regexp, int32_t startIndex,
 		       UErrorCode *status);
 UBool __hs_uregex_findNext(URegularExpression *regexp, UErrorCode *status);
 int32_t __hs_uregex_start(URegularExpression *regexp, int32_t groupNum,

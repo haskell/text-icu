@@ -73,7 +73,6 @@ t_charName c = maybe True (==c) $ I.charFromName (I.charName c)
 t_combiningClass = t_rnf I.combiningClass
 t_direction = t_rnf I.direction
 -- t_property p = t_rnf $ I.property p
-t_isoComment = t_rnf $ I.isoComment
 t_isMirrored = t_rnf $ I.isMirrored
 t_mirror = t_rnf $ I.mirror
 t_digitToInt = t_rnf $ I.digitToInt
@@ -98,7 +97,6 @@ tests =
   , testProperty "t_combiningClass" t_combiningClass
   , testProperty "t_direction" t_direction
 --, testProperty "t_property" t_property
-  , testProperty "t_isoComment" t_isoComment
   , testProperty "t_isMirrored" t_isMirrored
   , testProperty "t_mirror" t_mirror
   , testProperty "t_digitToInt" t_digitToInt

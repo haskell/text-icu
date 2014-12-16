@@ -75,7 +75,6 @@ module Data.Text.ICU.Char
     , combiningClass
     , direction
     , property
-    , isoComment
     , isMirrored
     , mirror
     -- ** Conversion to numbers
@@ -1049,18 +1048,6 @@ charFromName' choice name = unsafePerformIO . withCString name $ \ptr -> do
             then Nothing
             else Just $! chr (fromIntegral r)
 
--- | Return the ISO 10646 comment for a character.
---
--- If a character does not have an associated comment, the empty
--- string is returned.
---
--- The ISO 10646 comment is an informative field in the Unicode
--- Character Database (@UnicodeData.txt@ field 11) and is from the ISO
--- 10646 names list.
-isoComment :: Char -> String
-isoComment c = fillString $ u_getISOComment (fromIntegral (ord c))
-{-# DEPRECATED isoComment "Will be removed from next major release." #-}
-
 charName' :: UCharNameChoice -> Char -> String
 charName' choice c = fillString $ u_charName (fromIntegral (ord c)) choice
 
@@ -1098,9 +1085,6 @@ foreign import ccall unsafe "hs_text_icu.h __hs_u_charName" u_charName
 foreign import ccall unsafe "hs_text_icu.h __hs_u_charFromName" u_charFromName
     :: UCharNameChoice -> CString -> Ptr UErrorCode
     -> IO UChar32
-
-foreign import ccall unsafe "hs_text_icu.h __hs_u_getISOComment" u_getISOComment
-    :: UChar32 -> CString -> Int32 -> Ptr UErrorCode -> IO Int32
 
 foreign import ccall unsafe "hs_text_icu.h __hs_u_getIntPropertyValue" u_getIntPropertyValue
     :: UChar32 -> UProperty -> Int32
