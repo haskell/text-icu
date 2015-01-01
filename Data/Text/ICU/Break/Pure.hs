@@ -44,6 +44,7 @@ import Data.Text.Foreign (dropWord16, takeWord16)
 import Data.Text.ICU.Break (Line, Word)
 import Data.Text.ICU.Break.Types (BreakIterator(..))
 import Data.Text.ICU.Internal (LocaleName)
+import Prelude hiding (Word)
 import System.IO.Unsafe (unsafeInterleaveIO, unsafePerformIO)
 import qualified Data.Text.ICU.Break as IO
 
