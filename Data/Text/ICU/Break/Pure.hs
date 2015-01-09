@@ -27,7 +27,7 @@ module Data.Text.ICU.Break.Pure
     , brkSuffix
     , brkStatus
     , Line(..)
-    , Word(..)
+    , Data.Text.ICU.Break.Word(..)
     -- * Breaking functions
     , breakCharacter
     , breakLine
@@ -88,7 +88,7 @@ breakSentence = new IO.breakSentence
 -- punctuation marks within and following words. Characters that are not
 -- part of a word, such as symbols or punctuation marks, have word breaks on
 -- both sides.
-breakWord :: LocaleName -> Breaker Word
+breakWord :: LocaleName -> Breaker Data.Text.ICU.Break.Word
 breakWord = new IO.breakWord
 
 -- | A break in a string.
