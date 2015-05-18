@@ -141,8 +141,8 @@ void __hs_uregex_setTimeLimit(URegularExpression *regexp,
 void __hs_uregex_setStackLimit(URegularExpression *regexp,
 			       int32_t limit, UErrorCode *status);
 void __hs_uregex_close(URegularExpression *regexp);
-URegularExpression *__hs_uregex_clone(URegularExpression *regexp,
-				      UErrorCode *pErrorCode);
+URegularExpression * __hs_uregex_clone(const URegularExpression *regexp,
+				       UErrorCode *pErrorCode);
 const UChar *__hs_uregex_pattern(const URegularExpression *regexp,
 				 int32_t *patLength, UErrorCode *status);
 int32_t __hs_uregex_flags(const URegularExpression *regexp,

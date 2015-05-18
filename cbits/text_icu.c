@@ -385,8 +385,8 @@ void __hs_uregex_close(URegularExpression *regexp)
     return uregex_close(regexp);
 }
 
-URegularExpression *__hs_uregex_clone(URegularExpression *regexp,
-				      UErrorCode *pErrorCode)
+URegularExpression * __hs_uregex_clone(const URegularExpression *regexp,
+				       UErrorCode *pErrorCode)
 {
     return uregex_clone(regexp, pErrorCode);
 }
