@@ -13,7 +13,8 @@ the following:
 
 This library is implemented as bindings to the well-respected [ICU
 library](http://www.icu-project.org/), which is not included.  The versions
-of ICU currently supported are 4.0 and newer.
+of ICU currently supported are 4.0 and newer;
+verified at least up to ICU version 55.
 
 
 # Get involved!
