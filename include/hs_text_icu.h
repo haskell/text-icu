@@ -80,7 +80,6 @@ UCollator* __hs_ucol_safeClone(const UCollator *coll,
 int32_t __hs_ucol_getSortKey(const UCollator *coll,
 			     const UChar *source, int32_t sourceLength,
 			     uint8_t *result, int32_t resultLength);
-UBool __hs_ucol_equals(const UCollator *source, const UCollator *target);
 
 /* ucnv.h */
 
