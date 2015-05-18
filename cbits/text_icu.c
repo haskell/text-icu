@@ -25,7 +25,7 @@ UBreakIterator * __hs_ubrk_safeClone(const UBreakIterator *bi,
     return ubrk_safeClone(bi, stackBuffer, pBufferSize, status);
 }
 
-int32_t __hs_ubrk_current(UBreakIterator *bi)
+int32_t __hs_ubrk_current(const UBreakIterator *bi)
 {
     return ubrk_current(bi);
 }

@@ -26,7 +26,7 @@ void __hs_ubrk_setText(UBreakIterator* bi, const UChar *text,
 UBreakIterator * __hs_ubrk_safeClone(const UBreakIterator *bi,
 				     void *stackBuffer, int32_t *pBufferSize,
 				     UErrorCode *status);
-int32_t __hs_ubrk_current(UBreakIterator *bi);
+int32_t __hs_ubrk_current(const UBreakIterator *bi);
 int32_t __hs_ubrk_first(UBreakIterator *bi);
 int32_t __hs_ubrk_last(UBreakIterator *bi);
 int32_t __hs_ubrk_next(UBreakIterator *bi);
