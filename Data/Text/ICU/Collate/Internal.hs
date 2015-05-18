@@ -33,8 +33,7 @@ data UCollator
 data MCollator = MCollator {-# UNPACK #-} !(ForeignPtr UCollator)
                  deriving (Typeable)
 
--- | String collator type.  'Collator's are considered equal if they
--- will sort strings identically.
+-- | String collator type.
 newtype Collator = C MCollator
     deriving (Typeable)
 
