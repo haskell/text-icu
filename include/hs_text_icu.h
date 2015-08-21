@@ -193,6 +193,9 @@ int32_t __hs_uspoof_getChecks(const USpoofChecker *sc, UErrorCode *status);
 void __hs_uspoof_setRestrictionLevel(USpoofChecker *sc, URestrictionLevel restrictionLevel);
 URestrictionLevel __hs_uspoof_getRestrictionLevel(const USpoofChecker *sc);
 
+void __hs_uspoof_setAllowedLocales(USpoofChecker *sc, const char *localesList, UErrorCode *status);
+const char *__hs_uspoof_getAllowedLocales(USpoofChecker *sc, UErrorCode *status);
+
 int32_t __hs_uspoof_check(USpoofChecker *sc, const UChar *id,
                           int32_t length, int32_t *position,
                           UErrorCode *status);

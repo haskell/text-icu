@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns, CPP, DeriveDataTypeable, ForeignFunctionInterface #-}
+{-# LANGUAGE BangPatterns, CPP, DeriveDataTypeable, ForeignFunctionInterface, OverloadedStrings #-}
 -- |
 -- Module      : Data.Text.ICU.Spoof
 -- Copyright   : (c) 2015 Ben Hamilton
@@ -31,6 +31,8 @@ module Data.Text.ICU.Spoof
     , setChecks
     , getRestrictionLevel
     , setRestrictionLevel
+    , getAllowedLocales
+    , setAllowedLocales
     , areConfusable
     , spoofCheck
     , serialize
@@ -44,15 +46,16 @@ import Data.ByteString (ByteString)
 import Data.ByteString.Internal (create, memcpy, toForeignPtr)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.Int (Int32)
+import Data.List (intercalate)
 import Data.Maybe (listToMaybe)
-import Data.Text (Text)
+import Data.Text (Text, pack, splitOn, strip, unpack)
 import Data.Text.Foreign (fromPtr, useAsPtr)
 import Data.Text.ICU.BitMask (ToBitMask, fromBitMask, toBitMask)
 import Data.Text.ICU.Spoof.Internal (MSpoof, USpoof, Spoof, withSpoof, wrap, wrapWithSerialized)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError, handleOverflowError)
-import Data.Text.ICU.Internal (UChar)
+import Data.Text.ICU.Internal (LocaleName(..), UChar)
 import Data.Word (Word8)
-import Foreign.C.String (CString)
+import Foreign.C.String (CString, peekCString, withCString)
 import Foreign.Ptr (Ptr, castPtr, nullPtr, plusPtr)
 import Foreign.ForeignPtr (withForeignPtr)
 
@@ -177,6 +180,21 @@ setRestrictionLevel s l = do
   withSpoof s $ \sptr ->
     uspoof_setRestrictionLevel sptr . fromIntegral $ toBitMask l
 
+-- | Get the list of locales allowed to be used with a spoof checker.
+getAllowedLocales :: MSpoof -> IO [LocaleName]
+getAllowedLocales s = do
+  withSpoof s $ \sptr ->
+    splitLocales <$> (peekCString =<< (handleError (uspoof_getAllowedLocales sptr)))
+    where splitLocales = fmap (Locale . unpack . strip) . splitOn "," . pack
+
+-- | Get the list of locales allowed to be used with a spoof checker.
+setAllowedLocales :: MSpoof -> [LocaleName] -> IO ()
+setAllowedLocales s l = do
+  withSpoof s $ \sptr ->
+    withCString (joinLocales l) $ \lptr ->
+      handleError (uspoof_setAllowedLocales sptr lptr)
+    where joinLocales = intercalate "," . fmap show
+
 -- | Check if two strings could be confused with each other.
 areConfusable :: MSpoof -> Text -> Text -> IO SpoofCheckResult
 areConfusable s t1 t2 = do
@@ -235,6 +253,12 @@ foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_getRestrictionLevel" uspo
 
 foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_setRestrictionLevel" uspoof_setRestrictionLevel
     :: Ptr USpoof -> URestrictionLevel -> IO ()
+
+foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_getAllowedLocales" uspoof_getAllowedLocales
+    :: Ptr USpoof -> Ptr UErrorCode -> IO CString
+
+foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_setAllowedLocales" uspoof_setAllowedLocales
+    :: Ptr USpoof -> CString -> Ptr UErrorCode -> IO ()
 
 foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_areConfusable" uspoof_areConfusable
     :: Ptr USpoof -> Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> Ptr UErrorCode -> IO USpoofCheck
