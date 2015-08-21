@@ -85,6 +85,16 @@ module Data.Text.ICU
     , group
     , prefix
     , suffix
+    -- * Spoof checking
+    , Spoof
+    , S.SpoofCheck(..)
+    , S.RestrictionLevel(..)
+    , S.SpoofCheckResult(..)
+    , spoof
+    , spoofWithChecks
+    , spoofWithChecksAndLevel
+    , areConfusable
+    , spoofCheck
     ) where
 
 import Data.Text.ICU.Break.Pure
@@ -93,6 +103,8 @@ import Data.Text.ICU.Internal
 import Data.Text.ICU.Iterator
 import Data.Text.ICU.Normalize
 import Data.Text.ICU.Regex.Pure
+import qualified Data.Text.ICU.Spoof as S
+import Data.Text.ICU.Spoof.Pure
 import Data.Text.ICU.Text
 #if defined(__HADDOCK__)
 import Data.Text.Foreign

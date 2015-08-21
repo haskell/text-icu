@@ -59,8 +59,10 @@ library
       Data.Text.ICU.Error
       Data.Text.ICU.Normalize
       Data.Text.ICU.Regex
+      Data.Text.ICU.Spoof
       Data.Text.ICU.Types
   other-modules:
+      Data.Text.ICU.BitMask
       Data.Text.ICU.Break.Pure
       Data.Text.ICU.Break.Types
       Data.Text.ICU.Collate.Internal
@@ -72,6 +74,8 @@ library
       Data.Text.ICU.Normalize.Internal
       Data.Text.ICU.Regex.Internal
       Data.Text.ICU.Regex.Pure
+      Data.Text.ICU.Spoof.Internal
+      Data.Text.ICU.Spoof.Pure
       Data.Text.ICU.Text
   c-sources: cbits/text_icu.c
   include-dirs: include

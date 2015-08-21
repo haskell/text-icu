@@ -449,3 +449,56 @@ int32_t __hs_uregex_group(URegularExpression *regexp, int32_t groupNum,
 {
     return uregex_group(regexp, groupNum, dest, destCapacity, status);
 }
+
+USpoofChecker *__hs_uspoof_open(UErrorCode *status)
+{
+    return uspoof_open(status);
+}
+
+void __hs_uspoof_setChecks(USpoofChecker *sc, int32_t checks, UErrorCode *status)
+{
+    uspoof_setChecks(sc, checks, status);
+}
+
+int32_t __hs_uspoof_getChecks(const USpoofChecker *sc, UErrorCode *status)
+{
+    return uspoof_getChecks(sc, status);
+}
+
+void __hs_uspoof_setRestrictionLevel(USpoofChecker *sc, URestrictionLevel level)
+{
+    uspoof_setRestrictionLevel(sc, level);
+}
+
+URestrictionLevel __hs_uspoof_getRestrictionLevel(const USpoofChecker *sc)
+{
+    return uspoof_getRestrictionLevel(sc);
+}
+
+int32_t __hs_uspoof_check(USpoofChecker *sc, const UChar *id,
+                          int32_t length, int32_t *position,
+                          UErrorCode *status)
+{
+    return uspoof_check(sc, id, length, position, status);
+}
+
+int32_t __hs_uspoof_areConfusable(USpoofChecker *sc,
+                                  const UChar *id1, int32_t length1,
+                                  const UChar *id2, int32_t length2,
+                                  UErrorCode *status)
+{
+    return uspoof_areConfusable(sc, id1, length1, id2, length2, status);
+}
+
+int32_t __hs_uspoof_getSkeleton(USpoofChecker *sc,
+                                int32_t type, const UChar *id, int32_t length,
+                                UChar *dest, int32_t destCapacity,
+                                UErrorCode *status)
+{
+    return uspoof_getSkeleton(sc, type, id, length, dest, destCapacity, status);
+}
+
+void __hs_uspoof_close(USpoofChecker *sc)
+{
+    uspoof_close(sc);
+}

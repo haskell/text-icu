@@ -13,7 +13,7 @@ import Data.Function (on)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Data.Text.ICU (NormalizationMode(..))
-import QuickCheckUtils ()
+import QuickCheckUtils (NonEmptyText(..), LatinSpoofableText(..), NonSpoofableText(..))
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import qualified Data.Text as T
@@ -78,6 +78,11 @@ t_mirror = t_rnf $ I.mirror
 t_digitToInt = t_rnf $ I.digitToInt
 t_numericValue = t_rnf $ I.numericValue
 
+-- Spoofing
+
+t_nonspoofable (NonSpoofableText t) = I.spoofCheck I.spoof t == I.CheckOK
+t_spoofable (LatinSpoofableText t) = I.spoofCheck I.spoof t == I.CheckFailed [I.WholeScriptConfusable]
+t_confusable (NonEmptyText t) = I.areConfusable I.spoof t t == I.CheckFailed [I.SingleScriptConfusable]
 
 tests :: Test
 tests =
@@ -101,4 +106,7 @@ tests =
   , testProperty "t_mirror" t_mirror
   , testProperty "t_digitToInt" t_digitToInt
   , testProperty "t_numericValue" t_numericValue
+  , testProperty "t_spoofable" t_spoofable
+  , testProperty "t_nonspoofable" t_nonspoofable
+  , testProperty "t_confusable" t_confusable
   ]

@@ -11,6 +11,7 @@
 #include "unicode/uiter.h"
 #include "unicode/unorm.h"
 #include "unicode/uregex.h"
+#include "unicode/uspoof.h"
 #include "unicode/ustring.h"
 
 #include <stdint.h>
@@ -175,3 +176,26 @@ int32_t __hs_u_strToLower(UChar *dest, int32_t destCapacity,
 			  const UChar *src, int32_t srcLength,
 			  const char *locale, UErrorCode *pErrorCode);
 int32_t __hs_u_strCompareIter(UCharIterator *iter1, UCharIterator *iter2);
+
+/* uspoof.h */
+
+USpoofChecker *__hs_uspoof_open(UErrorCode *status);
+void __hs_uspoof_setChecks(USpoofChecker *sc, int32_t checks, UErrorCode *status);
+int32_t __hs_uspoof_getChecks(const USpoofChecker *sc, UErrorCode *status);
+
+// Yes, these really don't take UErrorCode *..
+void __hs_uspoof_setRestrictionLevel(USpoofChecker *sc, URestrictionLevel restrictionLevel);
+URestrictionLevel __hs_uspoof_getRestrictionLevel(const USpoofChecker *sc);
+
+int32_t __hs_uspoof_check(USpoofChecker *sc, const UChar *id,
+                          int32_t length, int32_t *position,
+                          UErrorCode *status);
+int32_t __hs_uspoof_areConfusable(USpoofChecker *sc,
+                                  const UChar *id1, int32_t length1,
+                                  const UChar *id2, int32_t length2,
+                                  UErrorCode *status);
+int32_t __hs_uspoof_getSkeleton(USpoofChecker *sc, int32_t checks,
+                                const UChar *id, int32_t length,
+                                UChar *dest, int32_t destCapacity,
+                                UErrorCode *status);
+void __hs_uspoof_close(USpoofChecker *sc);
