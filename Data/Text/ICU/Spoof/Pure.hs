@@ -72,7 +72,7 @@ spoofCheck (C s) t = unsafePerformIO $ S.spoofCheck s t
 
 -- | Get a skeleton representation of a string to directly compare for
 -- spoofability with another string.
-getSkeleton :: Spoof -> [S.SpoofCheck] -> Text -> Text
-getSkeleton (C s) c t = unsafePerformIO $ S.getSkeleton s c t
+getSkeleton :: Spoof -> Maybe S.SkeletonTypeOverride -> Text -> Text
+getSkeleton (C s) o t = unsafePerformIO $ S.getSkeleton s o t
 
 {-# INLINE spoofCheck #-}

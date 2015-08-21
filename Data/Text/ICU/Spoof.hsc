@@ -21,6 +21,7 @@ module Data.Text.ICU.Spoof
     , SpoofCheck(..)
     , SpoofCheckResult(..)
     , RestrictionLevel(..)
+    , SkeletonTypeOverride(..)
     -- * Functions
     , open
     , getSkeleton
@@ -99,6 +100,16 @@ data SpoofCheckResult = CheckOK
                                                            level :: RestrictionLevel }
                 deriving (Eq, Show)
 
+data SkeletonTypeOverride = SkeletonSingleScript
+                          | SkeletonAnyCase
+                          deriving (Bounded, Enum, Eq, Show)
+
+instance ToBitMask SkeletonTypeOverride where
+  toBitMask SkeletonSingleScript = #const USPOOF_SINGLE_SCRIPT_CONFUSABLE
+  toBitMask SkeletonAnyCase = #const USPOOF_ANY_CASE
+
+type USkeletonTypeOverride = Int32
+
 makeSpoofCheckResult :: USpoofCheck -> SpoofCheckResult
 makeSpoofCheckResult c =
   case spoofChecks of
@@ -150,13 +161,16 @@ areConfusable s t1 t2 = do
 
 -- | Generate a re-usable "skeleton" to check if an identifier is confusable
 -- with some large set of existing identifiers.
-getSkeleton :: MSpoof -> [SpoofCheck] -> Text -> IO Text
-getSkeleton s c t = do
+getSkeleton :: MSpoof -> Maybe SkeletonTypeOverride -> Text -> IO Text
+getSkeleton s o t = do
   withSpoof s $ \sptr ->
     useAsPtr t $ \tptr tlen ->
     handleOverflowError (fromIntegral tlen)
-    (\dptr dlen -> (uspoof_getSkeleton sptr (fromIntegral $ toBitMask c) tptr (fromIntegral tlen) dptr (fromIntegral dlen)))
+    (\dptr dlen -> (uspoof_getSkeleton sptr oflags tptr (fromIntegral tlen) dptr (fromIntegral dlen)))
     (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
+    where oflags = case o of
+            Nothing -> 0
+            Just typeOverride -> (fromIntegral $ toBitMask typeOverride)
 
 -- | Check if a string could be confused with any other.
 spoofCheck :: MSpoof -> Text -> IO SpoofCheckResult
@@ -187,4 +201,4 @@ foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_check" uspoof_check
     :: Ptr USpoof -> Ptr UChar -> Int32 -> Ptr Int32 -> Ptr UErrorCode -> IO USpoofCheck
 
 foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_getSkeleton" uspoof_getSkeleton
-    :: Ptr USpoof -> USpoofCheck -> Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> Ptr UErrorCode -> IO Int32
+    :: Ptr USpoof -> USkeletonTypeOverride -> Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> Ptr UErrorCode -> IO Int32
