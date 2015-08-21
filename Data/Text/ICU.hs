@@ -92,8 +92,13 @@ module Data.Text.ICU
     , S.SpoofCheckResult(..)
     , spoof
     , spoofWithParams
+    , spoofFromSerialized
     , areConfusable
     , getSkeleton
+    , getChecks
+    , getAllowedLocales
+    , getRestrictionLevel
+    , serialize
     , spoofCheck
     ) where
 

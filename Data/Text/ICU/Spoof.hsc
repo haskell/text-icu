@@ -47,13 +47,12 @@ import Data.ByteString.Internal (create, memcpy, toForeignPtr)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.Int (Int32)
 import Data.List (intercalate)
-import Data.Maybe (listToMaybe)
 import Data.Text (Text, pack, splitOn, strip, unpack)
 import Data.Text.Foreign (fromPtr, useAsPtr)
-import Data.Text.ICU.BitMask (ToBitMask, fromBitMask, toBitMask)
+import Data.Text.ICU.BitMask (ToBitMask, fromBitMask, highestValueInBitMask, toBitMask)
 import Data.Text.ICU.Spoof.Internal (MSpoof, USpoof, Spoof, withSpoof, wrap, wrapWithSerialized)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError, handleOverflowError)
-import Data.Text.ICU.Internal (LocaleName(..), UChar)
+import Data.Text.ICU.Internal (UChar)
 import Data.Word (Word8)
 import Foreign.C.String (CString, peekCString, withCString)
 import Foreign.Ptr (Ptr, castPtr, nullPtr, plusPtr)
@@ -132,7 +131,7 @@ makeSpoofCheckResult c =
         Just l -> CheckFailedWithRestrictionLevel spoofChecks l
   where spoofChecks = fromBitMask $ fromIntegral $ c .&. #const USPOOF_ALL_CHECKS
         restrictionValue = c .&. #const USPOOF_RESTRICTION_LEVEL_MASK
-        restrictionLevel = listToMaybe $ fromBitMask $ fromIntegral $ restrictionValue
+        restrictionLevel = highestValueInBitMask $ fromIntegral $ restrictionValue
 
 -- | Open a spoof checker for checking Unicode strings for lookalike security issues.
 open :: IO MSpoof
@@ -157,10 +156,10 @@ openFromSource confusables confusablesWholeScript =
       wrap =<< handleError (uspoof_openFromSource cptr (fromIntegral clen) wptr (fromIntegral wlen) nullPtr nullPtr)
 
 -- | Get the checks performed by a spoof checker.
-getChecks :: MSpoof -> IO SpoofCheckResult
+getChecks :: MSpoof -> IO [SpoofCheck]
 getChecks s = do
   withSpoof s $ \sptr ->
-    makeSpoofCheckResult <$> handleError (uspoof_getChecks sptr)
+    (fromBitMask . fromIntegral . (.&.) #{const USPOOF_ALL_CHECKS}) <$> handleError (uspoof_getChecks sptr)
 
 -- | Configure the checks performed by a spoof checker.
 setChecks :: MSpoof -> [SpoofCheck] -> IO ()
@@ -172,7 +171,7 @@ setChecks s c = do
 getRestrictionLevel :: MSpoof -> IO (Maybe RestrictionLevel)
 getRestrictionLevel s = do
   withSpoof s $ \sptr ->
-    (listToMaybe . fromBitMask . fromIntegral) <$> uspoof_getRestrictionLevel sptr
+    (highestValueInBitMask . fromIntegral) <$> uspoof_getRestrictionLevel sptr
 
 -- | Configure the restriction level of a spoof checker.
 setRestrictionLevel :: MSpoof -> RestrictionLevel -> IO ()
@@ -180,20 +179,21 @@ setRestrictionLevel s l = do
   withSpoof s $ \sptr ->
     uspoof_setRestrictionLevel sptr . fromIntegral $ toBitMask l
 
--- | Get the list of locales allowed to be used with a spoof checker.
-getAllowedLocales :: MSpoof -> IO [LocaleName]
+-- | Get the list of locale names allowed to be used with a spoof checker.
+-- (We don't use LocaleName since the root and default locales have no meaning here.)
+getAllowedLocales :: MSpoof -> IO [String]
 getAllowedLocales s = do
   withSpoof s $ \sptr ->
     splitLocales <$> (peekCString =<< (handleError (uspoof_getAllowedLocales sptr)))
-    where splitLocales = fmap (Locale . unpack . strip) . splitOn "," . pack
+    where splitLocales = fmap (unpack . strip) . splitOn "," . pack
 
--- | Get the list of locales allowed to be used with a spoof checker.
-setAllowedLocales :: MSpoof -> [LocaleName] -> IO ()
-setAllowedLocales s l = do
+-- | Get the list of locale names allowed to be used with a spoof checker.
+-- (We don't use LocaleName since the root and default locales have no meaning here.)
+setAllowedLocales :: MSpoof -> [String] -> IO ()
+setAllowedLocales s locs = do
   withSpoof s $ \sptr ->
-    withCString (joinLocales l) $ \lptr ->
+    withCString (intercalate "," locs) $ \lptr ->
       handleError (uspoof_setAllowedLocales sptr lptr)
-    where joinLocales = intercalate "," . fmap show
 
 -- | Check if two strings could be confused with each other.
 areConfusable :: MSpoof -> Text -> Text -> IO SpoofCheckResult
