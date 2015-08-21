@@ -24,6 +24,7 @@ module Data.Text.ICU.Spoof
     , SkeletonTypeOverride(..)
     -- * Functions
     , open
+    , openFromSource
     , getSkeleton
     , getChecks
     , setChecks
@@ -37,6 +38,8 @@ module Data.Text.ICU.Spoof
 
 import Control.Applicative
 import Data.Bits ((.&.))
+import Data.ByteString (ByteString)
+import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.Int (Int32)
 import Data.Maybe (listToMaybe)
 import Data.Text (Text)
@@ -45,6 +48,7 @@ import Data.Text.ICU.BitMask (ToBitMask, fromBitMask, toBitMask)
 import Data.Text.ICU.Spoof.Internal (MSpoof, USpoof, Spoof, withSpoof, wrap)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError, handleOverflowError)
 import Data.Text.ICU.Internal (UChar)
+import Foreign.C.String (CString)
 import Foreign.Ptr (Ptr, castPtr, nullPtr)
 
 -- $api
@@ -124,7 +128,15 @@ makeSpoofCheckResult c =
 
 -- | Open a spoof checker for checking Unicode strings for lookalike security issues.
 open :: IO MSpoof
-open = wrap =<< (handleError uspoof_open)
+open = wrap =<< handleError uspoof_open
+
+-- | Open a spoof checker given the contents of the "confusables.txt" and "confusablesWholeScript.txt"
+-- files as described in Unicode UAX #39.
+openFromSource :: ByteString -> ByteString -> IO MSpoof
+openFromSource confusables confusablesWholeScript =
+  unsafeUseAsCStringLen confusables $ \(cptr, clen) ->
+    unsafeUseAsCStringLen confusablesWholeScript $ \(wptr, wlen) ->
+      wrap =<< handleError (uspoof_openFromSource cptr (fromIntegral clen) wptr (fromIntegral wlen) nullPtr nullPtr)
 
 -- | Get the checks performed by a spoof checker.
 getChecks :: MSpoof -> IO SpoofCheckResult
@@ -181,6 +193,9 @@ spoofCheck s t = do
 
 foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_open" uspoof_open
     :: Ptr UErrorCode -> IO (Ptr USpoof)
+
+foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_openFromSource" uspoof_openFromSource
+    :: CString -> Int32 -> CString -> Int32 -> Ptr Int32 -> Ptr Int32 -> Ptr UErrorCode -> IO (Ptr USpoof)
 
 foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_getChecks" uspoof_getChecks
     :: Ptr USpoof -> Ptr UErrorCode -> IO USpoofCheck

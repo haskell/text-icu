@@ -455,6 +455,16 @@ USpoofChecker *__hs_uspoof_open(UErrorCode *status)
     return uspoof_open(status);
 }
 
+USpoofChecker *__hs_uspoof_openFromSource(const char *confusables, int32_t confusablesLen,
+                                          const char *confusablesWholeScript, int32_t confusablesWholeScriptLen,
+                                          int32_t *errType, int32_t *unused, /* really UParseError */
+                                          UErrorCode *status)
+{
+    return uspoof_openFromSource(confusables, confusablesLen,
+                                 confusablesWholeScript, confusablesWholeScriptLen,
+                                 errType, NULL, status);
+}
+
 void __hs_uspoof_setChecks(USpoofChecker *sc, int32_t checks, UErrorCode *status)
 {
     uspoof_setChecks(sc, checks, status);
