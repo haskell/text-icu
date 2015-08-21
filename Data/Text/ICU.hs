@@ -92,6 +92,7 @@ module Data.Text.ICU
     , S.SpoofCheckResult(..)
     , spoof
     , spoofWithChecks
+    , spoofWithLevel
     , spoofWithChecksAndLevel
     , areConfusable
     , spoofCheck

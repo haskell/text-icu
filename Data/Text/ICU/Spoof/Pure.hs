@@ -22,6 +22,7 @@ module Data.Text.ICU.Spoof.Pure
       Spoof
     , spoof
     , spoofWithChecks
+    , spoofWithLevel
     , spoofWithChecksAndLevel
     , areConfusable
     , spoofCheck
@@ -47,6 +48,12 @@ spoofWithChecks checks = unsafePerformIO $ do
   return (C s)
 
 -- | Create an immutable spoof checker with specific options and restriction level.
+spoofWithLevel :: S.RestrictionLevel -> Spoof
+spoofWithLevel level = unsafePerformIO $ do
+  s <- S.open
+  S.setRestrictionLevel s level
+  return (C s)
+
 spoofWithChecksAndLevel :: [S.SpoofCheck] -> S.RestrictionLevel -> Spoof
 spoofWithChecksAndLevel checks level = unsafePerformIO $ do
   s <- S.open
