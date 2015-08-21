@@ -88,9 +88,9 @@ getRestrictionLevel (C s) = unsafePerformIO $ S.getRestrictionLevel s
 getChecks :: Spoof -> [S.SpoofCheck]
 getChecks (C s) = unsafePerformIO $ S.getChecks s
 
--- | Gets the locales currently allowed the spoof checker.
--- (We don't use LocaleName since the root and default locales have no
--- meaning here.)
+-- | Gets the locales whose scripts are currently allowed by the spoof
+-- checker.  (We don't use LocaleName since the root and default
+-- locales have no meaning here.)
 getAllowedLocales :: Spoof -> [String]
 getAllowedLocales (C s) = unsafePerformIO $ S.getAllowedLocales s
 

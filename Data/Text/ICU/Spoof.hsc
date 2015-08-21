@@ -80,15 +80,15 @@ data SpoofCheck = SingleScriptConfusable
 
 instance ToBitMask SpoofCheck where
   toBitMask SingleScriptConfusable = #const USPOOF_SINGLE_SCRIPT_CONFUSABLE
-  toBitMask MixedScriptConfusable = #const USPOOF_MIXED_SCRIPT_CONFUSABLE
-  toBitMask WholeScriptConfusable = #const USPOOF_WHOLE_SCRIPT_CONFUSABLE
-  toBitMask AnyCase = #const USPOOF_ANY_CASE
-  toBitMask RestrictionLevel = #const USPOOF_RESTRICTION_LEVEL
-  toBitMask Invisible = #const USPOOF_INVISIBLE
-  toBitMask CharLimit = #const USPOOF_CHAR_LIMIT
-  toBitMask MixedNumbers = #const USPOOF_MIXED_NUMBERS
-  toBitMask AllChecks = #const USPOOF_ALL_CHECKS
-  toBitMask AuxInfo = #const USPOOF_AUX_INFO
+  toBitMask MixedScriptConfusable  = #const USPOOF_MIXED_SCRIPT_CONFUSABLE
+  toBitMask WholeScriptConfusable  = #const USPOOF_WHOLE_SCRIPT_CONFUSABLE
+  toBitMask AnyCase                = #const USPOOF_ANY_CASE
+  toBitMask RestrictionLevel       = #const USPOOF_RESTRICTION_LEVEL
+  toBitMask Invisible              = #const USPOOF_INVISIBLE
+  toBitMask CharLimit              = #const USPOOF_CHAR_LIMIT
+  toBitMask MixedNumbers           = #const USPOOF_MIXED_NUMBERS
+  toBitMask AllChecks              = #const USPOOF_ALL_CHECKS
+  toBitMask AuxInfo                = #const USPOOF_AUX_INFO
 
 type USpoofCheck = Int32
 
@@ -101,12 +101,12 @@ data RestrictionLevel = ASCII
                       deriving (Bounded, Enum, Eq, Show)
 
 instance ToBitMask RestrictionLevel where
-  toBitMask ASCII = #const USPOOF_ASCII
+  toBitMask ASCII                   = #const USPOOF_ASCII
   toBitMask SingleScriptRestrictive = #const USPOOF_SINGLE_SCRIPT_RESTRICTIVE
-  toBitMask HighlyRestrictive = #const USPOOF_HIGHLY_RESTRICTIVE
-  toBitMask ModeratelyRestrictive = #const USPOOF_MODERATELY_RESTRICTIVE
-  toBitMask MinimallyRestrictive = #const USPOOF_MINIMALLY_RESTRICTIVE
-  toBitMask Unrestrictive = #const USPOOF_UNRESTRICTIVE
+  toBitMask HighlyRestrictive       = #const USPOOF_HIGHLY_RESTRICTIVE
+  toBitMask ModeratelyRestrictive   = #const USPOOF_MODERATELY_RESTRICTIVE
+  toBitMask MinimallyRestrictive    = #const USPOOF_MINIMALLY_RESTRICTIVE
+  toBitMask Unrestrictive           = #const USPOOF_UNRESTRICTIVE
 
 type URestrictionLevel = Int32
 
@@ -123,7 +123,7 @@ data SkeletonTypeOverride = SkeletonSingleScript
 
 instance ToBitMask SkeletonTypeOverride where
   toBitMask SkeletonSingleScript = #const USPOOF_SINGLE_SCRIPT_CONFUSABLE
-  toBitMask SkeletonAnyCase = #const USPOOF_ANY_CASE
+  toBitMask SkeletonAnyCase      = #const USPOOF_ANY_CASE
 
 type USkeletonTypeOverride = Int32
 
@@ -147,9 +147,9 @@ open :: IO MSpoof
 open = wrap =<< handleError uspoof_open
 
 -- | Open a spoof checker previously serialized to bytes using 'serialize'.
--- The ForeignPtr in the ByteString will remain referenced for the
--- lifetime of the returned object. The memory it points to must not
--- be modified until the returned object is closed.
+-- The returned MSpoof will retain a reference to the ForeignPtr inside
+-- the ByteString, so ensure its contents do not change for the lifetime
+-- of the lifetime of the returned value.
 openFromSerialized :: ByteString -> IO MSpoof
 openFromSerialized b =
   case toForeignPtr b of
@@ -169,86 +169,74 @@ openFromSource confusables confusablesWholeScript =
 
 -- | Get the checks performed by a spoof checker.
 getChecks :: MSpoof -> IO [SpoofCheck]
-getChecks s = do
-  withSpoof s $ \sptr ->
-    (fromBitMask . fromIntegral . (.&.) #{const USPOOF_ALL_CHECKS}) <$>
-    handleError (uspoof_getChecks sptr)
+getChecks s = withSpoof s $ \sptr ->
+  (fromBitMask . fromIntegral . (.&.) #{const USPOOF_ALL_CHECKS}) <$>
+  handleError (uspoof_getChecks sptr)
 
 -- | Configure the checks performed by a spoof checker.
 setChecks :: MSpoof -> [SpoofCheck] -> IO ()
-setChecks s c = do
-  withSpoof s $ \sptr ->
-    handleError $ uspoof_setChecks sptr . fromIntegral $ toBitMask c
+setChecks s c = withSpoof s $ \sptr ->
+  handleError $ uspoof_setChecks sptr . fromIntegral $ toBitMask c
 
 -- | Get the restriction level of a spoof checker.
 getRestrictionLevel :: MSpoof -> IO (Maybe RestrictionLevel)
-getRestrictionLevel s = do
-  withSpoof s $ \sptr ->
-    (highestValueInBitMask . fromIntegral) <$> uspoof_getRestrictionLevel sptr
+getRestrictionLevel s = withSpoof s $ \sptr ->
+  (highestValueInBitMask . fromIntegral) <$> uspoof_getRestrictionLevel sptr
 
 -- | Configure the restriction level of a spoof checker.
 setRestrictionLevel :: MSpoof -> RestrictionLevel -> IO ()
-setRestrictionLevel s l = do
-  withSpoof s $ \sptr ->
+setRestrictionLevel s l = withSpoof s $ \sptr ->
     uspoof_setRestrictionLevel sptr . fromIntegral $ toBitMask l
 
 -- | Get the list of locale names allowed to be used with a spoof checker.
 -- (We don't use LocaleName since the root and default locales have no
 -- meaning here.)
 getAllowedLocales :: MSpoof -> IO [String]
-getAllowedLocales s = do
-  withSpoof s $ \sptr ->
-    splitLocales <$> (peekCString =<<
-                      (handleError (uspoof_getAllowedLocales sptr)))
-    where splitLocales = fmap (unpack . strip) . splitOn "," . pack
+getAllowedLocales s = withSpoof s $ \sptr ->
+  splitLocales <$> (peekCString =<< handleError (uspoof_getAllowedLocales sptr))
+  where splitLocales = fmap (unpack . strip) . splitOn "," . pack
 
 -- | Get the list of locale names allowed to be used with a spoof checker.
 -- (We don't use LocaleName since the root and default locales have no
 -- meaning here.)
 setAllowedLocales :: MSpoof -> [String] -> IO ()
-setAllowedLocales s locs = do
-  withSpoof s $ \sptr ->
-    withCString (intercalate "," locs) $ \lptr ->
-      handleError (uspoof_setAllowedLocales sptr lptr)
+setAllowedLocales s locs = withSpoof s $ \sptr ->
+  withCString (intercalate "," locs) $ \lptr ->
+    handleError (uspoof_setAllowedLocales sptr lptr)
 
 -- | Check if two strings could be confused with each other.
 areConfusable :: MSpoof -> Text -> Text -> IO SpoofCheckResult
-areConfusable s t1 t2 = do
-  withSpoof s $ \sptr ->
-    useAsPtr t1 $ \t1ptr t1len ->
-      useAsPtr t2 $ \t2ptr t2len ->
-        makeSpoofCheckResult <$>
-          handleError (uspoof_areConfusable sptr
-                       t1ptr (fromIntegral t1len) t2ptr (fromIntegral t2len))
+areConfusable s t1 t2 = withSpoof s $ \sptr ->
+  useAsPtr t1 $ \t1ptr t1len ->
+    useAsPtr t2 $ \t2ptr t2len ->
+      makeSpoofCheckResult <$>
+      handleError (uspoof_areConfusable sptr
+                   t1ptr (fromIntegral t1len)
+                   t2ptr (fromIntegral t2len))
 
 -- | Generate a re-usable "skeleton" to check if an identifier is confusable
 -- with some large set of existing identifiers.
 getSkeleton :: MSpoof -> Maybe SkeletonTypeOverride -> Text -> IO Text
-getSkeleton s o t = do
-  withSpoof s $ \sptr ->
-    useAsPtr t $ \tptr tlen ->
+getSkeleton s o t = withSpoof s $ \sptr ->
+  useAsPtr t $ \tptr tlen ->
     handleOverflowError (fromIntegral tlen)
-    (\dptr dlen -> uspoof_getSkeleton sptr oflags tptr
-                    (fromIntegral tlen) dptr (fromIntegral dlen))
-    (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
-    where oflags = case o of
-            Nothing -> 0
-            Just typeOverride -> (fromIntegral $ toBitMask typeOverride)
+      (\dptr dlen -> uspoof_getSkeleton sptr oflags tptr
+                     (fromIntegral tlen) dptr (fromIntegral dlen))
+      (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
+    where oflags = maybe 0 (fromIntegral $ toBitMask) o
 
 -- | Check if a string could be confused with any other.
 spoofCheck :: MSpoof -> Text -> IO SpoofCheckResult
-spoofCheck s t = do
-  withSpoof s $ \sptr ->
-    useAsPtr t $ \tptr tlen ->
-      makeSpoofCheckResult <$> handleError
+spoofCheck s t = withSpoof s $ \sptr ->
+  useAsPtr t $ \tptr tlen ->
+    makeSpoofCheckResult <$> handleError
       (uspoof_check sptr tptr (fromIntegral tlen) nullPtr)
 
 -- | Serialize the rules in this spoof checker to memory, suitable for re-use
 -- by openFromSerialized.
 serialize :: MSpoof -> IO ByteString
-serialize s = do
-  withSpoof s $ \sptr ->
-    handleOverflowError 0
+serialize s = withSpoof s $ \sptr ->
+  handleOverflowError 0
     (\dptr dlen -> (uspoof_serialize sptr dptr (fromIntegral dlen)))
     (\dptr dlen -> create (fromIntegral dlen) $ \bptr ->
       memcpy dptr bptr (fromIntegral dlen))
