@@ -508,6 +508,11 @@ int32_t __hs_uspoof_getSkeleton(USpoofChecker *sc,
     return uspoof_getSkeleton(sc, type, id, length, dest, destCapacity, status);
 }
 
+int32_t __hs_uspoof_serialize(USpoofChecker *sc, void *data, int32_t capacity, UErrorCode *status)
+{
+    return uspoof_serialize(sc, data, capacity, status);
+}
+
 void __hs_uspoof_close(USpoofChecker *sc)
 {
     uspoof_close(sc);

@@ -32,6 +32,7 @@ module Data.Text.ICU.Spoof
     , setRestrictionLevel
     , areConfusable
     , spoofCheck
+    , serialize
     ) where
 
 #include <unicode/uspoof.h>
@@ -39,6 +40,7 @@ module Data.Text.ICU.Spoof
 import Control.Applicative
 import Data.Bits ((.&.))
 import Data.ByteString (ByteString)
+import Data.ByteString.Internal (create, memcpy)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.Int (Int32)
 import Data.Maybe (listToMaybe)
@@ -48,6 +50,7 @@ import Data.Text.ICU.BitMask (ToBitMask, fromBitMask, toBitMask)
 import Data.Text.ICU.Spoof.Internal (MSpoof, USpoof, Spoof, withSpoof, wrap)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError, handleOverflowError)
 import Data.Text.ICU.Internal (UChar)
+import Data.Word (Word8)
 import Foreign.C.String (CString)
 import Foreign.Ptr (Ptr, castPtr, nullPtr)
 
@@ -191,6 +194,15 @@ spoofCheck s t = do
     useAsPtr t $ \tptr tlen ->
       makeSpoofCheckResult <$> handleError (uspoof_check sptr tptr (fromIntegral tlen) nullPtr)
 
+-- | Serialize the rules in this spoof checker to memory, suitable for re-use
+-- by openFromSerialized.
+serialize :: MSpoof -> IO ByteString
+serialize s = do
+  withSpoof s $ \sptr ->
+    handleOverflowError 0
+    (\dptr dlen -> (uspoof_serialize sptr dptr (fromIntegral dlen)))
+    (\dptr dlen -> create (fromIntegral dlen) $ \bptr -> memcpy dptr bptr (fromIntegral dlen))
+
 foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_open" uspoof_open
     :: Ptr UErrorCode -> IO (Ptr USpoof)
 
@@ -217,3 +229,6 @@ foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_check" uspoof_check
 
 foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_getSkeleton" uspoof_getSkeleton
     :: Ptr USpoof -> USkeletonTypeOverride -> Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> Ptr UErrorCode -> IO Int32
+
+foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_serialize" uspoof_serialize
+    :: Ptr USpoof -> Ptr Word8 -> Int32 -> Ptr UErrorCode -> IO Int32

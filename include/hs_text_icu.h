@@ -202,4 +202,5 @@ int32_t __hs_uspoof_getSkeleton(USpoofChecker *sc, int32_t checks,
                                 const UChar *id, int32_t length,
                                 UChar *dest, int32_t destCapacity,
                                 UErrorCode *status);
+int32_t __hs_uspoof_serialize(USpoofChecker *sc, void *data, int32_t capacity, UErrorCode *status);
 void __hs_uspoof_close(USpoofChecker *sc);
