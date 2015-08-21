@@ -34,6 +34,7 @@ module Data.Text.ICU.Spoof.Pure
     ) where
 
 import Data.ByteString (ByteString)
+import Data.Foldable (forM_)
 import Data.Text (Text)
 import Data.Text.ICU.Spoof.Internal (Spoof(..))
 import System.IO.Unsafe (unsafePerformIO)
@@ -56,15 +57,9 @@ spoof = unsafePerformIO $ C `fmap` S.open
 spoofWithParams :: SpoofParams -> Spoof
 spoofWithParams (SpoofParams c lev loc) = unsafePerformIO $ do
   s <- S.open
-  case c of
-    Just c' -> S.setChecks s c'
-    Nothing -> return ()
-  case lev of
-    Just lev' -> S.setRestrictionLevel s lev'
-    Nothing -> return ()
-  case loc of
-    Just loc' -> S.setAllowedLocales s loc'
-    Nothing -> return ()
+  forM_ c (S.setChecks s)
+  forM_ lev (S.setRestrictionLevel s)
+  forM_ loc (S.setAllowedLocales s)
   return (C s)
 
 -- | Create an immutable spoof checker from a previously-serialized instance.
