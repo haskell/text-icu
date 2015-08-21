@@ -42,10 +42,9 @@ import Data.Text (Text)
 import Data.Text.Foreign (fromPtr, useAsPtr)
 import Data.Text.ICU.BitMask (ToBitMask, fromBitMask, toBitMask)
 import Data.Text.ICU.Spoof.Internal (MSpoof, USpoof, Spoof, withSpoof, wrap)
-import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
+import Data.Text.ICU.Error.Internal (UErrorCode, handleError, handleOverflowError)
 import Data.Text.ICU.Internal (UChar)
-import Foreign.Marshal.Array (allocaArray)
-import Foreign.Ptr (Ptr, nullPtr)
+import Foreign.Ptr (Ptr, castPtr, nullPtr)
 
 -- $api
 --
@@ -154,10 +153,10 @@ areConfusable s t1 t2 = do
 getSkeleton :: MSpoof -> [SpoofCheck] -> Text -> IO Text
 getSkeleton s c t = do
   withSpoof s $ \sptr ->
-    useAsPtr t $ \tptr tlen -> do
-      allocaArray (fromIntegral tlen) $ \destptr ->
-        (fromPtr destptr . fromIntegral) =<<
-          handleError (uspoof_getSkeleton sptr (fromIntegral $ toBitMask c) tptr (fromIntegral tlen) destptr (fromIntegral tlen))
+    useAsPtr t $ \tptr tlen ->
+    handleOverflowError (fromIntegral tlen)
+    (\dptr dlen -> (uspoof_getSkeleton sptr (fromIntegral $ toBitMask c) tptr (fromIntegral tlen) dptr (fromIntegral dlen)))
+    (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
 
 -- | Check if a string could be confused with any other.
 spoofCheck :: MSpoof -> Text -> IO SpoofCheckResult

@@ -95,6 +95,7 @@ module Data.Text.ICU
     , spoofWithLevel
     , spoofWithChecksAndLevel
     , areConfusable
+    , getSkeleton
     , spoofCheck
     ) where
 

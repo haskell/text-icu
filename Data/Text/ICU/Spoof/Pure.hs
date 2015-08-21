@@ -25,6 +25,7 @@ module Data.Text.ICU.Spoof.Pure
     , spoofWithLevel
     , spoofWithChecksAndLevel
     , areConfusable
+    , getSkeleton
     , spoofCheck
     ) where
 
@@ -68,5 +69,10 @@ areConfusable (C s) t1 t2 = unsafePerformIO $ S.areConfusable s t1 t2
 -- | Check a string for spoofing issues.
 spoofCheck :: Spoof -> Text -> S.SpoofCheckResult
 spoofCheck (C s) t = unsafePerformIO $ S.spoofCheck s t
+
+-- | Get a skeleton representation of a string to directly compare for
+-- spoofability with another string.
+getSkeleton :: Spoof -> [S.SpoofCheck] -> Text -> Text
+getSkeleton (C s) c t = unsafePerformIO $ S.getSkeleton s c t
 
 {-# INLINE spoofCheck #-}
