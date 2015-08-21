@@ -11,42 +11,22 @@ module Data.Text.ICU.BitMask
     -- * Functions
     , fromBitMask
     , highestValueInBitMask
-    , lowestValueInBitMask
     , toBitMask
     ) where
 
 
-import Data.Bits ((.&.), (.|.), shiftL)
+import Data.Bits ((.&.), (.|.))
 import Data.Maybe (listToMaybe)
-import Control.Monad (msum, mzero)
 
 class ToBitMask a where
   toBitMask :: a -> Int
-  -- | Using a DefaultSignatures extension to declare a default signature with
-  -- an `Enum` constraint without affecting the constraints of the class itself.
-  default toBitMask :: Enum a => a -> Int
-  toBitMask = shiftL 1 . fromEnum
 
-instance ( ToBitMask a ) => ToBitMask [a] where
-    toBitMask = foldr (.|.) 0 . map toBitMask
+instance (ToBitMask a) => ToBitMask [a] where
+  toBitMask = foldr ((.|.) . toBitMask) 0
 
--- | Not making this a typeclass, since it already generalizes over all
--- imaginable instances with help of `MonadPlus`.
-fromBitMask ::
-    ( Enum a, Bounded a, ToBitMask a ) =>
-        Int -> [a]
-fromBitMask bm = msum $ map asInBM $ enumFrom minBound where
-  asInBM a = if isInBitMask bm a then return a else mzero
+fromBitMask :: (Enum a, Bounded a, ToBitMask a) => Int -> [a]
+fromBitMask bm = filter inBitMask $ enumFrom minBound
+  where inBitMask val = (bm .&. toBitMask val) == toBitMask val
 
-lowestValueInBitMask ::
-    ( Enum a, Bounded a, ToBitMask a ) =>
-        Int -> Maybe a
-lowestValueInBitMask = listToMaybe . fromBitMask
-
-highestValueInBitMask ::
-    ( Enum a, Bounded a, ToBitMask a ) =>
-        Int -> Maybe a
+highestValueInBitMask :: (Enum a, Bounded a, ToBitMask a) => Int -> Maybe a
 highestValueInBitMask = listToMaybe . reverse . fromBitMask
-
-isInBitMask :: ( ToBitMask a ) => Int -> a -> Bool
-isInBitMask bm a = let aBM = toBitMask a in aBM == aBM .&. bm
