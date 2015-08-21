@@ -24,6 +24,7 @@ module Data.Text.ICU.Spoof
     , SkeletonTypeOverride(..)
     -- * Functions
     , open
+    , openFromSerialized
     , openFromSource
     , getSkeleton
     , getChecks
@@ -40,19 +41,20 @@ module Data.Text.ICU.Spoof
 import Control.Applicative
 import Data.Bits ((.&.))
 import Data.ByteString (ByteString)
-import Data.ByteString.Internal (create, memcpy)
+import Data.ByteString.Internal (create, memcpy, toForeignPtr)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.Int (Int32)
 import Data.Maybe (listToMaybe)
 import Data.Text (Text)
 import Data.Text.Foreign (fromPtr, useAsPtr)
 import Data.Text.ICU.BitMask (ToBitMask, fromBitMask, toBitMask)
-import Data.Text.ICU.Spoof.Internal (MSpoof, USpoof, Spoof, withSpoof, wrap)
+import Data.Text.ICU.Spoof.Internal (MSpoof, USpoof, Spoof, withSpoof, wrap, wrapWithSerialized)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError, handleOverflowError)
 import Data.Text.ICU.Internal (UChar)
 import Data.Word (Word8)
 import Foreign.C.String (CString)
-import Foreign.Ptr (Ptr, castPtr, nullPtr)
+import Foreign.Ptr (Ptr, castPtr, nullPtr, plusPtr)
+import Foreign.ForeignPtr (withForeignPtr)
 
 -- $api
 --
@@ -133,6 +135,16 @@ makeSpoofCheckResult c =
 open :: IO MSpoof
 open = wrap =<< handleError uspoof_open
 
+-- | Open a spoof checker previously serialized to bytes using 'serialize'.
+-- The ForeignPtr in the ByteString will remain referenced for the
+-- lifetime of the returned object. The memory it points to must not
+-- be modified until the returned object is closed.
+openFromSerialized :: ByteString -> IO MSpoof
+openFromSerialized b =
+  case toForeignPtr b of
+    (ptr, off, len) -> withForeignPtr ptr $ \p ->
+      wrapWithSerialized ptr =<< handleError (uspoof_openFromSerialized (p `plusPtr` off) (fromIntegral len) nullPtr)
+
 -- | Open a spoof checker given the contents of the "confusables.txt" and "confusablesWholeScript.txt"
 -- files as described in Unicode UAX #39.
 openFromSource :: ByteString -> ByteString -> IO MSpoof
@@ -205,6 +217,9 @@ serialize s = do
 
 foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_open" uspoof_open
     :: Ptr UErrorCode -> IO (Ptr USpoof)
+
+foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_openFromSerialized" uspoof_openFromSerialized
+    :: Ptr Word8 -> Int32 -> Ptr Int32 -> Ptr UErrorCode -> IO (Ptr USpoof)
 
 foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_openFromSource" uspoof_openFromSource
     :: CString -> Int32 -> CString -> Int32 -> Ptr Int32 -> Ptr Int32 -> Ptr UErrorCode -> IO (Ptr USpoof)

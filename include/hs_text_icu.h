@@ -180,6 +180,8 @@ int32_t __hs_u_strCompareIter(UCharIterator *iter1, UCharIterator *iter2);
 /* uspoof.h */
 
 USpoofChecker *__hs_uspoof_open(UErrorCode *status);
+USpoofChecker *__hs_uspoof_openFromSerialized(const void *data, int32_t length, int32_t *pActualLength,
+                                              UErrorCode *status);
 USpoofChecker *__hs_uspoof_openFromSource(const char *confusables, int32_t confusablesLen,
                                           const char *confusablesWholeScript, int32_t confusablesWholeScriptLen,
                                           int32_t *errType, int32_t *unused, /* really UParseError */

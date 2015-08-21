@@ -18,9 +18,11 @@ module Data.Text.ICU.Spoof.Internal
     , USpoof
     , withSpoof
     , wrap
+    , wrapWithSerialized
     ) where
 
 import Data.Typeable (Typeable)
+import Data.Word (Word8)
 import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, withForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr)
 
@@ -30,20 +32,26 @@ import Foreign.Ptr (FunPtr, Ptr)
 data USpoof
 
 -- | Spoof checker type.
-data MSpoof = MSpoof {-# UNPACK #-} !(ForeignPtr USpoof)
-                 deriving (Typeable)
+data MSpoof = MSpoof {
+    serializedBuf :: Maybe (ForeignPtr Word8)
+  , spoofPtr :: {-# UNPACK #-} !(ForeignPtr USpoof)
+} deriving (Typeable)
 
 -- | Spoof checker type.
 newtype Spoof = C MSpoof
     deriving (Typeable)
 
 withSpoof :: MSpoof -> (Ptr USpoof -> IO a) -> IO a
-withSpoof (MSpoof spoof) = withForeignPtr spoof
+withSpoof (MSpoof _ spoof) = withForeignPtr spoof
 {-# INLINE withSpoof #-}
 
 wrap :: Ptr USpoof -> IO MSpoof
-wrap = fmap MSpoof . newForeignPtr uspoof_close
+wrap = fmap (MSpoof Nothing) . newForeignPtr uspoof_close
 {-# INLINE wrap #-}
+
+wrapWithSerialized :: ForeignPtr Word8 -> Ptr USpoof -> IO MSpoof
+wrapWithSerialized s = fmap (MSpoof $ Just s) . newForeignPtr uspoof_close
+{-# INLINE wrapWithSerialized #-}
 
 foreign import ccall unsafe "hs_text_icu.h &__hs_uspoof_close" uspoof_close
     :: FunPtr (Ptr USpoof -> IO ())
