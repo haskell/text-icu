@@ -108,7 +108,7 @@ makeSpoofCheckResult c =
       case restrictionLevel of
         Nothing -> CheckFailed spoofChecks
         Just l -> CheckFailedWithRestrictionLevel spoofChecks l
-  where spoofChecks = fromBitMask $ fromIntegral c
+  where spoofChecks = fromBitMask $ fromIntegral $ c .&. #const USPOOF_ALL_CHECKS
         restrictionValue = c .&. #const USPOOF_RESTRICTION_LEVEL_MASK
         restrictionLevel = listToMaybe $ fromBitMask $ fromIntegral $ restrictionValue
 
