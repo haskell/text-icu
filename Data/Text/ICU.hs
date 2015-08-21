@@ -91,9 +91,7 @@ module Data.Text.ICU
     , S.RestrictionLevel(..)
     , S.SpoofCheckResult(..)
     , spoof
-    , spoofWithChecks
-    , spoofWithLevel
-    , spoofWithChecksAndLevel
+    , spoofWithParams
     , areConfusable
     , getSkeleton
     , spoofCheck

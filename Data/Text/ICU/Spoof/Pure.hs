@@ -20,19 +20,25 @@ module Data.Text.ICU.Spoof.Pure
     -- * Unicode spoof checking API
     -- $api
       Spoof
+    , SpoofParams(..)
     , spoof
-    , spoofWithChecks
-    , spoofWithLevel
-    , spoofWithChecksAndLevel
+    , spoofWithParams
     , areConfusable
     , getSkeleton
     , spoofCheck
     ) where
 
 import Data.Text (Text)
+import Data.Text.ICU.Internal (LocaleName(..))
 import Data.Text.ICU.Spoof.Internal (Spoof(..))
 import System.IO.Unsafe (unsafePerformIO)
 import qualified Data.Text.ICU.Spoof as S
+
+data SpoofParams = SpoofParams {
+     spoofChecks :: Maybe [S.SpoofCheck]
+   , level :: Maybe S.RestrictionLevel
+   , locales :: Maybe [LocaleName]
+} deriving (Show, Eq)
 
 -- $api
 --
@@ -42,24 +48,18 @@ spoof :: Spoof
 spoof = unsafePerformIO $ C `fmap` S.open
 
 -- | Create an immutable spoof checker with specific options.
-spoofWithChecks :: [S.SpoofCheck] -> Spoof
-spoofWithChecks checks = unsafePerformIO $ do
+spoofWithParams :: SpoofParams -> Spoof
+spoofWithParams (SpoofParams c lev loc) = unsafePerformIO $ do
   s <- S.open
-  S.setChecks s checks
-  return (C s)
-
--- | Create an immutable spoof checker with specific options and restriction level.
-spoofWithLevel :: S.RestrictionLevel -> Spoof
-spoofWithLevel level = unsafePerformIO $ do
-  s <- S.open
-  S.setRestrictionLevel s level
-  return (C s)
-
-spoofWithChecksAndLevel :: [S.SpoofCheck] -> S.RestrictionLevel -> Spoof
-spoofWithChecksAndLevel checks level = unsafePerformIO $ do
-  s <- S.open
-  S.setChecks s checks
-  S.setRestrictionLevel s level
+  case c of
+    Just c' -> S.setChecks s c'
+    Nothing -> return ()
+  case lev of
+    Just lev' -> S.setRestrictionLevel s lev'
+    Nothing -> return ()
+  case loc of
+    Just loc' -> S.setAllowedLocales s loc'
+    Nothing -> return ()
   return (C s)
 
 -- | Check two strings for confusability.
