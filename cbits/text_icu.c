@@ -455,23 +455,29 @@ USpoofChecker *__hs_uspoof_open(UErrorCode *status)
     return uspoof_open(status);
 }
 
-USpoofChecker *__hs_uspoof_openFromSerialized(const void *data, int32_t length, int32_t *pActualLength,
+USpoofChecker *__hs_uspoof_openFromSerialized(const void *data, int32_t length,
+                                              int32_t *pActualLength,
                                               UErrorCode *status)
 {
     return uspoof_openFromSerialized(data, length, pActualLength, status);
 }
 
-USpoofChecker *__hs_uspoof_openFromSource(const char *confusables, int32_t confusablesLen,
-                                          const char *confusablesWholeScript, int32_t confusablesWholeScriptLen,
-                                          int32_t *errType, int32_t *unused, /* really UParseError */
+USpoofChecker *__hs_uspoof_openFromSource(const char *confusables,
+                                          int32_t confusablesLen,
+                                          const char *confusablesWholeScript,
+                                          int32_t confusablesWholeScriptLen,
+                                          int32_t *errType,
+                                          int32_t *unused, /* UParseError * */
                                           UErrorCode *status)
 {
     return uspoof_openFromSource(confusables, confusablesLen,
-                                 confusablesWholeScript, confusablesWholeScriptLen,
+                                 confusablesWholeScript,
+                                 confusablesWholeScriptLen,
                                  errType, NULL, status);
 }
 
-void __hs_uspoof_setChecks(USpoofChecker *sc, int32_t checks, UErrorCode *status)
+void __hs_uspoof_setChecks(USpoofChecker *sc, int32_t checks,
+                           UErrorCode *status)
 {
     uspoof_setChecks(sc, checks, status);
 }
@@ -491,7 +497,8 @@ URestrictionLevel __hs_uspoof_getRestrictionLevel(const USpoofChecker *sc)
     return uspoof_getRestrictionLevel(sc);
 }
 
-void __hs_uspoof_setAllowedLocales(USpoofChecker *sc, const char *localesList, UErrorCode *status)
+void __hs_uspoof_setAllowedLocales(USpoofChecker *sc, const char *localesList,
+                                   UErrorCode *status)
 {
     uspoof_setAllowedLocales(sc, localesList, status);
 }
@@ -524,7 +531,8 @@ int32_t __hs_uspoof_getSkeleton(USpoofChecker *sc,
     return uspoof_getSkeleton(sc, type, id, length, dest, destCapacity, status);
 }
 
-int32_t __hs_uspoof_serialize(USpoofChecker *sc, void *data, int32_t capacity, UErrorCode *status)
+int32_t __hs_uspoof_serialize(USpoofChecker *sc, void *data, int32_t capacity,
+                              UErrorCode *status)
 {
     return uspoof_serialize(sc, data, capacity, status);
 }

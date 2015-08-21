@@ -13,7 +13,8 @@ import Data.Function (on)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Data.Text.ICU (NormalizationMode(..))
-import QuickCheckUtils (NonEmptyText(..), LatinSpoofableText(..), NonSpoofableText(..))
+import QuickCheckUtils (NonEmptyText(..), LatinSpoofableText(..),
+                        NonSpoofableText(..))
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import qualified Data.Text as T
@@ -81,8 +82,10 @@ t_numericValue = t_rnf $ I.numericValue
 -- Spoofing
 
 t_nonspoofable (NonSpoofableText t) = I.spoofCheck I.spoof t == I.CheckOK
-t_spoofable (LatinSpoofableText t) = I.spoofCheck I.spoof t == I.CheckFailed [I.WholeScriptConfusable]
-t_confusable (NonEmptyText t) = I.areConfusable I.spoof t t == I.CheckFailed [I.SingleScriptConfusable]
+t_spoofable (LatinSpoofableText t) = I.spoofCheck I.spoof t ==
+                                     I.CheckFailed [I.WholeScriptConfusable]
+t_confusable (NonEmptyText t) = I.areConfusable I.spoof t t ==
+                                I.CheckFailed [I.SingleScriptConfusable]
 
 tests :: Test
 tests =

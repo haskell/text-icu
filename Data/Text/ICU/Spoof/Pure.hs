@@ -79,7 +79,8 @@ spoofCheck (C s) t = unsafePerformIO $ S.spoofCheck s t
 getSkeleton :: Spoof -> Maybe S.SkeletonTypeOverride -> Text -> Text
 getSkeleton (C s) o t = unsafePerformIO $ S.getSkeleton s o t
 
--- | Gets the restriction level currently configured in the spoof checker, if present.
+-- | Gets the restriction level currently configured in the spoof
+-- checker, if present.
 getRestrictionLevel :: Spoof -> Maybe S.RestrictionLevel
 getRestrictionLevel (C s) = unsafePerformIO $ S.getRestrictionLevel s
 
@@ -88,11 +89,13 @@ getChecks :: Spoof -> [S.SpoofCheck]
 getChecks (C s) = unsafePerformIO $ S.getChecks s
 
 -- | Gets the locales currently allowed the spoof checker.
--- (We don't use LocaleName since the root and default locales have no meaning here.)
+-- (We don't use LocaleName since the root and default locales have no
+-- meaning here.)
 getAllowedLocales :: Spoof -> [String]
 getAllowedLocales (C s) = unsafePerformIO $ S.getAllowedLocales s
 
--- | Serializes the configured spoof checker so it can later be created with openFromSerialized.
+-- | Serializes the configured spoof checker so it can later be
+-- created with openFromSerialized.
 serialize :: Spoof -> ByteString
 serialize (C s) = unsafePerformIO $ S.serialize s
 

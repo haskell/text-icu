@@ -180,21 +180,29 @@ int32_t __hs_u_strCompareIter(UCharIterator *iter1, UCharIterator *iter2);
 /* uspoof.h */
 
 USpoofChecker *__hs_uspoof_open(UErrorCode *status);
-USpoofChecker *__hs_uspoof_openFromSerialized(const void *data, int32_t length, int32_t *pActualLength,
+USpoofChecker *__hs_uspoof_openFromSerialized(const void *data, int32_t length,
+                                              int32_t *pActualLength,
                                               UErrorCode *status);
-USpoofChecker *__hs_uspoof_openFromSource(const char *confusables, int32_t confusablesLen,
-                                          const char *confusablesWholeScript, int32_t confusablesWholeScriptLen,
-                                          int32_t *errType, int32_t *unused, /* really UParseError */
+USpoofChecker *__hs_uspoof_openFromSource(const char *confusables,
+                                          int32_t confusablesLen,
+                                          const char *confusablesWholeScript,
+                                          int32_t confusablesWholeScriptLen,
+                                          int32_t *errType,
+                                          int32_t *unused, /* UParseError * */
                                           UErrorCode *status);
-void __hs_uspoof_setChecks(USpoofChecker *sc, int32_t checks, UErrorCode *status);
+void __hs_uspoof_setChecks(USpoofChecker *sc, int32_t checks,
+                           UErrorCode *status);
 int32_t __hs_uspoof_getChecks(const USpoofChecker *sc, UErrorCode *status);
 
 // Yes, these really don't take UErrorCode *..
-void __hs_uspoof_setRestrictionLevel(USpoofChecker *sc, URestrictionLevel restrictionLevel);
+void __hs_uspoof_setRestrictionLevel(USpoofChecker *sc,
+                                     URestrictionLevel restrictionLevel);
 URestrictionLevel __hs_uspoof_getRestrictionLevel(const USpoofChecker *sc);
 
-void __hs_uspoof_setAllowedLocales(USpoofChecker *sc, const char *localesList, UErrorCode *status);
-const char *__hs_uspoof_getAllowedLocales(USpoofChecker *sc, UErrorCode *status);
+void __hs_uspoof_setAllowedLocales(USpoofChecker *sc, const char *localesList,
+                                   UErrorCode *status);
+const char *__hs_uspoof_getAllowedLocales(USpoofChecker *sc,
+                                          UErrorCode *status);
 
 int32_t __hs_uspoof_check(USpoofChecker *sc, const UChar *id,
                           int32_t length, int32_t *position,
@@ -207,5 +215,6 @@ int32_t __hs_uspoof_getSkeleton(USpoofChecker *sc, int32_t checks,
                                 const UChar *id, int32_t length,
                                 UChar *dest, int32_t destCapacity,
                                 UErrorCode *status);
-int32_t __hs_uspoof_serialize(USpoofChecker *sc, void *data, int32_t capacity, UErrorCode *status);
+int32_t __hs_uspoof_serialize(USpoofChecker *sc, void *data, int32_t capacity,
+                              UErrorCode *status);
 void __hs_uspoof_close(USpoofChecker *sc);

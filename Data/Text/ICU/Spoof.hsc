@@ -1,4 +1,5 @@
-{-# LANGUAGE BangPatterns, CPP, DeriveDataTypeable, ForeignFunctionInterface, OverloadedStrings #-}
+{-# LANGUAGE BangPatterns, CPP, DeriveDataTypeable, ForeignFunctionInterface,
+    OverloadedStrings #-}
 -- |
 -- Module      : Data.Text.ICU.Spoof
 -- Copyright   : (c) 2015 Ben Hamilton
@@ -8,8 +9,9 @@
 -- Stability   : experimental
 -- Portability : GHC
 --
--- String spoofing (confusability) checks for Unicode, implemented as bindings to
--- the International Components for Unicode (ICU) uspoof library.
+-- String spoofing (confusability) checks for Unicode, implemented as
+-- bindings to the International Components for Unicode (ICU) uspoof
+-- library.
 
 module Data.Text.ICU.Spoof
     (
@@ -49,9 +51,12 @@ import Data.Int (Int32)
 import Data.List (intercalate)
 import Data.Text (Text, pack, splitOn, strip, unpack)
 import Data.Text.Foreign (fromPtr, useAsPtr)
-import Data.Text.ICU.BitMask (ToBitMask, fromBitMask, highestValueInBitMask, toBitMask)
-import Data.Text.ICU.Spoof.Internal (MSpoof, USpoof, Spoof, withSpoof, wrap, wrapWithSerialized)
-import Data.Text.ICU.Error.Internal (UErrorCode, handleError, handleOverflowError)
+import Data.Text.ICU.BitMask (ToBitMask, fromBitMask, highestValueInBitMask,
+                              toBitMask)
+import Data.Text.ICU.Spoof.Internal (MSpoof, USpoof, Spoof, withSpoof, wrap,
+                                     wrapWithSerialized)
+import Data.Text.ICU.Error.Internal (UErrorCode, handleError,
+                                     handleOverflowError)
 import Data.Text.ICU.Internal (UChar)
 import Data.Word (Word8)
 import Foreign.C.String (CString, peekCString, withCString)
@@ -107,8 +112,9 @@ type URestrictionLevel = Int32
 
 data SpoofCheckResult = CheckOK
                       | CheckFailed [SpoofCheck]
-                      | CheckFailedWithRestrictionLevel { checks :: [SpoofCheck],
-                                                           level :: RestrictionLevel }
+                      | CheckFailedWithRestrictionLevel {
+                        checks :: [SpoofCheck],
+                        level :: RestrictionLevel }
                 deriving (Eq, Show)
 
 data SkeletonTypeOverride = SkeletonSingleScript
@@ -129,11 +135,14 @@ makeSpoofCheckResult c =
       case restrictionLevel of
         Nothing -> CheckFailed spoofChecks
         Just l -> CheckFailedWithRestrictionLevel spoofChecks l
-  where spoofChecks = fromBitMask $ fromIntegral $ c .&. #const USPOOF_ALL_CHECKS
+  where spoofChecks = fromBitMask $ fromIntegral $
+                      c .&. #const USPOOF_ALL_CHECKS
         restrictionValue = c .&. #const USPOOF_RESTRICTION_LEVEL_MASK
-        restrictionLevel = highestValueInBitMask $ fromIntegral $ restrictionValue
+        restrictionLevel = highestValueInBitMask $ fromIntegral $
+                           restrictionValue
 
--- | Open a spoof checker for checking Unicode strings for lookalike security issues.
+-- | Open a spoof checker for checking Unicode strings for lookalike
+-- security issues.
 open :: IO MSpoof
 open = wrap =<< handleError uspoof_open
 
@@ -145,21 +154,25 @@ openFromSerialized :: ByteString -> IO MSpoof
 openFromSerialized b =
   case toForeignPtr b of
     (ptr, off, len) -> withForeignPtr ptr $ \p ->
-      wrapWithSerialized ptr =<< handleError (uspoof_openFromSerialized (p `plusPtr` off) (fromIntegral len) nullPtr)
+      wrapWithSerialized ptr =<< handleError
+      (uspoof_openFromSerialized (p `plusPtr` off) (fromIntegral len) nullPtr)
 
--- | Open a spoof checker given the contents of the "confusables.txt" and "confusablesWholeScript.txt"
--- files as described in Unicode UAX #39.
+-- | Open a spoof checker given the contents of the "confusables.txt"
+-- and "confusablesWholeScript.txt" files as described in Unicode UAX
+-- #39.
 openFromSource :: ByteString -> ByteString -> IO MSpoof
 openFromSource confusables confusablesWholeScript =
   unsafeUseAsCStringLen confusables $ \(cptr, clen) ->
     unsafeUseAsCStringLen confusablesWholeScript $ \(wptr, wlen) ->
-      wrap =<< handleError (uspoof_openFromSource cptr (fromIntegral clen) wptr (fromIntegral wlen) nullPtr nullPtr)
+      wrap =<< handleError (uspoof_openFromSource cptr (fromIntegral clen) wptr
+                            (fromIntegral wlen) nullPtr nullPtr)
 
 -- | Get the checks performed by a spoof checker.
 getChecks :: MSpoof -> IO [SpoofCheck]
 getChecks s = do
   withSpoof s $ \sptr ->
-    (fromBitMask . fromIntegral . (.&.) #{const USPOOF_ALL_CHECKS}) <$> handleError (uspoof_getChecks sptr)
+    (fromBitMask . fromIntegral . (.&.) #{const USPOOF_ALL_CHECKS}) <$>
+    handleError (uspoof_getChecks sptr)
 
 -- | Configure the checks performed by a spoof checker.
 setChecks :: MSpoof -> [SpoofCheck] -> IO ()
@@ -180,15 +193,18 @@ setRestrictionLevel s l = do
     uspoof_setRestrictionLevel sptr . fromIntegral $ toBitMask l
 
 -- | Get the list of locale names allowed to be used with a spoof checker.
--- (We don't use LocaleName since the root and default locales have no meaning here.)
+-- (We don't use LocaleName since the root and default locales have no
+-- meaning here.)
 getAllowedLocales :: MSpoof -> IO [String]
 getAllowedLocales s = do
   withSpoof s $ \sptr ->
-    splitLocales <$> (peekCString =<< (handleError (uspoof_getAllowedLocales sptr)))
+    splitLocales <$> (peekCString =<<
+                      (handleError (uspoof_getAllowedLocales sptr)))
     where splitLocales = fmap (unpack . strip) . splitOn "," . pack
 
 -- | Get the list of locale names allowed to be used with a spoof checker.
--- (We don't use LocaleName since the root and default locales have no meaning here.)
+-- (We don't use LocaleName since the root and default locales have no
+-- meaning here.)
 setAllowedLocales :: MSpoof -> [String] -> IO ()
 setAllowedLocales s locs = do
   withSpoof s $ \sptr ->
@@ -202,7 +218,8 @@ areConfusable s t1 t2 = do
     useAsPtr t1 $ \t1ptr t1len ->
       useAsPtr t2 $ \t2ptr t2len ->
         makeSpoofCheckResult <$>
-          handleError (uspoof_areConfusable sptr t1ptr (fromIntegral t1len) t2ptr (fromIntegral t2len))
+          handleError (uspoof_areConfusable sptr
+                       t1ptr (fromIntegral t1len) t2ptr (fromIntegral t2len))
 
 -- | Generate a re-usable "skeleton" to check if an identifier is confusable
 -- with some large set of existing identifiers.
@@ -211,7 +228,8 @@ getSkeleton s o t = do
   withSpoof s $ \sptr ->
     useAsPtr t $ \tptr tlen ->
     handleOverflowError (fromIntegral tlen)
-    (\dptr dlen -> (uspoof_getSkeleton sptr oflags tptr (fromIntegral tlen) dptr (fromIntegral dlen)))
+    (\dptr dlen -> uspoof_getSkeleton sptr oflags tptr
+                    (fromIntegral tlen) dptr (fromIntegral dlen))
     (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
     where oflags = case o of
             Nothing -> 0
@@ -222,7 +240,8 @@ spoofCheck :: MSpoof -> Text -> IO SpoofCheckResult
 spoofCheck s t = do
   withSpoof s $ \sptr ->
     useAsPtr t $ \tptr tlen ->
-      makeSpoofCheckResult <$> handleError (uspoof_check sptr tptr (fromIntegral tlen) nullPtr)
+      makeSpoofCheckResult <$> handleError
+      (uspoof_check sptr tptr (fromIntegral tlen) nullPtr)
 
 -- | Serialize the rules in this spoof checker to memory, suitable for re-use
 -- by openFromSerialized.
@@ -231,43 +250,59 @@ serialize s = do
   withSpoof s $ \sptr ->
     handleOverflowError 0
     (\dptr dlen -> (uspoof_serialize sptr dptr (fromIntegral dlen)))
-    (\dptr dlen -> create (fromIntegral dlen) $ \bptr -> memcpy dptr bptr (fromIntegral dlen))
+    (\dptr dlen -> create (fromIntegral dlen) $ \bptr ->
+      memcpy dptr bptr (fromIntegral dlen))
 
 foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_open" uspoof_open
     :: Ptr UErrorCode -> IO (Ptr USpoof)
 
-foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_openFromSerialized" uspoof_openFromSerialized
+foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_openFromSerialized"
+  uspoof_openFromSerialized
     :: Ptr Word8 -> Int32 -> Ptr Int32 -> Ptr UErrorCode -> IO (Ptr USpoof)
 
-foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_openFromSource" uspoof_openFromSource
-    :: CString -> Int32 -> CString -> Int32 -> Ptr Int32 -> Ptr Int32 -> Ptr UErrorCode -> IO (Ptr USpoof)
+foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_openFromSource"
+  uspoof_openFromSource
+    :: CString -> Int32 -> CString -> Int32 -> Ptr Int32 -> Ptr Int32 ->
+       Ptr UErrorCode -> IO (Ptr USpoof)
 
-foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_getChecks" uspoof_getChecks
+foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_getChecks"
+  uspoof_getChecks
     :: Ptr USpoof -> Ptr UErrorCode -> IO USpoofCheck
 
-foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_setChecks" uspoof_setChecks
+foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_setChecks"
+  uspoof_setChecks
     :: Ptr USpoof -> USpoofCheck -> Ptr UErrorCode -> IO ()
 
-foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_getRestrictionLevel" uspoof_getRestrictionLevel
+foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_getRestrictionLevel"
+  uspoof_getRestrictionLevel
     :: Ptr USpoof -> IO URestrictionLevel
 
-foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_setRestrictionLevel" uspoof_setRestrictionLevel
+foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_setRestrictionLevel"
+  uspoof_setRestrictionLevel
     :: Ptr USpoof -> URestrictionLevel -> IO ()
 
-foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_getAllowedLocales" uspoof_getAllowedLocales
+foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_getAllowedLocales"
+  uspoof_getAllowedLocales
     :: Ptr USpoof -> Ptr UErrorCode -> IO CString
 
-foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_setAllowedLocales" uspoof_setAllowedLocales
+foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_setAllowedLocales"
+  uspoof_setAllowedLocales
     :: Ptr USpoof -> CString -> Ptr UErrorCode -> IO ()
 
-foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_areConfusable" uspoof_areConfusable
-    :: Ptr USpoof -> Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> Ptr UErrorCode -> IO USpoofCheck
+foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_areConfusable"
+  uspoof_areConfusable
+    :: Ptr USpoof -> Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> Ptr UErrorCode
+       -> IO USpoofCheck
 
 foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_check" uspoof_check
-    :: Ptr USpoof -> Ptr UChar -> Int32 -> Ptr Int32 -> Ptr UErrorCode -> IO USpoofCheck
+    :: Ptr USpoof -> Ptr UChar -> Int32 -> Ptr Int32 -> Ptr UErrorCode
+       -> IO USpoofCheck
 
-foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_getSkeleton" uspoof_getSkeleton
-    :: Ptr USpoof -> USkeletonTypeOverride -> Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> Ptr UErrorCode -> IO Int32
+foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_getSkeleton"
+  uspoof_getSkeleton
+    :: Ptr USpoof -> USkeletonTypeOverride -> Ptr UChar -> Int32 -> Ptr UChar ->
+       Int32 -> Ptr UErrorCode -> IO Int32
 
-foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_serialize" uspoof_serialize
+foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_serialize"
+  uspoof_serialize
     :: Ptr USpoof -> Ptr Word8 -> Int32 -> Ptr UErrorCode -> IO Int32
