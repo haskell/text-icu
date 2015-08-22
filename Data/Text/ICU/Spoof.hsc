@@ -12,6 +12,10 @@
 -- String spoofing (confusability) checks for Unicode, implemented as
 -- bindings to the International Components for Unicode (ICU) uspoof
 -- library.
+--
+-- See <http://unicode.org/reports/tr36/ UTR #36> and
+-- <http://unicode.org/reports/tr39/ UTS #39> for detailed information
+-- about the underlying algorithms and databases used by this module.
 
 module Data.Text.ICU.Spoof
     (
@@ -19,7 +23,6 @@ module Data.Text.ICU.Spoof
     -- $api
     -- * Types
       MSpoof
-    , Spoof
     , SpoofCheck(..)
     , SpoofCheckResult(..)
     , RestrictionLevel(..)
@@ -53,7 +56,7 @@ import Data.Text (Text, pack, splitOn, strip, unpack)
 import Data.Text.Foreign (fromPtr, useAsPtr)
 import Data.Text.ICU.BitMask (ToBitMask, fromBitMask, highestValueInBitMask,
                               toBitMask)
-import Data.Text.ICU.Spoof.Internal (MSpoof, USpoof, Spoof, withSpoof, wrap,
+import Data.Text.ICU.Spoof.Internal (MSpoof, USpoof, withSpoof, wrap,
                                      wrapWithSerialized)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError,
                                      handleOverflowError)
@@ -65,18 +68,90 @@ import Foreign.ForeignPtr (withForeignPtr)
 
 -- $api
 --
+-- The 'spoofCheck', 'areConfusable', and 'getSkeleton' functions analyze
+-- Unicode text for visually confusable (or \"spoof\") characters.
+--
+-- For example, Latin, Cyrillic, and Greek all contain unique Unicode
+-- values which appear nearly identical on-screen:
+--
+-- @
+--      A    0041    LATIN CAPITAL LETTER A
+--      &#x0391;    0391    GREEK CAPITAL LETTER ALPHA
+--      &#x0410;    0410    CYRILLIC CAPITAL LETTER A
+--      &#x13AA;    13AA    CHEROKEE LETTER GO
+--      &#x1D00;    1D00    LATIN LETTER SMALL CAPITAL A
+--      &#x15C5;    15C5    CANADIAN SYLLABICS CARRIER GHO
+--      &#xFF21;    FF21    FULLWIDTH LATIN CAPITAL LETTER A
+--      &#x102A0;    102A0   CARIAN LETTER A
+--      &#x1D400;    1D400   MATHEMATICAL BOLD CAPITAL A
+-- @
+--
+-- and so on. To check a string for visually confusable characters:
+--
+--   1. 'open' an 'MSpoof'
+--   2. optionally configure it with 'setChecks', 'setRestrictionLevel',
+-- and/or 'setAllowedLocales', then
+--   3. 'spoofCheck' a single string, use 'areConfusable' to check if two
+-- strings could be confused for each other, or use 'getSkeleton' to precompute
+-- a \"skeleton\" string (similar to a hash code) which can be cached
+-- and re-used to quickly check (using Unicode string comparison) if
+-- two strings are confusable.
+--
+-- By default, these methods will use ICU's bundled copy of
+-- <http://unicode.org/Public/security/latest/confusables.txt confusables.txt>
+-- and <http://unicode.org/Public/security/latest/confusablesWholeScript.txt confusablesWholeScript.txt>,
+-- which could be out of date. To provide your own confusables databases, use
+-- 'openFromSource'. (To avoid repeatedly parsing these databases, you
+-- can then 'serialize' your configured 'MSpoof' and later
+-- 'openFromSerialized' to load the pre-parsed databases.)
 
-data SpoofCheck = SingleScriptConfusable
-                | MixedScriptConfusable
-                | WholeScriptConfusable
-                | AnyCase
-                | RestrictionLevel
-                | Invisible
-                | CharLimit
-                | MixedNumbers
-                | AllChecks
-                | AuxInfo
-                deriving (Bounded, Enum, Eq, Show)
+data SpoofCheck
+  -- | Makes 'areConfusable' report if both identifiers are both from the
+  -- same script and are visually confusable. Does not affect 'spoofCheck'.
+  = SingleScriptConfusable
+
+  -- | Makes 'areConfusable' report if both identifiers are visually
+  -- confusable and at least one identifier contains characters from more
+  -- than one script.
+  --
+  -- Makes 'spoofCheck' report if the identifier contains multiple scripts,
+  -- and is confusable with some other identifier in a single script.
+  | MixedScriptConfusable
+
+  -- | Makes 'areConfusable' report if each identifier is of a different
+  -- single script, and the identifiers are visually confusable.
+  | WholeScriptConfusable
+
+  -- | By default, spoof checks assume the strings have been processed
+  -- through 'toCaseFold' and only check lower-case identifiers. If
+  -- this is set, spoof checks will check both upper and lower case
+  -- identifiers.
+  | AnyCase
+
+  -- | Checks that identifiers are no looser than the specified
+  -- level passed to 'setRestrictionLevel'.
+  | RestrictionLevel
+
+  -- | Checks the identifier for the presence of invisible characters,
+  -- such as zero-width spaces, or character sequences that are likely
+  -- not to display, such as multiple occurrences of the same
+  -- non-spacing mark.
+  | Invisible
+
+  -- | Checks whether the identifier contains only characters from a
+  -- specified set (for example, via 'setAllowedLocales').
+  | CharLimit
+
+  -- | Checks that the identifier contains numbers from only a
+  -- single script.
+  | MixedNumbers
+
+  -- | Enables all checks.
+  | AllChecks
+
+  -- | Enables returning a 'RestrictionLevel' in the 'SpoofCheckResult'.
+  | AuxInfo
+  deriving (Bounded, Enum, Eq, Show)
 
 instance ToBitMask SpoofCheck where
   toBitMask SingleScriptConfusable = #const USPOOF_SINGLE_SCRIPT_CONFUSABLE
@@ -92,13 +167,26 @@ instance ToBitMask SpoofCheck where
 
 type USpoofCheck = Int32
 
-data RestrictionLevel = ASCII
-                      | SingleScriptRestrictive
-                      | HighlyRestrictive
-                      | ModeratelyRestrictive
-                      | MinimallyRestrictive
-                      | Unrestrictive
-                      deriving (Bounded, Enum, Eq, Show)
+data RestrictionLevel
+  -- | Checks that the string contains only Unicode values in the range
+  -- #0000#&#2013;#007F# inclusive.
+  = ASCII
+  -- | Checks that the string contains only characters from a single script.
+  | SingleScriptRestrictive
+  -- | Checks that the string contains only characters from a single script,
+  -- or from the combinations (Latin + Han + Hiragana + Katakana),
+  -- (Latin + Han + Bopomofo), or (Latin + Han + Hangul).
+  | HighlyRestrictive
+  -- | Checks that the string contains only characters from the combinations
+  -- (Latin + Cyrillic + Greek + Cherokee), (Latin + Han + Hiragana + Katakana),
+  -- (Latin + Han + Bopomofo), or (Latin + Han + Hangul).
+  | ModeratelyRestrictive
+  -- | Allows arbitrary mixtures of scripts.
+  | MinimallyRestrictive
+  -- | Allows any valid identifiers, including characters outside of the
+  -- Identifier Profile.
+  | Unrestrictive
+  deriving (Bounded, Enum, Eq, Show)
 
 instance ToBitMask RestrictionLevel where
   toBitMask ASCII                   = #const USPOOF_ASCII
@@ -110,16 +198,32 @@ instance ToBitMask RestrictionLevel where
 
 type URestrictionLevel = Int32
 
-data SpoofCheckResult = CheckOK
-                      | CheckFailed [SpoofCheck]
-                      | CheckFailedWithRestrictionLevel {
-                        checks :: [SpoofCheck],
-                        level :: RestrictionLevel }
-                deriving (Eq, Show)
+data SpoofCheckResult
+  -- | The string passed all configured spoof checks.
+  = CheckOK
+  -- | The string failed one or more spoof checks.
+  | CheckFailed [SpoofCheck]
+  -- | The string failed one or more spoof checks, and
+  -- failed to pass the configured restriction level.
+  | CheckFailedWithRestrictionLevel {
+    -- | The spoof checks which the string failed.
+    failedChecks :: [SpoofCheck]
+    -- | The restriction level which the string failed to pass.
+    , failedLevel :: RestrictionLevel
+    }
+  deriving (Eq, Show)
 
-data SkeletonTypeOverride = SkeletonSingleScript
-                          | SkeletonAnyCase
-                          deriving (Bounded, Enum, Eq, Show)
+data SkeletonTypeOverride
+  -- | By default, 'getSkeleton' builds skeletons which catch
+  -- visually confusable characters across multiple scripts.
+  -- Pass this flag to override that behavior and build skeletons
+  -- which catch visually confusable characters across single scripts.
+  = SkeletonSingleScript
+  -- | By default, 'getSkeleton' assumes the input string has already
+  -- been passed through 'toCaseFold' and is lower-case. Pass this
+  -- flag to override that behavior and allow upper and lower-case strings.
+  | SkeletonAnyCase
+  deriving (Bounded, Enum, Eq, Show)
 
 instance ToBitMask SkeletonTypeOverride where
   toBitMask SkeletonSingleScript = #const USPOOF_SINGLE_SCRIPT_CONFUSABLE
@@ -129,25 +233,36 @@ type USkeletonTypeOverride = Int32
 
 makeSpoofCheckResult :: USpoofCheck -> SpoofCheckResult
 makeSpoofCheckResult c =
-  case spoofChecks of
-    [] -> CheckOK
+  case c of
+    0 -> CheckOK
     _ ->
       case restrictionLevel of
         Nothing -> CheckFailed spoofChecks
         Just l -> CheckFailedWithRestrictionLevel spoofChecks l
-  where spoofChecks = fromBitMask $ fromIntegral $
-                      c .&. #const USPOOF_ALL_CHECKS
-        restrictionValue = c .&. #const USPOOF_RESTRICTION_LEVEL_MASK
-        restrictionLevel = highestValueInBitMask $ fromIntegral $
-                           restrictionValue
+      where spoofChecks = fromBitMask $ fromIntegral $
+                          c .&. #const USPOOF_ALL_CHECKS
+            restrictionValue = c .&. #const USPOOF_RESTRICTION_LEVEL_MASK
+            restrictionLevel = highestValueInBitMask $ fromIntegral $
+                               restrictionValue
 
 -- | Open a spoof checker for checking Unicode strings for lookalike
--- security issues.
+-- security issues with default options (all 'SpoofCheck's except
+-- 'CharLimit').
 open :: IO MSpoof
 open = wrap =<< handleError uspoof_open
 
+-- | Open a spoof checker with custom rules given the UTF-8 encoded
+-- contents of the @confusables.txt@ and @confusablesWholeScript.txt@
+-- files as described in <http://unicode.org/reports/tr39/ Unicode UAX #39>.
+openFromSource :: (ByteString, ByteString) -> IO MSpoof
+openFromSource (confusables, confusablesWholeScript) =
+  unsafeUseAsCStringLen confusables $ \(cptr, clen) ->
+    unsafeUseAsCStringLen confusablesWholeScript $ \(wptr, wlen) ->
+      wrap =<< handleError (uspoof_openFromSource cptr (fromIntegral clen) wptr
+                            (fromIntegral wlen) nullPtr nullPtr)
+
 -- | Open a spoof checker previously serialized to bytes using 'serialize'.
--- The returned MSpoof will retain a reference to the ForeignPtr inside
+-- The returned 'MSpoof' will retain a reference to the 'ForeignPtr' inside
 -- the ByteString, so ensure its contents do not change for the lifetime
 -- of the lifetime of the returned value.
 openFromSerialized :: ByteString -> IO MSpoof
@@ -156,16 +271,6 @@ openFromSerialized b =
     (ptr, off, len) -> withForeignPtr ptr $ \p ->
       wrapWithSerialized ptr =<< handleError
       (uspoof_openFromSerialized (p `plusPtr` off) (fromIntegral len) nullPtr)
-
--- | Open a spoof checker given the contents of the "confusables.txt"
--- and "confusablesWholeScript.txt" files as described in Unicode UAX
--- #39.
-openFromSource :: ByteString -> ByteString -> IO MSpoof
-openFromSource confusables confusablesWholeScript =
-  unsafeUseAsCStringLen confusables $ \(cptr, clen) ->
-    unsafeUseAsCStringLen confusablesWholeScript $ \(wptr, wlen) ->
-      wrap =<< handleError (uspoof_openFromSource cptr (fromIntegral clen) wptr
-                            (fromIntegral wlen) nullPtr nullPtr)
 
 -- | Get the checks performed by a spoof checker.
 getChecks :: MSpoof -> IO [SpoofCheck]
@@ -189,7 +294,7 @@ setRestrictionLevel s l = withSpoof s $ \sptr ->
     uspoof_setRestrictionLevel sptr . fromIntegral $ toBitMask l
 
 -- | Get the list of locale names allowed to be used with a spoof checker.
--- (We don't use LocaleName since the root and default locales have no
+-- (We don't use 'LocaleName' since the root and default locales have no
 -- meaning here.)
 getAllowedLocales :: MSpoof -> IO [String]
 getAllowedLocales s = withSpoof s $ \sptr ->
@@ -197,7 +302,7 @@ getAllowedLocales s = withSpoof s $ \sptr ->
   where splitLocales = fmap (unpack . strip) . splitOn "," . pack
 
 -- | Get the list of locale names allowed to be used with a spoof checker.
--- (We don't use LocaleName since the root and default locales have no
+-- (We don't use 'LocaleName' since the root and default locales have no
 -- meaning here.)
 setAllowedLocales :: MSpoof -> [String] -> IO ()
 setAllowedLocales s locs = withSpoof s $ \sptr ->
@@ -214,8 +319,22 @@ areConfusable s t1 t2 = withSpoof s $ \sptr ->
                    t1ptr (fromIntegral t1len)
                    t2ptr (fromIntegral t2len))
 
--- | Generate a re-usable "skeleton" to check if an identifier is confusable
+-- | Generates re-usable "skeleton" strings which can be used (via
+-- Unicode equality) to check if an identifier is confusable
 -- with some large set of existing identifiers.
+--
+-- If you cache the returned strings in storage, you /must/ invalidate
+-- your cache any time the underlying confusables database changes
+-- (i.e., on ICU upgrade).
+--
+-- By default, assumes all input strings have been passed through
+-- 'toCaseFold' and are lower-case. To change this, pass
+-- 'SkeletonAnyCase'.
+--
+-- By default, builds skeletons which catch visually confusable
+-- characters across multiple scripts.  Pass 'SkeletonSingleScript' to
+-- override that behavior and build skeletons which catch visually
+-- confusable characters across single scripts.
 getSkeleton :: MSpoof -> Maybe SkeletonTypeOverride -> Text -> IO Text
 getSkeleton s o t = withSpoof s $ \sptr ->
   useAsPtr t $ \tptr tlen ->
@@ -223,17 +342,20 @@ getSkeleton s o t = withSpoof s $ \sptr ->
       (\dptr dlen -> uspoof_getSkeleton sptr oflags tptr
                      (fromIntegral tlen) dptr (fromIntegral dlen))
       (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
-    where oflags = maybe 0 (fromIntegral $ toBitMask) o
+    where oflags = maybe 0 (fromIntegral . toBitMask) o
 
--- | Check if a string could be confused with any other.
+-- | Checks if a string could be confused with any other.
 spoofCheck :: MSpoof -> Text -> IO SpoofCheckResult
 spoofCheck s t = withSpoof s $ \sptr ->
   useAsPtr t $ \tptr tlen ->
     makeSpoofCheckResult <$> handleError
       (uspoof_check sptr tptr (fromIntegral tlen) nullPtr)
 
--- | Serialize the rules in this spoof checker to memory, suitable for re-use
--- by openFromSerialized.
+-- | Serializes the rules in this spoof checker to a byte array,
+-- suitable for re-use by 'openFromSerialized'.
+--
+-- Only includes any data provided to 'openFromSource'. Does not
+-- include any other state or configuration.
 serialize :: MSpoof -> IO ByteString
 serialize s = withSpoof s $ \sptr ->
   handleOverflowError 0

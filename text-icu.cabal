@@ -29,6 +29,8 @@ description:
     unique binary representation.)
   .
   * Regular expression search and replace.
+  .
+  * Security checks for visually confusable (spoofable) strings.
 maintainer:     Bryan O'Sullivan <bos@serpentine.com>
 copyright:      2009-2014 Bryan O'Sullivan
 category:       Data, Text

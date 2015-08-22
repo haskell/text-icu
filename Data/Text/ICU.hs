@@ -86,20 +86,27 @@ module Data.Text.ICU
     , prefix
     , suffix
     -- * Spoof checking
+    -- $spoof
     , Spoof
+    , SpoofParams(..)
     , S.SpoofCheck(..)
     , S.RestrictionLevel(..)
     , S.SpoofCheckResult(..)
+    -- ** Construction
     , spoof
     , spoofWithParams
+    , spoofFromSource
     , spoofFromSerialized
+    -- ** String checking
     , areConfusable
+    , spoofCheck
     , getSkeleton
+    -- ** Configuration
     , getChecks
     , getAllowedLocales
     , getRestrictionLevel
+    -- ** Persistence
     , serialize
-    , spoofCheck
     ) where
 
 import Data.Text.ICU.Break.Pure
@@ -176,3 +183,14 @@ import Data.Text (Text)
 -- Capturing groups are numbered starting from zero.  Group zero is
 -- always the entire matching text.  Groups greater than zero contain
 -- the text matching each capturing group in a regular expression.
+
+-- $spoof
+--
+-- The 'Spoof' type performs security checks on visually confusable
+-- (spoof) strings.  For the impure spoof checking API (which is
+-- richer, but less easy to use than the pure API), see the
+-- "Data.Text.ICU.Spoof" module.
+--
+-- See <http://unicode.org/reports/tr36/ UTR #36> and
+-- <http://unicode.org/reports/tr39/ UTS #39> for detailed information
+-- about the underlying algorithms and databases used by these functions.

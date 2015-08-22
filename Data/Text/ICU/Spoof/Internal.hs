@@ -12,10 +12,13 @@
 
 module Data.Text.ICU.Spoof.Internal
     (
-    -- * Unicode collation API
+    -- * Unicode spoof checking API
+    -- $api
+    -- * Types
       MSpoof(..)
     , Spoof(..)
     , USpoof
+    -- * Functions
     , withSpoof
     , wrap
     , wrapWithSerialized
@@ -27,28 +30,37 @@ import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, withForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr)
 
 -- $api
---
+-- Low-level operations on spoof checkers.
 
+-- | Opaque handle to a configurable spoof checker.
 data USpoof
 
--- | Spoof checker type.
+-- | Configurable spoof checker wrapping an opaque handle
+-- and optionally wrapping a previously serialized instance.
 data MSpoof = MSpoof {
     serializedBuf :: Maybe (ForeignPtr Word8)
   , spoofPtr :: {-# UNPACK #-} !(ForeignPtr USpoof)
 } deriving (Typeable)
 
 -- | Spoof checker type.
-newtype Spoof = C MSpoof
+newtype Spoof = S MSpoof
     deriving (Typeable)
 
+-- | Temporarily unwraps an 'MSpoof' to perform operations on its raw 'USpoof'
+-- handle.
 withSpoof :: MSpoof -> (Ptr USpoof -> IO a) -> IO a
 withSpoof (MSpoof _ spoof) = withForeignPtr spoof
 {-# INLINE withSpoof #-}
 
+-- | Wraps a raw 'USpoof' handle in an 'MSpoof', closing the handle when
+-- the last reference to the object is dropped.
 wrap :: Ptr USpoof -> IO MSpoof
 wrap = fmap (MSpoof Nothing) . newForeignPtr uspoof_close
 {-# INLINE wrap #-}
 
+-- | Wraps a previously serialized spoof checker and raw 'USpoof' handle
+-- in an 'MSpoof', closing the handle and releasing the 'ForeignPtr' when
+-- the last reference to the object is dropped.
 wrapWithSerialized :: ForeignPtr Word8 -> Ptr USpoof -> IO MSpoof
 wrapWithSerialized s = fmap (MSpoof $ Just s) . newForeignPtr uspoof_close
 {-# INLINE wrapWithSerialized #-}

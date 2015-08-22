@@ -7,16 +7,18 @@ module Data.Text.ICU.BitMask
     -- * Bit mask twiddling API
     -- $api
     -- * Types
-      ToBitMask
+      ToBitMask(..)
     -- * Functions
     , fromBitMask
     , highestValueInBitMask
-    , toBitMask
     ) where
-
 
 import Data.Bits ((.&.), (.|.))
 import Data.Maybe (listToMaybe)
+
+-- $api
+-- Conversion to and from enumerated types representable as
+-- a compact bitmask.
 
 class ToBitMask a where
   toBitMask :: a -> Int
