@@ -467,13 +467,16 @@ USpoofChecker *__hs_uspoof_openFromSource(const char *confusables,
                                           const char *confusablesWholeScript,
                                           int32_t confusablesWholeScriptLen,
                                           int32_t *errType,
-                                          int32_t *unused, /* UParseError * */
+                                          UParseError *parseError,
                                           UErrorCode *status)
 {
+    // Work around missing call to umtx_initOnce() in uspoof_openFromSource()
+    // causing crash when gNfdNormalizer is accessed
+    uspoof_getInclusionSet(status);
     return uspoof_openFromSource(confusables, confusablesLen,
                                  confusablesWholeScript,
                                  confusablesWholeScriptLen,
-                                 errType, NULL, status);
+                                 errType, parseError, status);
 }
 
 void __hs_uspoof_setChecks(USpoofChecker *sc, int32_t checks,

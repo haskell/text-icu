@@ -1,5 +1,5 @@
 {-# LANGUAGE BangPatterns, CPP, DeriveDataTypeable, ForeignFunctionInterface,
-    OverloadedStrings #-}
+    OverloadedStrings, RecordWildCards, ScopedTypeVariables #-}
 -- |
 -- Module      : Data.Text.ICU.Spoof
 -- Copyright   : (c) 2015 Ben Hamilton
@@ -23,6 +23,7 @@ module Data.Text.ICU.Spoof
     -- $api
     -- * Types
       MSpoof
+    , OpenFromSourceParseError(..)
     , SpoofCheck(..)
     , SpoofCheckResult(..)
     , RestrictionLevel(..)
@@ -43,9 +44,13 @@ module Data.Text.ICU.Spoof
     , serialize
     ) where
 
+#include <unicode/parseerr.h>
 #include <unicode/uspoof.h>
+#include <unicode/utypes.h>
 
 import Control.Applicative
+import Control.DeepSeq (NFData(..))
+import Control.Exception (Exception, throwIO, catchJust)
 import Data.Bits ((.&.))
 import Data.ByteString (ByteString)
 import Data.ByteString.Internal (create, memcpy, toForeignPtr)
@@ -58,12 +63,17 @@ import Data.Text.ICU.BitMask (ToBitMask, fromBitMask, highestValueInBitMask,
                               toBitMask)
 import Data.Text.ICU.Spoof.Internal (MSpoof, USpoof, withSpoof, wrap,
                                      wrapWithSerialized)
-import Data.Text.ICU.Error.Internal (UErrorCode, handleError,
-                                     handleOverflowError)
+import Data.Text.ICU.Error (u_PARSE_ERROR)
+import Data.Text.ICU.Error.Internal (UErrorCode, UParseError,
+                                     ParseError(..), handleError,
+                                     handleOverflowError, handleParseError)
 import Data.Text.ICU.Internal (UChar)
+import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Foreign.C.String (CString, peekCString, withCString)
+import Foreign.Marshal.Utils (with)
 import Foreign.Ptr (Ptr, castPtr, nullPtr, plusPtr)
+import Foreign.Storable (peek)
 import Foreign.ForeignPtr (withForeignPtr)
 
 -- $api
@@ -245,11 +255,35 @@ makeSpoofCheckResult c =
             restrictionLevel = highestValueInBitMask $ fromIntegral $
                                restrictionValue
 
+-- | Indicates which input file to 'openFromSource' failed to parse upon error.
+data OpenFromSourceParseErrorFile =
+  ConfusablesTxtError | ConfusablesWholeScriptTxtError
+  deriving (Eq, Show)
+
+instance NFData OpenFromSourceParseErrorFile where
+  rnf !_ = ()
+
+-- | Exception thrown with 'openFromSource' fails to parse one of the input files.
+data OpenFromSourceParseError = OpenFromSourceParseError {
+    -- | The file which could not be parsed.
+      errFile :: OpenFromSourceParseErrorFile
+    -- | Parse error encountered opening a spoof checker from source.
+    , parseError :: ParseError
+    } deriving (Show, Typeable)
+
+instance NFData OpenFromSourceParseError where
+    rnf OpenFromSourceParseError{..} = rnf parseError `seq` rnf errFile
+
+instance Exception OpenFromSourceParseError
+
 -- | Open a spoof checker for checking Unicode strings for lookalike
 -- security issues with default options (all 'SpoofCheck's except
 -- 'CharLimit').
 open :: IO MSpoof
 open = wrap =<< handleError uspoof_open
+
+isParseError :: ParseError -> Maybe ParseError
+isParseError = Just
 
 -- | Open a spoof checker with custom rules given the UTF-8 encoded
 -- contents of the @confusables.txt@ and @confusablesWholeScript.txt@
@@ -258,8 +292,24 @@ openFromSource :: (ByteString, ByteString) -> IO MSpoof
 openFromSource (confusables, confusablesWholeScript) =
   unsafeUseAsCStringLen confusables $ \(cptr, clen) ->
     unsafeUseAsCStringLen confusablesWholeScript $ \(wptr, wlen) ->
-      wrap =<< handleError (uspoof_openFromSource cptr (fromIntegral clen) wptr
-                            (fromIntegral wlen) nullPtr nullPtr)
+      with 0 $ \errTypePtr ->
+        catchJust
+          isParseError
+          (wrap =<< (handleParseError
+            (== u_PARSE_ERROR)
+            (uspoof_openFromSource cptr (fromIntegral clen) wptr
+              (fromIntegral wlen) errTypePtr)))
+          (throwOpenFromSourceParseError errTypePtr)
+
+throwOpenFromSourceParseError :: Ptr Int32 -> ParseError -> IO a
+throwOpenFromSourceParseError errTypePtr parseErr = do
+  errType <- peek errTypePtr
+  let errFile =
+        if errType == #{const USPOOF_SINGLE_SCRIPT_CONFUSABLE}
+        then ConfusablesTxtError
+        -- N.B.: ICU as of 55.1 actually leaves errFile set to 0 in this case.
+        else ConfusablesWholeScriptTxtError
+  throwIO $! OpenFromSourceParseError errFile parseErr
 
 -- | Open a spoof checker previously serialized to bytes using 'serialize'.
 -- The returned 'MSpoof' will retain a reference to the 'ForeignPtr' inside
@@ -372,7 +422,7 @@ foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_openFromSerialized"
 
 foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_openFromSource"
   uspoof_openFromSource
-    :: CString -> Int32 -> CString -> Int32 -> Ptr Int32 -> Ptr Int32 ->
+    :: CString -> Int32 -> CString -> Int32 -> Ptr Int32 -> Ptr UParseError ->
        Ptr UErrorCode -> IO (Ptr USpoof)
 
 foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_getChecks"
