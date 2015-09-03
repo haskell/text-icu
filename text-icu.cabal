@@ -1,5 +1,5 @@
 name:           text-icu
-version:        0.7.0.1
+version:        0.55.1.0
 synopsis:       Bindings to the ICU library
 homepage:       https://github.com/bos/text-icu
 bug-reports:    https://github.com/bos/text-icu/issues
@@ -32,7 +32,7 @@ description:
   .
   * Security checks for visually confusable (spoofable) strings.
 maintainer:     Bryan O'Sullivan <bos@serpentine.com>
-copyright:      2009-2014 Bryan O'Sullivan
+copyright:      2009-2015 Bryan O'Sullivan
 category:       Data, Text
 license:        BSD3
 license-file:   LICENSE

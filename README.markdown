@@ -12,9 +12,15 @@ the following:
 # Prerequisites
 
 This library is implemented as bindings to the well-respected [ICU
-library](http://www.icu-project.org/), which is not included.  The versions
-of ICU currently supported are 4.0 and newer;
-verified at least up to ICU version 55.
+library](http://www.icu-project.org/) (which is not bundled, and must
+be installed separately).
+
+
+# Compatibility
+
+Upstream ICU occasionally introduces backwards-incompatible API
+breaks.  This package tries to stay up to date with upstream, and is
+currently more or less in sync with ICU 55.
 
 
 # Get involved!
