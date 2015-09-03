@@ -823,6 +823,10 @@ data LineBreak =
   | JL
   | JT
   | JV
+  | CloseParenthesis
+  | ConditionalJapaneseStarter
+  | LBHebrewLetter
+  | LBRegionalIndicator
     deriving (Eq, Enum, Show, Typeable)
 
 instance NFData LineBreak where
