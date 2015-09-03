@@ -51,6 +51,7 @@ module Data.Text.ICU.Char
     , LineBreak_(..)
     , SentenceBreak_(..)
     , WordBreak_(..)
+    , BidiPairedBracketType_(..)
     -- * Property value types
     , BlockCode(..)
     , Direction(..)
@@ -66,6 +67,7 @@ module Data.Text.ICU.Char
     , LineBreak(..)
     , SentenceBreak(..)
     , WordBreak(..)
+    , BidiPairedBracketType(..)
     -- * Functions
     , blockCode
     , charFullName
@@ -507,6 +509,16 @@ data Bool_ =
   -- ^ Printable character class.
   | POSIXXDigit
   -- ^ Hex digit character class.
+  | Cased
+  -- ^ Cased character class. For lowercase, uppercase and titlecase characters.
+  | CaseIgnorable
+  -- ^ Used in context-sensitive case mappings.
+  | ChangesWhenLowercased
+  | ChangesWhenUppercased
+  | ChangesWhenTitlecased
+  | ChangesWhenCasefolded
+  | ChangesWhenCasemapped
+  | ChangesWhenNFKCCasefolded
     deriving (Eq, Enum, Show, Typeable)
 
 instance NFData Bool_ where
@@ -958,6 +970,24 @@ instance NFData WordBreak where
 instance Property WordBreak_ (Maybe WordBreak) where
     fromNative  _ = maybeEnum
     toUProperty _ = (#const UCHAR_WORD_BREAK)
+
+data BidiPairedBracketType_ = BidiPairedBracketType deriving (Show, Typeable)
+
+instance NFData BidiPairedBracketType_ where
+    rnf !_ = ()
+
+data BidiPairedBracketType =
+    BPTNone
+  | BPTOpen
+  | BPTClose
+    deriving (Eq, Enum, Show, Typeable)
+
+instance NFData BidiPairedBracketType where
+    rnf !_ = ()
+
+instance Property BidiPairedBracketType_ (Maybe BidiPairedBracketType) where
+    fromNative  _ = maybeEnum
+    toUProperty _ = (#const UCHAR_BIDI_PAIRED_BRACKET_TYPE)
 
 property :: Property p v => p -> Char -> v
 property p c = fromNative p . u_getIntPropertyValue (fromIntegral (ord c)) .
