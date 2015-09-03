@@ -993,6 +993,10 @@ data WordBreak =
   | WBLF
   | WBMidNumLet
   | WBNewline
+  | RegionalIndicator
+  | HebrewLetter
+  | SingleQuote
+  | DoubleQuote
     deriving (Eq, Enum, Show, Typeable)
 
 instance NFData WordBreak where
