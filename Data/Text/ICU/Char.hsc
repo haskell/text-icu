@@ -722,6 +722,37 @@ data JoiningGroup =
   | Khaph
   | Zhain
   | BurushaskiYehBarree
+  | FarsiYeh
+  | Nya
+  | RohingyaYeh
+  | ManichaeanAleph
+  | ManichaeanAyin
+  | ManichaeanBeth
+  | ManichaeanDaleth
+  | ManichaeanDhamedh
+  | ManichaeanFive
+  | ManichaeanGimel
+  | ManichaeanHeth
+  | ManichaeanHundred
+  | ManichaeanKaph
+  | ManichaeanLamedh
+  | ManichaeanMem
+  | ManichaeanNun
+  | ManichaeanOne
+  | ManichaeanPe
+  | ManichaeanQoph
+  | ManichaeanResh
+  | ManichaeanSadhe
+  | ManichaeanSamekh
+  | ManichaeanTaw
+  | ManichaeanTen
+  | ManichaeanTeth
+  | ManichaeanThamedh
+  | ManichaeanTwenty
+  | ManichaeanWaw
+  | ManichaeanYodh
+  | ManichaeanZayin
+  | StraightWaw
     deriving (Eq, Enum, Show, Typeable)
 
 instance NFData JoiningGroup where
