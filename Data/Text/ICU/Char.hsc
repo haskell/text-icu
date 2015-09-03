@@ -357,6 +357,38 @@ data BlockCode =
   | SoraSompeng
   | SundaneseSupplement
   | Takri
+  | BassaVah
+  | CaucasianAlbanian
+  | CopticEpactNumbers
+  | CombiningDiacriticalMarksExtended
+  | Duployan
+  | Elbasan
+  | GeometricShapesExtended
+  | Grantha
+  | Khojki
+  | Khudawadi
+  | LatinExtendedE
+  | LinearA
+  | Mahajani
+  | Manichaean
+  | MendeKikakui
+  | Modi
+  | Mro
+  | MyanmarExtendedB
+  | Nabataean
+  | OldNorthArabian
+  | OldPermic
+  | OrnamentalDingbats
+  | PahawhHmong
+  | Palmyrene
+  | PauCinHau
+  | PsalterPahlavi
+  | ShorthandFormatControls
+  | Siddham
+  | SinhalaArchaicNumbers
+  | SupplementalArrowsC
+  | Tirhuta
+  | WarangCiti
   deriving (Eq, Enum, Bounded, Show, Typeable)
 
 instance NFData BlockCode where
