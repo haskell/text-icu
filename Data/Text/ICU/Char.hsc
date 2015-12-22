@@ -391,6 +391,16 @@ data BlockCode =
   | SupplementalArrowsC
   | Tirhuta
   | WarangCiti
+  | Ahom
+  | AnatolianHieroglyphs
+  | CherokeeSupplement
+  | CJKUnifiedIdeographsExtensionE
+  | EarlyDynasticCuneiform
+  | Hatran
+  | Multani
+  | OldHungarian
+  | SupplementalSymbolsAndPictographs
+  | SuttonSignwriting
   deriving (Eq, Enum, Bounded, Show, Typeable)
 
 instance NFData BlockCode where
