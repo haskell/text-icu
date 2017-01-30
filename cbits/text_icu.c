@@ -544,3 +544,93 @@ void __hs_uspoof_close(USpoofChecker *sc)
 {
     uspoof_close(sc);
 }
+
+UCharsetDetector *__hs_ucsdet_open(UErrorCode *status)
+{
+    return ucsdet_open(status);
+}
+
+void __hs_ucsdet_close(UCharsetDetector *ucsd)
+{
+    ucsdet_close(ucsd);
+}
+
+void __hs_ucsdet_setText(UCharsetDetector *ucsd,
+                         const char *textIn, int32_t length,
+                         UErrorCode *status)
+{
+    ucsdet_setText(ucsd, textIn, length, status);
+}
+
+void __hs_ucsdet_setDeclaredEncoding(UCharsetDetector *ucsd,
+                                     const char *encoding, int32_t length,
+                                     UErrorCode *status)
+{
+    ucsdet_setDeclaredEncoding(ucsd, encoding, length, status);
+}
+
+const UCharsetMatch *__hs_ucsdet_detect(UCharsetDetector *ucsd, UErrorCode *status)
+{
+    return ucsdet_detect(ucsd, status);
+}
+
+const UCharsetMatch **__hs_ucsdet_detectAll(UCharsetDetector *ucsd,
+                                            int32_t *matchesFound,
+                                            UErrorCode *status)
+{
+    return ucsdet_detectAll(ucsd, matchesFound, status);
+}
+
+const char *__hs_ucsdet_getName(const UCharsetMatch *ucsm,
+                                UErrorCode *status)
+{
+    return ucsdet_getName(ucsm, status);
+}
+
+int32_t __hs_ucsdet_getConfidence(const UCharsetMatch *ucsm,
+                                  UErrorCode *status)
+{
+    return ucsdet_getConfidence(ucsm, status);
+}
+
+const char *__hs_ucsdet_getLanguage(const UCharsetMatch *ucsm,
+                                    UErrorCode *status)
+{
+    return ucsdet_getLanguage(ucsm, status);
+}
+
+int32_t __hs_ucsdet_getUChars(const UCharsetMatch *ucsm,
+                              UChar *buf, int32_t capacity,
+                              UErrorCode *status)
+{
+    return ucsdet_getUChars(ucsm, buf, capacity, status);
+}
+
+UEnumeration *__hs_ucsdet_getAllDetectableCharsets(const UCharsetDetector *ucsd,
+                                                   UErrorCode *status)
+{
+    return ucsdet_getAllDetectableCharsets(ucsd, status);
+}
+
+UBool __hs_ucsdet_isInputFilterEnabled(const UCharsetDetector *ucsd)
+{
+    return ucsdet_isInputFilterEnabled(ucsd);
+}
+
+UBool __hs_ucsdet_enableInputFilter(UCharsetDetector *ucsd, UBool filter)
+{
+    return ucsdet_enableInputFilter(ucsd, filter);
+}
+
+UEnumeration *__hs_ucsdet_getDetectableCharsets(const UCharsetDetector *ucsd,
+                                                UErrorCode *status)
+{
+    return ucsdet_getDetectableCharsets(ucsd, status);
+}
+
+void __hs_ucsdet_setDetectableCharset(UCharsetDetector *ucsd,
+                                      const char *encoding, UBool enabled,
+                                      UErrorCode *status)
+{
+    return ucsdet_setDetectableCharset(ucsd, encoding, enabled, status);
+}
