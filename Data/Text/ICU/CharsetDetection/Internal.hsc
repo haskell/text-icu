@@ -18,16 +18,20 @@ module Data.Text.ICU.CharsetDetection.Internal
     (
      UCharsetDetector
     ,UCharsetMatch
-    ,MCharsetDetector(..)
     ,CharsetMatch(..)
     ,CharsetDetector(..)
     ,withCharsetDetector
     ,wrapUCharsetDetector
+    ,wrapUCharsetMatch
+    ,mkCharsetDetector
+    ,withCharsetMatch
     ) where
 
 import Data.Typeable (Typeable)
-import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, withForeignPtr)
+import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, newForeignPtr_, withForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr)
+
+import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
 
 #include <unicode/ucsdet.h>
 
@@ -38,24 +42,23 @@ data UCharsetDetector
 -- always call ucsdet_close on any UCharsetDetector when we are done. The
 -- 'withCharsetDetector' and 'wrapUCharsetDetector' functions simplify
 -- management of the pointers.
-data MCharsetDetector = MCharsetDetector {
+data CharsetDetector = CharsetDetector {
     charsetDetectorPtr :: {-# UNPACK #-} !(ForeignPtr UCharsetDetector)
 } deriving (Typeable)
 
--- | Charset detector type
-newtype CharsetDetector = CD MCharsetDetector
-    deriving (Typeable)
+mkCharsetDetector :: IO CharsetDetector
+mkCharsetDetector = handleError ucsdet_open >>= wrapUCharsetDetector
 
--- | Temporarily unwraps an 'MCharsetDetector' to perform operations on its
+-- | Temporarily unwraps an 'CharsetDetector' to perform operations on its
 -- raw 'UCharsetDetector' handle.
-withCharsetDetector :: MCharsetDetector -> (Ptr UCharsetDetector -> IO a) -> IO a
-withCharsetDetector (MCharsetDetector ucsd) = withForeignPtr ucsd
+withCharsetDetector :: CharsetDetector -> (Ptr UCharsetDetector -> IO a) -> IO a
+withCharsetDetector (CharsetDetector ucsd) = withForeignPtr ucsd
 {-# INLINE withCharsetDetector #-}
 
--- | Wraps a raw 'UCharsetDetector' in an 'MCharsetDetector', closing the
+-- | Wraps a raw 'UCharsetDetector' in an 'CharsetDetector', closing the
 -- handle when the last reference to the object is dropped.
-wrapUCharsetDetector :: Ptr UCharsetDetector -> IO MCharsetDetector
-wrapUCharsetDetector = fmap MCharsetDetector . newForeignPtr ucsdet_close
+wrapUCharsetDetector :: Ptr UCharsetDetector -> IO CharsetDetector
+wrapUCharsetDetector = fmap CharsetDetector . newForeignPtr ucsdet_close
 {-# INLINE wrapUCharsetDetector #-}
 
 -- | Opaque handle to a character set match
@@ -67,5 +70,14 @@ data CharsetMatch = CharsetMatch {
     charsetMatchPtr :: {-# UNPACK #-} !(ForeignPtr UCharsetMatch)
 } deriving (Typeable)
 
+wrapUCharsetMatch :: Ptr UCharsetMatch -> IO CharsetMatch
+wrapUCharsetMatch = fmap CharsetMatch . newForeignPtr_
+
+withCharsetMatch :: CharsetMatch -> (Ptr UCharsetMatch -> IO a) -> IO a
+withCharsetMatch (CharsetMatch ucsm) = withForeignPtr ucsm
+
 foreign import ccall unsafe "hs_text_icu.h &__hs_ucsdet_close" ucsdet_close
     :: FunPtr (Ptr UCharsetDetector -> IO ())
+
+foreign import ccall unsafe "hs_text_icu.h __hs_ucsdet_open" ucsdet_open
+    :: Ptr UErrorCode -> IO (Ptr UCharsetDetector)
