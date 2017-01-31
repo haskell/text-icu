@@ -79,6 +79,7 @@ library
       Data.Text.ICU.Spoof.Internal
       Data.Text.ICU.Spoof.Pure
       Data.Text.ICU.Text
+      Data.Text.ICU.CharsetDetection.Internal
   c-sources: cbits/text_icu.c
   include-dirs: include
   extra-libraries: icuuc
