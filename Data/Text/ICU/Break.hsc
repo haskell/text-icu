@@ -64,7 +64,7 @@ import Foreign.ForeignPtr (newForeignPtr, withForeignPtr)
 import Foreign.Marshal.Array (allocaArray, peekArray)
 import Foreign.Marshal.Utils (with)
 import Foreign.Ptr (FunPtr, Ptr, nullPtr)
-import Prelude hiding (last)
+import Prelude hiding (last, Word)
 import System.IO.Unsafe (unsafePerformIO)
 
 -- $indices
