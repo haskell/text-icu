@@ -44,6 +44,11 @@ extra-source-files:
   changelog.md
   include/hs_text_icu.h
 
+flag static
+  description: Use static library (currently on mingw)
+  default:     False
+  manual:      True
+
 library
   default-language:  Haskell98
   build-depends:
@@ -81,11 +86,13 @@ library
       Data.Text.ICU.Text
   c-sources: cbits/text_icu.c
   include-dirs: include
-  extra-libraries: icuuc
   if os(mingw32)
-    extra-libraries: icuin icudt
+    if flag(static)
+      extra-libraries: sicuin sicuuc sicudt
+    else
+      extra-libraries: icuin.dll icuuc.dll icudt.dll
   else
-    extra-libraries: icui18n icudata
+    extra-libraries: icuuc icui18n icudata
 
   ghc-options: -Wall -fwarn-tabs
 
