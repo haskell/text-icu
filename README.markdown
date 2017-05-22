@@ -26,7 +26,7 @@ currently more or less in sync with ICU 55.
 # Get involved!
 
 Please report bugs via the
-[bitbucket issue tracker](http://bitbucket.org/bos/text-icu/issues).
+[github issue tracker](http://github.com/bos/text-icu/issues).
 
 Master [Mercurial repository](http://bitbucket.org/bos/text-icu):
 
