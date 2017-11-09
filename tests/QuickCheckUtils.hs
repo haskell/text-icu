@@ -2,14 +2,17 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module QuickCheckUtils (NonEmptyText(..), LatinSpoofableText(..),
-                        NonSpoofableText(..)) where
+                        NonSpoofableText(..), Utf8Text(..)) where
 
 import Control.Applicative ((<$>))
 import Control.DeepSeq (NFData(..))
 import Data.Text.ICU (Collator, LocaleName(..), NormalizationMode(..))
 import Data.Text.ICU.Break (available)
-import Test.QuickCheck (Arbitrary(..), Gen, elements, listOf1)
+import Test.QuickCheck (Arbitrary(..), Gen, elements, listOf1, suchThat, vectorOf)
+import Data.Word (Word8)
+import qualified Data.ByteString as BS
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 import qualified Data.Text.ICU as I
 
 instance NFData Ordering where
@@ -18,6 +21,10 @@ instance NFData Ordering where
 instance Arbitrary T.Text where
     arbitrary = T.pack `fmap` arbitrary
     shrink = map T.pack . shrink . T.unpack
+
+instance Arbitrary BS.ByteString where
+    arbitrary = BS.pack <$> arbitrary
+    shrink xs = BS.pack <$> shrink (BS.unpack xs)
 
 instance Arbitrary LocaleName where
     arbitrary = elements (Root:available)
@@ -29,6 +36,7 @@ instance Arbitrary Collator where
     arbitrary = I.collator <$> arbitrary
 
 newtype NonEmptyText = NonEmptyText { nonEmptyText :: T.Text } deriving Show
+
 instance Arbitrary NonEmptyText where
   arbitrary = NonEmptyText <$> T.pack <$> listOf1 arbitrary
 
@@ -58,3 +66,14 @@ instance Arbitrary NonSpoofableText where
 
 genNonSpoofableChar :: Gen Char
 genNonSpoofableChar = elements "QDFRz"
+
+newtype Utf8Text = Utf8Text { utf8Text :: BS.ByteString }
+                 deriving Show
+
+instance Arbitrary Utf8Text where
+    arbitrary = Utf8Text . BS.pack <$> vectorOf 300
+        (suchThat
+            (arbitrary :: Gen Word8)
+            (`elem` ([0x41..0x5A] ++ [0x61..0x7A]))
+        )
+

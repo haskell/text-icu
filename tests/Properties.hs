@@ -14,13 +14,15 @@ import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Data.Text.ICU (NormalizationMode(..))
 import QuickCheckUtils (NonEmptyText(..), LatinSpoofableText(..),
-                        NonSpoofableText(..))
+                        NonSpoofableText(..), Utf8Text(..))
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
+import Test.QuickCheck.Monadic (monadicIO, run, assert)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.ICU as I
 import qualified Data.Text.ICU.Char as I
+import qualified Data.Text.ICU.CharsetDetection as I
 
 t_rnf :: (NFData b) => (a -> b) -> a -> Bool
 t_rnf f t = rnf (f t) == ()
@@ -87,6 +89,11 @@ t_spoofable (LatinSpoofableText t) = I.spoofCheck I.spoof t ==
 t_confusable (NonEmptyText t) = I.areConfusable I.spoof t t ==
                                 I.CheckFailed [I.SingleScriptConfusable]
 
+-- Encoding Guessing
+t_Utf8IsUtf8 a = monadicIO $ do
+    val <- run $ I.detect (utf8Text a) >>= I.getName
+    assert $ T.isPrefixOf "UTF-8" val
+
 tests :: Test
 tests =
   testGroup "Properties" [
@@ -112,4 +119,5 @@ tests =
   , testProperty "t_spoofable" t_spoofable
   , testProperty "t_nonspoofable" t_nonspoofable
   , testProperty "t_confusable" t_confusable
+  , testProperty "t_Utf8IsUtf8" t_Utf8IsUtf8
   ]

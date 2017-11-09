@@ -1,5 +1,5 @@
 name:           text-icu
-version:        0.55.1.0
+version:        0.55.2.0
 synopsis:       Bindings to the ICU library
 homepage:       https://github.com/bos/text-icu
 bug-reports:    https://github.com/bos/text-icu/issues
@@ -56,6 +56,7 @@ library
       Data.Text.ICU
       Data.Text.ICU.Break
       Data.Text.ICU.Char
+      Data.Text.ICU.CharsetDetection
       Data.Text.ICU.Collate
       Data.Text.ICU.Convert
       Data.Text.ICU.Error
@@ -67,6 +68,7 @@ library
       Data.Text.ICU.BitMask
       Data.Text.ICU.Break.Pure
       Data.Text.ICU.Break.Types
+      Data.Text.ICU.CharsetDetection.Internal
       Data.Text.ICU.Collate.Internal
       Data.Text.ICU.Collate.Pure
       Data.Text.ICU.Convert.Internal
