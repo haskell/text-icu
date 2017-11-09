@@ -16,15 +16,15 @@
 -- <http://userguide.icu-project.org/conversion/detection>.
 module Data.Text.ICU.CharsetDetection.Internal
     (
-     UCharsetDetector
-    ,UCharsetMatch
-    ,CharsetMatch(..)
-    ,CharsetDetector(..)
-    ,withCharsetDetector
-    ,wrapUCharsetDetector
-    ,wrapUCharsetMatch
-    ,mkCharsetDetector
-    ,withCharsetMatch
+      UCharsetDetector
+    , UCharsetMatch
+    , CharsetMatch(..)
+    , CharsetDetector(..)
+    , withCharsetDetector
+    , wrapUCharsetDetector
+    , wrapUCharsetMatch
+    , mkCharsetDetector
+    , withCharsetMatch
     ) where
 
 import Data.Typeable (Typeable)

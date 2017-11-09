@@ -15,16 +15,17 @@
 -- in the ICU User Guide
 -- <http://userguide.icu-project.org/conversion/detection>.
 module Data.Text.ICU.CharsetDetection
-    (setText
-    ,detect
-    ,mkCharsetDetector
-    ,withCharsetDetector
-    ,wrapUCharsetMatch
-    ,CharsetMatch
-    ,CharsetDetector
-    ,getConfidence
-    ,getName
-    ,getLanguage
+    (
+      setText
+    , detect
+    , mkCharsetDetector
+    , withCharsetDetector
+    , wrapUCharsetMatch
+    , CharsetMatch
+    , CharsetDetector
+    , getConfidence
+    , getName
+    , getLanguage
     ) where
 
 import Foreign.Ptr (Ptr)
