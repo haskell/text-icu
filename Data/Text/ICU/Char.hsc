@@ -401,6 +401,24 @@ data BlockCode =
   | OldHungarian
   | SupplementalSymbolsAndPictographs
   | SuttonSignwriting
+  | Adlam
+  | Bhaiksuki
+  | CyrillicExtendedC
+  | GlagoliticSupplement
+  | IdeographicSymbolsAndPunctuation
+  | Marchen
+  | MongolianSupplement
+  | Newa
+  | Osage
+  | Tangut
+  | TangutComponents
+  | CJKUnifiedIdeographsExtensionF
+  | KanaExtendedA
+  | MasaramGondi
+  | Nushu
+  | Soyombo
+  | SyriacSupplement
+  | ZanabazarSquare
   deriving (Eq, Enum, Bounded, Show, Typeable)
 
 instance NFData BlockCode where
