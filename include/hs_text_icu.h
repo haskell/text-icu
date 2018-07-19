@@ -4,6 +4,7 @@
 
 #include "unicode/utypes.h"
 
+#include "unicode/ubidi.h"
 #include "unicode/ubrk.h"
 #include "unicode/uchar.h"
 #include "unicode/ucol.h"
@@ -11,6 +12,7 @@
 #include "unicode/uiter.h"
 #include "unicode/unorm.h"
 #include "unicode/uregex.h"
+#include "unicode/ushape.h"
 #include "unicode/uspoof.h"
 #include "unicode/ustring.h"
 
@@ -82,6 +84,20 @@ int32_t __hs_ucol_getSortKey(const UCollator *coll,
 			     const UChar *source, int32_t sourceLength,
 			     uint8_t *result, int32_t resultLength);
 
+/* ubidi.h */
+UBiDi* __hs_ubidi_open();
+UBiDi* __hs_ubidi_openSized(int32_t maxLength, int32_t maxRunCount, UErrorCode *err);
+void 	__hs_ubidi_setPara(UBiDi *pBiDi, const UChar *text, int32_t length, UBiDiLevel paraLevel,
+                         UErrorCode *pErrorCode);
+void __hs_ubidi_close(UBiDi * converter);
+int32_t __hs_ubidi_countParagraphs(UBiDi *pBiDi);
+void __hs_ubidi_getParagraphByIndex(const UBiDi *pBiDi, int32_t paraIndex, int32_t *pParaStart,
+                                    int32_t *pParaLimit, UErrorCode *pErrorCode);
+int32_t __hs_ubidi_getProcessedLength(const UBiDi *pBiDi);
+int32_t __hs_ubidi_writeReordered(UBiDi *pBiDi, UChar *dest, int32_t destSize, uint16_t options,
+                              		UErrorCode *pErrorCode);
+void __hs_ubidi_setLine(const UBiDi *pParaBiDi, int32_t start, int32_t limit,
+                        UBiDi *pLineBiDi, UErrorCode *pErrorCode);
 /* ucnv.h */
 
 int __get_max_bytes_for_string(UConverter *cnv, int src_length);
@@ -163,6 +179,12 @@ int32_t __hs_uregex_groupCount(URegularExpression *regexp, UErrorCode *status);
 int32_t __hs_uregex_group(URegularExpression *regexp, int32_t groupNum,
 			  UChar *dest, int32_t destCapacity,
 			  UErrorCode *status);
+
+/* ushape.h */
+int32_t __hs_ushape_arabic(const UChar *source, int32_t sourceLength,
+			     UChar *result, int32_t resultLength,
+			     int32_t options,
+			     UErrorCode *status);
 
 /* ustring.h */
 
