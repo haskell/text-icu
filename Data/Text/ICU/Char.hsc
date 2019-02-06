@@ -419,6 +419,17 @@ data BlockCode =
   | Soyombo
   | SyriacSupplement
   | ZanabazarSquare
+  | ChessSymbols
+  | Dogra
+  | GeorgianExtended
+  | GunjalaGondi
+  | HanifiRohingya
+  | IndicSiyaqNumbers
+  | Makasar
+  | MayanNumerals
+  | Medefaidrin
+  | OldSogdian
+  | Sogdian
   deriving (Eq, Enum, Bounded, Show, Typeable)
 
 instance NFData BlockCode where
