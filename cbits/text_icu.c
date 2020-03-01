@@ -1,8 +1,8 @@
 #include "hs_text_icu.h"
 
-UBreakIterator* __hs_ubrk_open(UBreakIteratorType type, const char *locale,
-			       const UChar *text, int32_t textLength,
-			       UErrorCode *status)
+UBreakIterator *__hs_ubrk_open(UBreakIteratorType type, const char *locale,
+                               const UChar *text, int32_t textLength,
+                               UErrorCode *status)
 {
     return ubrk_open(type, locale, text, textLength, status);
 }
@@ -12,15 +12,15 @@ void __hs_ubrk_close(UBreakIterator *bi)
     ubrk_close(bi);
 }
 
-void __hs_ubrk_setText(UBreakIterator* bi, const UChar *text,
-		       int32_t textLength, UErrorCode *status)
+void __hs_ubrk_setText(UBreakIterator *bi, const UChar *text,
+                       int32_t textLength, UErrorCode *status)
 {
     ubrk_setText(bi, text, textLength, status);
 }
 
-UBreakIterator * __hs_ubrk_safeClone(const UBreakIterator *bi,
-				     void *stackBuffer, int32_t *pBufferSize,
-				     UErrorCode *status)
+UBreakIterator *__hs_ubrk_safeClone(const UBreakIterator *bi,
+                                    void *stackBuffer, int32_t *pBufferSize,
+                                    UErrorCode *status)
 {
     return ubrk_safeClone(bi, stackBuffer, pBufferSize, status);
 }
@@ -66,7 +66,7 @@ int32_t __hs_ubrk_getRuleStatus(UBreakIterator *bi)
 }
 
 int32_t __hs_ubrk_getRuleStatusVec(UBreakIterator *bi, int32_t *fillInVec,
-				   int32_t capacity, UErrorCode *status)
+                                   int32_t capacity, UErrorCode *status)
 {
     return ubrk_getRuleStatusVec(bi, fillInVec, capacity, status);
 }
@@ -81,12 +81,12 @@ int32_t __hs_ubrk_countAvailable(void)
     return ubrk_countAvailable();
 }
 
-const char* __hs_ubrk_getAvailable(int32_t index)
+const char *__hs_ubrk_getAvailable(int32_t index)
 {
     return ubrk_getAvailable(index);
 }
 
-UCollator* __hs_ucol_open(const char *loc, UErrorCode *status)
+UCollator *__hs_ucol_open(const char *loc, UErrorCode *status)
 {
     return ucol_open(loc, status);
 }
@@ -97,44 +97,44 @@ void __hs_ucol_close(UCollator *coll)
 }
 
 void __hs_ucol_setAttribute(UCollator *coll, UColAttribute attr,
-			    UColAttributeValue value, UErrorCode *status)
+                            UColAttributeValue value, UErrorCode *status)
 {
     ucol_setAttribute(coll, attr, value, status);
 }
 
 UColAttributeValue __hs_ucol_getAttribute(const UCollator *coll,
-					  UColAttribute attr,
-					  UErrorCode *status)
+                                          UColAttribute attr,
+                                          UErrorCode *status)
 {
     return ucol_getAttribute(coll, attr, status);
 }
 
 UCollationResult __hs_ucol_strcoll(const UCollator *coll,
-				   const UChar *source, int32_t sourceLength,
-				   const UChar *target, int32_t targetLength)
+                                   const UChar *source, int32_t sourceLength,
+                                   const UChar *target, int32_t targetLength)
 {
     return ucol_strcoll(coll, source, sourceLength, target, targetLength);
 }
 
 UCollationResult __hs_ucol_strcollIter(const UCollator *coll,
-				       UCharIterator *sIter,
-				       UCharIterator *tIter,
-				       UErrorCode *status)
+                                       UCharIterator *sIter,
+                                       UCharIterator *tIter,
+                                       UErrorCode *status)
 {
     return ucol_strcollIter(coll, sIter, tIter, status);
 }
 
-UCollator* __hs_ucol_safeClone(const UCollator *coll,
-			       void *stackBuffer,
-			       int32_t *pBufferSize,
-			       UErrorCode *status)
+UCollator *__hs_ucol_safeClone(const UCollator *coll,
+                               void *stackBuffer,
+                               int32_t *pBufferSize,
+                               UErrorCode *status)
 {
     return ucol_safeClone(coll, stackBuffer, pBufferSize, status);
 }
 
 int32_t __hs_ucol_getSortKey(const UCollator *coll,
-			     const UChar *source, int32_t sourceLength,
-			     uint8_t *result, int32_t resultLength)
+                             const UChar *source, int32_t sourceLength,
+                             uint8_t *result, int32_t resultLength)
 {
     return ucol_getSortKey(coll, source, sourceLength, result, resultLength);
 }
@@ -154,26 +154,26 @@ const char *__hs_ucnv_getName(const UConverter *converter, UErrorCode *err)
     return ucnv_getName(converter, err);
 }
 
-UConverter* __hs_ucnv_open(const char *converterName, UErrorCode *err)
+UConverter *__hs_ucnv_open(const char *converterName, UErrorCode *err)
 {
     return ucnv_open(converterName, err);
 }
 
-void __hs_ucnv_close(UConverter * converter)
+void __hs_ucnv_close(UConverter *converter)
 {
     ucnv_close(converter);
 }
 
 int32_t __hs_ucnv_toUChars(UConverter *cnv, UChar *dest, int32_t destCapacity,
-			   const char *src, int32_t srcLength,
-			   UErrorCode *pErrorCode)
+                           const char *src, int32_t srcLength,
+                           UErrorCode *pErrorCode)
 {
     return ucnv_toUChars(cnv, dest, destCapacity, src, srcLength, pErrorCode);
 }
 
 int32_t __hs_ucnv_fromUChars(UConverter *cnv, char *dest, int32_t destCapacity,
-			     const UChar *src, int32_t srcLength,
-			     UErrorCode *pErrorCode)
+                             const UChar *src, int32_t srcLength,
+                             UErrorCode *pErrorCode)
 {
     return ucnv_fromUChars(cnv, dest, destCapacity, src, srcLength, pErrorCode);
 }
@@ -198,7 +198,7 @@ int32_t __hs_ucnv_countAvailable(void)
     return ucnv_countAvailable();
 }
 
-const char* __hs_ucnv_getAvailableName(int32_t n)
+const char *__hs_ucnv_getAvailableName(int32_t n)
 {
     return ucnv_getAvailableName(n);
 }
@@ -209,7 +209,7 @@ uint16_t __hs_ucnv_countAliases(const char *alias, UErrorCode *pErrorCode)
 }
 
 const char *__hs_ucnv_getAlias(const char *alias, uint16_t n,
-			       UErrorCode *pErrorCode)
+                               UErrorCode *pErrorCode)
 {
     return ucnv_getAlias(alias, n, pErrorCode);
 }
@@ -250,57 +250,57 @@ void __hs_uiter_setUTF8(UCharIterator *iter, const char *s, int32_t length)
 }
 
 int32_t __hs_unorm_compare(const UChar *s1, int32_t length1,
-			   const UChar *s2, int32_t length2,
-			   uint32_t options,
-			   UErrorCode *pErrorCode)
+                           const UChar *s2, int32_t length2,
+                           uint32_t options,
+                           UErrorCode *pErrorCode)
 {
     return unorm_compare(s1, length1, s2, length2, options, pErrorCode);
 }
 
 UNormalizationCheckResult __hs_unorm_quickCheck(const UChar *source,
-						int32_t sourcelength,
-						UNormalizationMode mode,
-						UErrorCode *status)
+                                                int32_t sourcelength,
+                                                UNormalizationMode mode,
+                                                UErrorCode *status)
 {
     return unorm_quickCheck(source, sourcelength, mode, status);
 }
 
 UBool __hs_unorm_isNormalized(const UChar *src, int32_t srcLength,
-			      UNormalizationMode mode,
-			      UErrorCode *pErrorCode)
+                              UNormalizationMode mode,
+                              UErrorCode *pErrorCode)
 {
     return unorm_isNormalized(src, srcLength, mode, pErrorCode);
 }
 
 int32_t __hs_unorm_normalize(const UChar *source, int32_t sourceLength,
-			     UNormalizationMode mode, int32_t options,
-			     UChar *result, int32_t resultLength,
-			     UErrorCode *status)
+                             UNormalizationMode mode, int32_t options,
+                             UChar *result, int32_t resultLength,
+                             UErrorCode *status)
 {
     return unorm_normalize(source, sourceLength, mode, options, result,
-			   resultLength, status);
+                           resultLength, status);
 }
 
 int32_t __hs_u_strToUpper(UChar *dest, int32_t destCapacity,
-			  const UChar *src, int32_t srcLength,
-			  const char *locale, UErrorCode *pErrorCode)
+                          const UChar *src, int32_t srcLength,
+                          const char *locale, UErrorCode *pErrorCode)
 {
     return u_strToUpper(dest, destCapacity, src, srcLength, locale, pErrorCode);
 }
 
 int32_t __hs_u_strToLower(UChar *dest, int32_t destCapacity,
-			  const UChar *src, int32_t srcLength,
-			  const char *locale, UErrorCode *pErrorCode)
+                          const UChar *src, int32_t srcLength,
+                          const char *locale, UErrorCode *pErrorCode)
 {
     return u_strToLower(dest, destCapacity, src, srcLength, locale, pErrorCode);
 }
 
 int32_t __hs_u_strFoldCase(UChar *dest, int32_t destCapacity,
-			   const UChar *src, int32_t srcLength,
-			   uint32_t options, UErrorCode *pErrorCode)
+                           const UChar *src, int32_t srcLength,
+                           uint32_t options, UErrorCode *pErrorCode)
 {
     return u_strFoldCase(dest, destCapacity, src, srcLength, options,
-			 pErrorCode);
+                         pErrorCode);
 }
 
 int32_t __hs_u_strCompareIter(UCharIterator *iter1, UCharIterator *iter2)
@@ -339,14 +339,14 @@ int32_t __hs_u_charDigitValue(UChar32 c)
 }
 
 int32_t __hs_u_charName(UChar32 code, UCharNameChoice nameChoice,
-			char *buffer, int32_t bufferLength,
-			UErrorCode *pErrorCode)
+                        char *buffer, int32_t bufferLength,
+                        UErrorCode *pErrorCode)
 {
     return u_charName(code, nameChoice, buffer, bufferLength, pErrorCode);
 }
 
 UChar32 __hs_u_charFromName(UCharNameChoice nameChoice, const char *name,
-			    UErrorCode *pErrorCode)
+                            UErrorCode *pErrorCode)
 {
     return u_charFromName(nameChoice, name, pErrorCode);
 }
@@ -361,21 +361,21 @@ double __hs_u_getNumericValue(UChar32 c)
     return u_getNumericValue(c);
 }
 
-URegularExpression * __hs_uregex_open(const UChar *pattern,
-				      int32_t patternLength, uint32_t flags,
-				      UParseError *pe, UErrorCode *status)
+URegularExpression *__hs_uregex_open(const UChar *pattern,
+                                     int32_t patternLength, uint32_t flags,
+                                     UParseError *pe, UErrorCode *status)
 {
     return uregex_open(pattern, patternLength, flags, pe, status);
 }
 
 void __hs_uregex_setTimeLimit(URegularExpression *regexp,
-			      int32_t limit, UErrorCode *status)
+                              int32_t limit, UErrorCode *status)
 {
     return uregex_setTimeLimit(regexp, limit, status);
 }
 
 void __hs_uregex_setStackLimit(URegularExpression *regexp,
-			       int32_t limit, UErrorCode *status)
+                               int32_t limit, UErrorCode *status)
 {
     return uregex_setStackLimit(regexp, limit, status);
 }
@@ -385,38 +385,38 @@ void __hs_uregex_close(URegularExpression *regexp)
     return uregex_close(regexp);
 }
 
-URegularExpression * __hs_uregex_clone(const URegularExpression *regexp,
-				       UErrorCode *pErrorCode)
+URegularExpression *__hs_uregex_clone(const URegularExpression *regexp,
+                                      UErrorCode *pErrorCode)
 {
     return uregex_clone(regexp, pErrorCode);
 }
 
 const UChar *__hs_uregex_pattern(const URegularExpression *regexp,
-				 int32_t *patLength, UErrorCode *status)
+                                 int32_t *patLength, UErrorCode *status)
 {
     return uregex_pattern(regexp, patLength, status);
 }
 
 int32_t __hs_uregex_flags(const URegularExpression *regexp,
-			  UErrorCode *status)
+                          UErrorCode *status)
 {
     return uregex_flags(regexp, status);
 }
 
 void __hs_uregex_setText(URegularExpression *regexp, const UChar *text,
-			 int32_t textLength, UErrorCode *status)
+                         int32_t textLength, UErrorCode *status)
 {
     return uregex_setText(regexp, text, textLength, status);
 }
 
 const UChar *__hs_uregex_getText(URegularExpression *regexp,
-				 int32_t *textLength, UErrorCode *status)
+                                 int32_t *textLength, UErrorCode *status)
 {
     return uregex_getText(regexp, textLength, status);
 }
 
 UBool __hs_uregex_find(URegularExpression *regexp, int32_t startIndex,
-		       UErrorCode *status)
+                       UErrorCode *status)
 {
     return uregex_find(regexp, startIndex, status);
 }
@@ -427,13 +427,13 @@ UBool __hs_uregex_findNext(URegularExpression *regexp, UErrorCode *status)
 }
 
 int32_t __hs_uregex_start(URegularExpression *regexp, int32_t groupNum,
-			  UErrorCode *status)
+                          UErrorCode *status)
 {
     return uregex_start(regexp, groupNum, status);
 }
 
 int32_t __hs_uregex_end(URegularExpression *regexp, int32_t groupNum,
-			  UErrorCode *status)
+                        UErrorCode *status)
 {
     return uregex_end(regexp, groupNum, status);
 }
@@ -444,8 +444,8 @@ int32_t __hs_uregex_groupCount(URegularExpression *regexp, UErrorCode *status)
 }
 
 int32_t __hs_uregex_group(URegularExpression *regexp, int32_t groupNum,
-			  UChar *dest, int32_t destCapacity,
-			  UErrorCode *status)
+                          UChar *dest, int32_t destCapacity,
+                          UErrorCode *status)
 {
     return uregex_group(regexp, groupNum, dest, destCapacity, status);
 }
@@ -543,4 +543,27 @@ int32_t __hs_uspoof_serialize(USpoofChecker *sc, void *data, int32_t capacity,
 void __hs_uspoof_close(USpoofChecker *sc)
 {
     uspoof_close(sc);
+}
+
+UNumberFormat *__hs_unum_open(UNumberFormatStyle style, const UChar *pattern, int32_t patternLength, const char *loc, UParseError *parseErr, UErrorCode *status)
+{
+    if (patternLength == 0)
+        return unum_open(style, 0, 0, loc, parseErr, status);
+    else
+        return unum_open(style, pattern, patternLength, loc, parseErr, status);
+}
+
+void __hs_unum_close(UNumberFormat *fmt)
+{
+    unum_close(fmt);
+}
+
+int32_t __hs_unum_formatInt64(const UNumberFormat *fmt, int64_t value, const UChar *result, int32_t resultLength, UErrorCode *ec)
+{
+    return unum_formatInt64(fmt, value, result, resultLength, 0, ec);
+}
+
+int32_t __hs_unum_formatDouble(const UNumberFormat *fmt, double value, const UChar *result, int32_t resultLength, UErrorCode *ec)
+{
+    return unum_formatDouble(fmt, value, result, resultLength, 0, ec);
 }
