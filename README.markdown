@@ -1,5 +1,7 @@
 # Text-ICU: Comprehensive support for string manipulation
 
+[![Build Status](https://travis-ci.com/bos/text-icu.svg?branch=master)](https://travis-ci.com/bos/text-icu)
+
 This package provides the Data.Text.ICU library, for performing
 complex manipulation of Unicode text.  It provides features such as
 the following:
