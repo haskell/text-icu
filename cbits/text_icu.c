@@ -305,7 +305,7 @@ int32_t __hs_u_strFoldCase(UChar *dest, int32_t destCapacity,
 
 int32_t __hs_u_strCompareIter(UCharIterator *iter1, UCharIterator *iter2)
 {
-    return u_strCompareIter(iter1, iter2, TRUE);
+    return u_strCompareIter(iter1, iter2, 1);
 }
 
 UBlockCode __hs_ublock_getCode(UChar32 c)
