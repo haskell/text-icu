@@ -1,5 +1,13 @@
 #include "hs_text_icu.h"
 
+#ifndef FALSE
+#define FALSE (0)
+#endif
+
+#ifndef TRUE
+#define TRUE (!FALSE)
+#endif
+
 UBreakIterator* __hs_ubrk_open(UBreakIteratorType type, const char *locale,
 			       const UChar *text, int32_t textLength,
 			       UErrorCode *status)
