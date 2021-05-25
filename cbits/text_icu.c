@@ -1,4 +1,5 @@
 #include "hs_text_icu.h"
+#include "stdbool.h"
 
 UBreakIterator* __hs_ubrk_open(UBreakIteratorType type, const char *locale,
 			       const UChar *text, int32_t textLength,
