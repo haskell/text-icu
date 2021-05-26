@@ -51,6 +51,7 @@ library
     bytestring,
     deepseq,
     text >= 0.9.1.0
+  pkgconfig-depends: icu-uc, icu-i18n
 
   exposed-modules:
       Data.Text.ICU
