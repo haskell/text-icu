@@ -86,7 +86,7 @@ library
     include-dirs: /usr/local/opt/icu4c/include
   extra-libraries: icuuc
   if os(mingw32)
-    extra-libraries: icuin icudt
+    extra-libraries: icuin icudt icuio
   else
     extra-libraries: icui18n icudata
 
