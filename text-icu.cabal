@@ -60,6 +60,7 @@ library
       Data.Text.ICU.Convert
       Data.Text.ICU.Error
       Data.Text.ICU.Normalize
+      Data.Text.ICU.Number
       Data.Text.ICU.Regex
       Data.Text.ICU.Spoof
       Data.Text.ICU.Types
@@ -69,6 +70,7 @@ library
       Data.Text.ICU.Break.Types
       Data.Text.ICU.Collate.Internal
       Data.Text.ICU.Collate.Pure
+      Data.Text.ICU.Number.Internal
       Data.Text.ICU.Convert.Internal
       Data.Text.ICU.Error.Internal
       Data.Text.ICU.Internal
