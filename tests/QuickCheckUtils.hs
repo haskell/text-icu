@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE BangPatterns #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -12,8 +13,10 @@ import Test.QuickCheck (Arbitrary(..), Gen, elements, listOf1)
 import qualified Data.Text as T
 import qualified Data.Text.ICU as I
 
+#if !MIN_VERSION_deepseq(1,4,3)
 instance NFData Ordering where
     rnf !_  = ()
+#endif
 
 instance Arbitrary T.Text where
     arbitrary = T.pack `fmap` arbitrary
