@@ -82,8 +82,12 @@ library
   c-sources: cbits/text_icu.c
   include-dirs: include
   if os(darwin)
-    extra-lib-dirs: /usr/local/opt/icu4c/lib
-    include-dirs: /usr/local/opt/icu4c/include
+    extra-lib-dirs:
+      /usr/local/opt/icu4c/lib
+      /opt/homebrew/opt/icu4c/lib
+    include-dirs:
+      /usr/local/opt/icu4c/include
+      /opt/homebrew/opt/icu4c/include
   extra-libraries: icuuc
   if os(mingw32)
     extra-libraries: icuin icudt
