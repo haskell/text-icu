@@ -3,9 +3,9 @@
 -- Many of the tests below are "weak", i.e. they ensure that functions
 -- return results, without checking whether the results are correct.
 -- Weak tests are described as such.
-
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
 module Properties (tests) where
 
 import Control.DeepSeq (NFData(..))
@@ -21,6 +21,8 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.ICU as I
 import qualified Data.Text.ICU.Char as I
+
+{-# ANN module ("HLint: use camelCase"::String) #-}
 
 t_rnf :: (NFData b) => (a -> b) -> a -> Bool
 t_rnf f t = rnf (f t) == ()
