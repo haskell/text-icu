@@ -401,6 +401,67 @@ data BlockCode =
   | OldHungarian
   | SupplementalSymbolsAndPictographs
   | SuttonSignwriting
+
+    -- New blocks in Unicode 9.0 */
+
+  | Adlam
+  | Bhaiksuki
+  | CyrillicExtendedC
+  | GlagoliticSupplement
+  | IdeographicSymbolsAndPunctuation
+  | Marchen
+  | MongolianSupplement
+  | Newa
+  | Osage
+  | Tangut
+  | TangutComponents
+
+    -- New blocks in Unicode 10.0
+
+  | CjkUnifiedIdeographsExtensionF
+  | KanaExtendedA
+  | MasaramGondi
+  | Nushu
+  | Soyombo
+  | SyriacSupplement
+  | ZanabazarSquare
+
+    -- New blocks in Unicode 11.0
+
+  | ChessSymbols
+  | Dogra
+  | GeorgianExtended
+  | GunjalaGondi
+  | HanifiRohingya
+  | IndicSiyaqNumbers
+  | Makasar
+  | MayanNumerals
+  | Medefaidrin
+  | OldSogdian
+  | Sogdian
+
+    -- New blocks in Unicode 12.0
+
+  | EgyptianHieroglyphFormatControls
+  | Elymaic
+  | Nandinagari
+  | NyiakengPuachueHmong
+  | OttomanSiyaqNumbers
+  | SmallKanaExtension
+  | SymbolsAndPictographsExtendedA
+  | TamilSupplement
+  | Wancho
+
+    -- New blocks in Unicode 13.0
+
+  | Chorasmian
+  | CjkUnifiedIdeographsExtensionG
+  | DivesAkuru
+  | KhitanSmallScript
+  | LisuSupplement
+  | SymbolsForLegacyComputing
+  | TangutSupplement
+  | Yezidi
   deriving (Eq, Enum, Bounded, Show, Typeable)
 
 instance NFData BlockCode where
