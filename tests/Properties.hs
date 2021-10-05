@@ -84,10 +84,8 @@ t_numericValue = t_rnf $ I.numericValue
 -- Spoofing
 
 t_nonspoofable (NonSpoofableText t) = I.spoofCheck I.spoof t == I.CheckOK
-t_spoofable (LatinSpoofableText t) = I.spoofCheck I.spoof t ==
-                                     I.CheckFailed [I.WholeScriptConfusable]
-t_confusable (NonEmptyText t) = I.areConfusable I.spoof t t ==
-                                I.CheckFailed [I.SingleScriptConfusable]
+t_spoofable (LatinSpoofableText t) = I.spoofCheck I.spoof t == I.CheckFailed [I.WholeScriptConfusable]
+t_confusable (NonEmptyText t) = I.areConfusable I.spoof t t == I.CheckFailed [I.SingleScriptConfusable]
 
 tests :: Test
 tests =
