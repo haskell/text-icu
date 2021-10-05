@@ -80,6 +80,7 @@ library
       Data.Text.ICU.Spoof.Pure
       Data.Text.ICU.Text
   c-sources: cbits/text_icu.c
+  cc-options: -Wno-deprecated
   include-dirs: include
   if os(darwin)
     extra-lib-dirs: /usr/local/opt/icu4c/lib
@@ -90,7 +91,7 @@ library
   else
     extra-libraries: icui18n icudata
 
-  ghc-options: -Wall -fwarn-tabs
+  ghc-options: -Wall -fwarn-tabs -Wcompat
 
 test-suite tests
   default-language: Haskell98
