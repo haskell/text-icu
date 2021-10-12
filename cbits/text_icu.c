@@ -1,6 +1,31 @@
 #include "hs_text_icu.h"
 #include "stdbool.h"
 
+void __hs_uenum_close(UEnumeration *en)
+{
+    uenum_close(en);
+}
+
+const UChar *__hs_uenum_unext(UEnumeration *en, int32_t *resultLength, UErrorCode *status)
+{
+    return uenum_unext(en, resultLength, status);
+}
+
+UCalendar *__hs_ucal_open(const UChar *zoneID, int32_t len, const char *locale, UCalendarType type, UErrorCode *status)
+{
+    return ucal_open(zoneID, len, locale, type, status);
+}
+
+void __hs_ucal_close(UCalendar *cal)
+{
+    ucal_close(cal);
+}
+
+UEnumeration* __hs_ucal_openTimeZones(UErrorCode *ec)
+{
+    return ucal_openTimeZones(ec);
+}
+
 UBreakIterator *__hs_ubrk_open(UBreakIteratorType type, const char *locale,
                                const UChar *text, int32_t textLength,
                                UErrorCode *status)

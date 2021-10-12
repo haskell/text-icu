@@ -4,6 +4,8 @@
 
 #include "unicode/utypes.h"
 
+#include "unicode/uenum.h"
+#include "unicode/ucal.h"
 #include "unicode/ubrk.h"
 #include "unicode/uchar.h"
 #include "unicode/ucol.h"
@@ -15,6 +17,16 @@
 #include "unicode/ustring.h"
 
 #include <stdint.h>
+
+/* uenum.h */
+
+void __hs_uenum_close(UEnumeration *en);
+const UChar * __hs_uenum_unext(UEnumeration *en, int32_t *resultLength, UErrorCode *status);
+
+/* ucal.h */
+
+UCalendar *__hs_ucal_open(const UChar *zoneID, int32_t len, const char *locale, UCalendarType type, UErrorCode *status);
+UEnumeration* __hs_ucal_openTimeZones(UErrorCode *ec);
 
 /* ubrk.h */
 

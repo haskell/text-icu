@@ -54,6 +54,7 @@ library
 
   exposed-modules:
       Data.Text.ICU
+      Data.Text.ICU.Calendar
       Data.Text.ICU.Break
       Data.Text.ICU.Char
       Data.Text.ICU.Collate
@@ -67,9 +68,11 @@ library
       Data.Text.ICU.BitMask
       Data.Text.ICU.Break.Pure
       Data.Text.ICU.Break.Types
+      Data.Text.ICU.Calendar.Types
       Data.Text.ICU.Collate.Internal
       Data.Text.ICU.Collate.Pure
       Data.Text.ICU.Convert.Internal
+      Data.Text.ICU.Enumerator
       Data.Text.ICU.Error.Internal
       Data.Text.ICU.Internal
       Data.Text.ICU.Iterator

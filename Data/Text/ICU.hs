@@ -107,9 +107,12 @@ module Data.Text.ICU
     , getRestrictionLevel
     -- ** Persistence
     , serialize
+    -- ** Calendars
+    , timeZones
     ) where
 
 import Data.Text.ICU.Break.Pure
+import Data.Text.ICU.Calendar
 import Data.Text.ICU.Collate.Pure
 import Data.Text.ICU.Internal
 import Data.Text.ICU.Iterator
