@@ -24,8 +24,4 @@ import Foreign.ForeignPtr (ForeignPtr)
 type UCalendar = CInt
 
 -- A calendar
-data Calendar = CAL
-  { calZoneId :: IORef Text,
-    calLocale :: LocaleName,
-    cal :: ForeignPtr UCalendar
-  }
+data Calendar = Calendar {calendarForeignPtr :: ForeignPtr UCalendar}

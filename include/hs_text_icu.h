@@ -26,7 +26,14 @@ const UChar * __hs_uenum_unext(UEnumeration *en, int32_t *resultLength, UErrorCo
 /* ucal.h */
 
 UCalendar *__hs_ucal_open(const UChar *zoneID, int32_t len, const char *locale, UCalendarType type, UErrorCode *status);
+UCalendar *__hs_ucal_clone (const UCalendar *cal, UErrorCode *status);
+int32_t __hs_ucal_get(const UCalendar *cal, UCalendarDateFields field, UErrorCode *status);
+void __hs_ucal_set(UCalendar *cal, UCalendarDateFields field, int32_t value);
+void __hs_ucal_setDate (UCalendar *cal, int32_t year, int32_t month, int32_t date, UErrorCode *status);
+void __hs_ucal_add(UCalendar *cal, UCalendarDateFields field, int32_t value, UErrorCode *status);
+void __hs_ucal_roll(UCalendar *cal, UCalendarDateFields field, int32_t value, UErrorCode *status);
 UEnumeration* __hs_ucal_openTimeZones(UErrorCode *ec);
+UEnumeration* __hs_ucal_openTimeZoneIDEnumeration(USystemTimeZoneType zoneType, UErrorCode *ec);
 
 /* ubrk.h */
 

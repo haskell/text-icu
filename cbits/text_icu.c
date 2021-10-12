@@ -16,9 +16,44 @@ UCalendar *__hs_ucal_open(const UChar *zoneID, int32_t len, const char *locale, 
     return ucal_open(zoneID, len, locale, type, status);
 }
 
+UCalendar *__hs_ucal_clone (const UCalendar *cal, UErrorCode *status)
+{
+    ucal_clone(cal, status);
+}
+
+int32_t __hs_ucal_get(const UCalendar *cal, UCalendarDateFields field, UErrorCode *status)
+{
+    ucal_get(cal, field, status);
+}
+
+void __hs_ucal_set(UCalendar *cal, UCalendarDateFields field, int32_t value)
+{
+    ucal_set(cal, field, value);
+}
+
+void __hs_ucal_setDate (UCalendar *cal, int32_t year, int32_t month, int32_t date, UErrorCode *status)
+{
+    __hs_ucal_setDate (cal, year, month, date, status);
+}
+
+void __hs_ucal_add(UCalendar *cal, UCalendarDateFields field, int32_t value, UErrorCode *status)
+{
+    ucal_add(cal, field, value, status);
+}
+
+void __hs_ucal_roll(UCalendar *cal, UCalendarDateFields field, int32_t value, UErrorCode *status)
+{
+    ucal_roll(cal, field, value, status);
+}
+
 void __hs_ucal_close(UCalendar *cal)
 {
     ucal_close(cal);
+}
+
+UEnumeration* _hs__ucal_openTimeZoneIDEnumeration(USystemTimeZoneType zoneType, UErrorCode *ec)
+{
+    ucal_openTimeZoneIDEnumeration(zoneType, NULL, NULL, ec);
 }
 
 UEnumeration* __hs_ucal_openTimeZones(UErrorCode *ec)
