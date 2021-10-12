@@ -48,7 +48,6 @@ module Data.Text.ICU.Spoof
 #include <unicode/uspoof.h>
 #include <unicode/utypes.h>
 
-import Control.Applicative
 import Control.DeepSeq (NFData(..))
 import Control.Exception (Exception, throwIO, catchJust)
 import Data.Bits ((.&.))
