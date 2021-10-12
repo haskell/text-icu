@@ -1,7 +1,7 @@
 {-# LANGUAGE ImportQualifiedPost, RankNTypes, BangPatterns, ForeignFunctionInterface, RecordWildCards #-}
 -- |
 -- Module      : Data.Text.ICU.Calendar
--- Copyright   : (c) 2010 Bryan O'Sullivan
+-- Copyright   : (c) 2021 Torsten Kemps-Benedix
 --
 -- License     : BSD-style
 -- Maintainer  : bos@serpentine.com
@@ -14,64 +14,83 @@
 module Data.Text.ICU.Calendar
     (
       -- * Data
-      CalendarType(..), SystemTimeZoneType(..),
+      Calendar, CalendarType(..), SystemTimeZoneType(..), CalendarField(..),
       -- * High-level interface
-      -- ** Time zone functions
-      timeZoneIDs, timeZones,
+      -- ** Operations on calendars
+      roll, add, set1, set, get,
       -- ** Calendar field getters
       era, year, month, 
-      dayOfMonth, dayOfYear, dayOfYear, dayOfWeek, dayOfWeekInMonth, amPm, 
-      hour, minute, second, millisecond, zoneOffset, dstOffset, yearWoY, doWLocal, extendedYear, julianDay, 
-      millisecondsInDay, isLeapMonth, day,
+      dayOfMonth, dayOfYear, dayOfWeek, dayOfWeekInMonth, amPm, 
+      hour, hourOfDay, minute, second, millisecond, zoneOffset, dstOffset, yearWoY, doWLocal, extendedYear, julianDay, 
+      millisecondsInDay, isLeapMonth, day, utcTime,
       -- ** Calendar field setters
       setEra, setYear, setMonth, 
-      setDayOfMonth, setDayOfYear, setDayOfYear, setDayOfWeek, setDayOfWeekInMonth, setAmPm, 
-      setHour, setMinute, setSecond, setMillisecond, setZoneOffset, setDstOffset, setYearWoY, setDoWLocal, setExtendedYear, setJulianDay, 
+      setDayOfMonth, setDayOfYear, setDayOfWeek, setDayOfWeekInMonth, setAmPm, 
+      setHour, setHourOfDay, setMinute, setSecond, setMillisecond, setZoneOffset, setDstOffset, setYearWoY, setDoWLocal, setExtendedYear, setJulianDay, 
       setMillisecondsInDay, setDay,
       -- ** Lenses
       _era, _year, _month, 
-      _dayOfMonth, _dayOfYear, _dayOfYear, _dayOfWeek, _dayOfWeekInMonth, _amPm, 
-      _hour, _minute, _second, _millisecond, _zoneOffset, _dstOffset, _day,
-      -- ** Calendar functions
-      roll, add, set1, set,
+      _dayOfMonth, _dayOfYear, _dayOfWeek, _dayOfWeekInMonth, _amPm, 
+      _hour, _hourOfDay, _minute, _second, _millisecond, _zoneOffset, _dstOffset, _day,
+      -- ** Time zone functions
+      timeZoneIDs, timeZones,
       -- * Low-level interface
-      open, openTimeZoneIDEnumeration, openTimeZones, CalendarDateField(..), getField, setField, setDate, rollField, addField
+      calendar, openTimeZoneIDEnumeration, openTimeZones, getField, setField, setDate, setDateTime, rollField, addField, setTimeZone,
     ) where
 
 #include <unicode/ucal.h>
 
-import Control.DeepSeq (NFData(..))
 import Control.Monad (forM_)
-import Data.IORef (newIORef, writeIORef)
 import Data.Int (Int32)
-import Data.Text (Text)
-import Data.Text.Foreign (I16, useAsPtr)
-import Data.Text.ICU.Calendar.Types
+import Data.Text (Text, pack)
+import Data.Text.Foreign (useAsPtr, withCStringLen)
 import Data.Text.ICU.Enumerator
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
-import Data.Text.ICU.Internal (LocaleName(..), UBool, UChar, asBool, withLocaleName)
+import Data.Text.ICU.Internal (LocaleName(..), UChar, withLocaleName)
 import Data.Time.Calendar qualified as Cal
-import Foreign.C.String (CString, peekCString)
+import Data.Time.Clock qualified as Clock
+import Foreign.C.String (CString)
 import Foreign.C.Types (CInt(..))
-import Foreign.ForeignPtr (newForeignPtr, withForeignPtr)
-import Foreign.Marshal.Array (allocaArray, peekArray)
-import Foreign.Marshal.Utils (with)
-import Foreign.Ptr (FunPtr, Ptr, nullPtr)
+import Foreign.ForeignPtr (newForeignPtr, withForeignPtr, ForeignPtr)
+import Foreign.Ptr (FunPtr, Ptr)
 import Prelude hiding (last)
 import System.IO.Unsafe (unsafePerformIO)
 
-data CalendarDateField = 
-  Era | Year | Month | 
-  WeekOfYear | WeekOfMonth | 
-  DayOfMonth | DayOfYear | DayOfWeek | DayOfWeekInMonth |
-  AmPm | Hour | HourOfDay | Minute | Second | Millisecond |
-  ZoneOffset | DstOffset | YearWoY | DoWLocal | ExtendedYear | JulianDay | 
-  MillisecondsInDay | IsLeapMonth
+type UCalendar = CInt
+
+-- A 'Calendar' is an absttract data type that contains a foreign pointer to the ICU internal data structure.
+data Calendar = Calendar {calendarForeignPtr :: ForeignPtr UCalendar}
+
+-- | All the fields that comprise a 'Calendar'.
+data CalendarField = 
+  Era -- ^ Field indicating the era, e.g., AD or BC in the Gregorian (Julian) calendar. This is a calendar-specific value. 
+  | Year -- ^ Field indicating the year. This is a calendar-specific value. 
+  | Month -- ^ Field indicating the month. This is a calendar-specific value. The first month of the year is JANUARY; the last depends on the number of months in a year. Note: Calendar month is 0-based.
+  | WeekOfYear -- ^ Field indicating the week number within the current year. The first week of the year, as defined by UCAL_FIRST_DAY_OF_WEEK and UCAL_MINIMAL_DAYS_IN_FIRST_WEEK attributes, has value 1. Subclasses define the value of UCAL_WEEK_OF_YEAR for days before the first week of the year. 
+  | WeekOfMonth -- ^ Field indicating the week number within the current month. The first week of the month, as defined by UCAL_FIRST_DAY_OF_WEEK and UCAL_MINIMAL_DAYS_IN_FIRST_WEEK attributes, has value 1. Subclasses define the value of WEEK_OF_MONTH for days before the first week of the month.
+  | DayOfMonth -- ^ Field indicating the day of the month. This is a synonym for DAY_OF_MONTH. The first day of the month has value 1. 
+  | DayOfYear -- ^ Field indicating the day number within the current year. The first day of the year has value 1. 
+  | DayOfWeek -- ^ Field indicating the day of the week. This field takes values SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, and SATURDAY. Note: Calendar day-of-week is 1-based. Clients who create locale resources for the field of first-day-of-week should be aware of this. For instance, in US locale, first-day-of-week is set to 1, i.e., UCAL_SUNDAY.
+  | DayOfWeekInMonth -- ^ Field indicating the ordinal number of the day of the week within the current month. Together with the DAY_OF_WEEK field, this uniquely specifies a day within a month. Unlike WEEK_OF_MONTH and WEEK_OF_YEAR, this field's value does not depend on getFirstDayOfWeek() or getMinimalDaysInFirstWeek(). DAY_OF_MONTH 1 through 7 always correspond to DAY_OF_WEEK_IN_MONTH 1; 8 through 15 correspond to DAY_OF_WEEK_IN_MONTH 2, and so on. DAY_OF_WEEK_IN_MONTH 0 indicates the week before DAY_OF_WEEK_IN_MONTH 1. Negative values count back from the end of the month, so the last Sunday of a month is specified as DAY_OF_WEEK = SUNDAY, DAY_OF_WEEK_IN_MONTH = -1. Because negative values count backward they will usually be aligned differently within the month than positive values. For example, if a month has 31 days, DAY_OF_WEEK_IN_MONTH -1 will overlap DAY_OF_WEEK_IN_MONTH 5 and the end of 4.
+  | AmPm -- ^ Field indicating whether the HOUR is before or after noon. E.g., at 10:04:15.250 PM the AM_PM is PM. 
+  | Hour -- ^ Field indicating the hour of the morning or afternoon. HOUR is used for the 12-hour clock. E.g., at 10:04:15.250 PM the HOUR is 10. 
+  | HourOfDay -- ^ Field indicating the hour of the day. HOUR_OF_DAY is used for the 24-hour clock. E.g., at 10:04:15.250 PM the HOUR_OF_DAY is 22. 
+  | Minute -- ^ Field indicating the minute within the hour. E.g., at 10:04:15.250 PM the UCAL_MINUTE is 4. 
+  | Second -- ^ Field indicating the second within the minute. E.g., at 10:04:15.250 PM the UCAL_SECOND is 15. 
+  | Millisecond -- ^ Field indicating the millisecond within the second. E.g., at 10:04:15.250 PM the UCAL_MILLISECOND is 250. 
+  | ZoneOffset -- ^ Field indicating the raw offset from GMT in milliseconds.
+  | DstOffset -- ^ Field indicating the daylight savings offset in milliseconds.
+  | YearWoY -- ^ Field indicating the extended year corresponding to the UCAL_WEEK_OF_YEAR field. This may be one greater or less than the value of UCAL_EXTENDED_YEAR. 
+  | DoWLocal -- ^ Field indicating the localized day of week. This will be a value from 1 to 7 inclusive, with 1 being the localized first day of the week.
+  | ExtendedYear -- ^ Year of this calendar system, encompassing all supra-year fields. For example, in Gregorian/Julian calendars, positive Extended Year values indicate years AD, 1 BC = 0 extended, 2 BC = -1 extended, and so on. 
+  | JulianDay -- ^ Field indicating the modified Julian day number. This is different from the conventional Julian day number in two regards. First, it demarcates days at local zone midnight, rather than noon GMT. Second, it is a local number; that is, it depends on the local time zone. It can be thought of as a single number that encompasses all the date-related fields. 
+  | MillisecondsInDay -- ^ Ranges from 0 to 23:59:59.999 (regardless of DST). This field behaves exactly like a composite of all time-related fields, not including the zone fields. As such, it also reflects discontinuities of those fields on DST transition days. On a day of DST onset, it will jump forward. On a day of DST cessation, it will jump backward. This reflects the fact that it must be combined with the DST_OFFSET field to obtain a unique local time value. 
+  | IsLeapMonth -- ^ Whether or not the current month is a leap month (0 or 1). See the Chinese calendar for an example of this. 
   deriving (Show, Read, Eq)
 
 type UCalendarDateFields = CInt
 
-toUCalendarDateFields :: CalendarDateField -> UCalendarDateFields
+toUCalendarDateFields :: CalendarField -> UCalendarDateFields
 toUCalendarDateFields Era = #const UCAL_ERA
 toUCalendarDateFields Year = #const UCAL_YEAR
 toUCalendarDateFields Month = #const UCAL_MONTH
@@ -116,31 +135,42 @@ toUSystemTimeZoneType CanonicalLocationTimeZone = #const UCAL_ZONE_TYPE_CANONICA
 
 type USystemTimeZoneType = CInt
 
--- | Open a UCalendar.
+-- | Open a Calendar.
 --
--- A UCalendar may be used to convert a millisecond value to a year, 
+-- A Calendar may be used to convert a millisecond value to a year, 
 -- month, and day.
 --
 -- Note: When unknown TimeZone ID is specified or if the TimeZone ID 
--- specified is "Etc/Unknown", the UCalendar returned by the function 
+-- specified is "Etc/Unknown", the Calendar returned by the function 
 -- is initialized with GMT zone with TimeZone ID UCAL_UNKNOWN_ZONE_ID 
 -- ("Etc/Unknown") without any errors/warnings. If you want to check 
 -- if a TimeZone ID is valid prior to this function, use 
 -- ucal_getCanonicalTimeZoneID.
-open :: Text -> LocaleName -> CalendarType -> IO Calendar
-open zoneId loc typ =
+--
+-- >>> import qualified Data.Text as T
+-- >>> c <- calendar (T.pack "CET") (Locale "de_DE") TraditionalCalendarType
+-- >>> show c
+-- 2021-10-12 17:37:43
+calendar :: Text -> LocaleName -> CalendarType -> IO Calendar
+calendar zoneId loc typ =
   withLocaleName loc $ \locale ->
     useAsPtr zoneId $ \zoneIdPtr zoneIdLen -> do
       c <- handleError $ ucal_open zoneIdPtr (fromIntegral zoneIdLen) locale (toUCalendarType typ)
       calPtr <- newForeignPtr ucal_close c
       pure $ Calendar calPtr
 
+setTimeZone :: Calendar -> Text -> IO ()
+setTimeZone cal zoneId =
+  withForeignPtr (calendarForeignPtr cal) $ \calPtr -> do
+    withCStringLen zoneId $ \(zoneIdPtr, zoneIdLen) -> do
+      handleError $ ucal_setTimeZone calPtr zoneIdPtr (fromIntegral zoneIdLen)
+
 clone :: Calendar -> IO Calendar
 clone cal =
   withForeignPtr (calendarForeignPtr cal) $ \calPtr -> do
     c <- handleError $ ucal_clone calPtr
-    calPtr <- newForeignPtr ucal_close c
-    pure $ Calendar calPtr
+    cPtr <- newForeignPtr ucal_close c
+    pure $ Calendar cPtr
 
 -- | List of all time zones.
 timeZones :: IO [Text]
@@ -166,20 +196,28 @@ openTimeZones = do
   e <- handleError $ ucal_openTimeZones
   createEnumerator e
 
--- c <- open (pack "CET") (Locale "de_DE") TraditionalCalendarType
--- getField c Year
-getField :: Calendar -> CalendarDateField -> IO Int
+-- | Get the value of a specific calendar field.
+--
+-- >>> import qualified Data.Text as T
+-- >>> c <- calendar (T.pack "CET") (Locale "de_DE") TraditionalCalendarType
+-- >>> getField c Year
+-- 2021
+getField :: Calendar -> CalendarField -> IO Int
 getField cal fld = withForeignPtr (calendarForeignPtr cal) $ \calPtr -> do
   n <- handleError $ ucal_get calPtr (toUCalendarDateFields fld)
   pure (fromIntegral n)
 
-setField :: Calendar -> CalendarDateField -> Int -> IO ()
+setField :: Calendar -> CalendarField -> Int -> IO ()
 setField cal fld n = withForeignPtr (calendarForeignPtr cal) $ \calPtr -> 
   ucal_set calPtr (toUCalendarDateFields fld) (fromIntegral n)
 
 setDate :: Calendar -> Int -> Int -> Int -> IO ()
 setDate cal y m d = withForeignPtr (calendarForeignPtr cal) $ \calPtr -> 
   ucal_setDate calPtr (fromIntegral y) (fromIntegral m) (fromIntegral d)
+
+setDateTime :: Calendar -> Int -> Int -> Int -> Int -> Int -> Int -> IO ()
+setDateTime cal y m d hr mn sec = withForeignPtr (calendarForeignPtr cal) $ \calPtr -> 
+  ucal_setDateTime calPtr (fromIntegral y) (fromIntegral m) (fromIntegral d) (fromIntegral hr) (fromIntegral mn) (fromIntegral sec)
 
 -- | Add a specified signed amount to a particular field in a Calendar.
 --
@@ -195,14 +233,31 @@ setDate cal y m d = withForeignPtr (calendarForeignPtr cal) $ \calPtr ->
 -- which era 0 years move forward in time (such as Buddhist, Hebrew, or Islamic), 
 -- it is possible for add or roll to result in negative years for era 0 (that 
 -- is the only way to represent years before the calendar epoch).
-rollField :: Calendar -> CalendarDateField -> Int -> IO ()
+rollField :: Calendar -> CalendarField -> Int -> IO ()
 rollField cal fld n = withForeignPtr (calendarForeignPtr cal) $ \calPtr -> 
   handleError $ ucal_roll calPtr (toUCalendarDateFields fld) (fromIntegral n)
 
 -- | Add a specified signed amount to a particular field in a Calendar.
 --
 -- See 'rollField' for further details.
-roll :: Calendar -> [(CalendarDateField, Int)] -> Calendar
+--
+-- >>> import qualified Data.Text as T
+-- >>> c1 <- calendar (T.pack "CET") (Locale "de_DE") TraditionalCalendarType
+-- >>> show c1
+-- 2021-10-12 17:53:26
+-- >>> let c2 = roll c1 [(Hour, 2)]
+-- >>> show c2
+-- 2021-10-12 19:53:26
+-- >>> let c3 = roll c1 [(Hour, 12)]
+-- >>> show c3
+-- 2021-10-12 17:53:26
+-- >>> let c4 = add c1 [(Hour, 12)]
+-- >>> show c4
+-- 2021-10-13 5:53:26
+roll :: 
+  Calendar 
+  -> [(CalendarField, Int)] -- ^ The field and the signed amount to add to this field. If the amount causes the value to exceed to maximum or minimum values for that field, the field is pinned to a permissible value. 
+  -> Calendar
 roll cal lst = unsafePerformIO $ do
   cal' <- clone cal
   forM_ lst (\(fld,n) -> rollField cal' fld n)
@@ -214,32 +269,47 @@ roll cal lst = unsafePerformIO $ do
 -- value always means moving forward in time, so for the Gregorian calendar, 
 -- starting with 100 BC and adding +1 to year results in 99 BC (even though 
 -- this actually reduces the numeric value of the field itself).
-addField :: Calendar -> CalendarDateField -> Int -> IO ()
+addField :: Calendar -> CalendarField -> Int -> IO ()
 addField cal fld n = withForeignPtr (calendarForeignPtr cal) $ \calPtr -> 
   handleError $ ucal_add calPtr (toUCalendarDateFields fld) (fromIntegral n)
 
 -- | Add a specified signed amount to a particular field in a Calendar.
 --
--- See 'addField' for further details and see 'rollField' for differences 
+-- See 'addField' for further details and see 'rollField' for examples and differences 
 -- compared to rolling.
-add :: Calendar -> [(CalendarDateField, Int)] -> Calendar
+add :: 
+  Calendar -- ^ The 'Calendar' to which to add. 
+  -> [(CalendarField, Int)] -- ^ Field type and the signed amount to add to field. If the amount causes the value to exceed to maximum or minimum values for that field, other fields are modified to preserve the magnitude of the change. 
+  -> Calendar
 add cal lst = unsafePerformIO $ do
   cal' <- clone cal
   forM_ lst (\(fld,n) -> addField cal' fld n)
   pure cal'
 
-set1 :: Calendar -> CalendarDateField -> Int -> Calendar
+-- | Set the value of one field of a calendar to a certain value. All fields are 
+-- represented as 32-bit integers.
+set1 :: Calendar -> CalendarField -> Int -> Calendar
 set1 cal fld n = unsafePerformIO $ do
   cal' <- clone cal
   setField cal' fld n
   pure cal'
 
-set :: Calendar -> [(CalendarDateField, Int)] -> Calendar
+-- | Set the value of a list of fields of a calendar to certain values. All fields are 
+-- represented as 32-bit integers.
+set :: Calendar -> [(CalendarField, Int)] -> Calendar
 set cal lst = unsafePerformIO $ do
   cal' <- clone cal
   forM_ lst (\(fld,n) -> setField cal' fld n)
   pure cal'
 
+-- | Convert the day part of the calendar to a 'Day'.
+--
+-- >>> import qualified Data.Text as T
+-- >>> c1 <- calendar (T.pack "CET") (Locale "de_DE") TraditionalCalendarType
+-- >>> show c1
+-- 2021-10-12 18:00:50
+-- >>> day c1
+-- 2021-10-12
 day :: Calendar -> Cal.Day
 day cal = unsafePerformIO $ do
   y <- getField cal Year
@@ -247,6 +317,7 @@ day cal = unsafePerformIO $ do
   d <- getField cal DayOfMonth
   pure (Cal.fromGregorian (fromIntegral y) (m+1) d)
 
+-- | Set the day part of the calendar from a 'Day'.
 setDay :: Calendar -> Cal.Day -> Calendar
 setDay cal aDay = unsafePerformIO $ do
   cal' <- clone cal
@@ -254,18 +325,62 @@ setDay cal aDay = unsafePerformIO $ do
   setDate cal' (fromIntegral y) (m-1) d
   pure cal'
 
+-- | Convert the day and time part of the calendar to a 'UTCTime'.
+--
+-- >>> import qualified Data.Text as T
+-- >>> c1 <- calendar (T.pack "CET") (Locale "de_DE") TraditionalCalendarType
+-- >>> show c1
+-- 2021-10-12 18:00:50
+-- >>> utcTime c1
+-- 2021-10-12 16:00:50.544999999998 UTC
+utcTime :: Calendar -> Clock.UTCTime
+utcTime cal = unsafePerformIO $ do
+  cal' <- clone cal
+  setTimeZone cal' (pack "UTC")
+  y <- getField cal' Year
+  m <- getField cal' Month
+  d <- getField cal' DayOfMonth
+  let day' = Cal.fromGregorian (fromIntegral y) (m+1) d
+  ms <- getField cal' MillisecondsInDay
+  let dt = realToFrac ((fromIntegral ms :: Double) / 1000)
+  pure $ Clock.UTCTime day' dt
+
+-- | Get the value of a specific field in the calendar.
+get :: Calendar -> CalendarField -> Int
+get cal fld = unsafePerformIO $ getField cal fld
+
+-- | Return the era of the calendar. The values are calendar specific and are usually 0 (some ancient era) and 1 (current era).
+--
+-- >>> import qualified Data.Text as T
+-- >>> c1 <- calendar (T.pack "CET") (Locale "de_DE") TraditionalCalendarType
+-- >>> era c1
+-- 1
 era :: Calendar -> Int
 era cal = unsafePerformIO $ getField cal Era
 
 setEra :: Calendar -> Int -> Calendar
 setEra cal = set1 cal Era
 
+-- | Return the year of the calendar. The values are calendar specific.
+--
+-- >>> import qualified Data.Text as T
+-- >>> c1 <- calendar (T.pack "CET") (Locale "de_DE") TraditionalCalendarType
+-- >>> year c1
+-- 2021
 year :: Calendar -> Int
 year cal = unsafePerformIO $ getField cal Year
 
 setYear :: Calendar -> Int -> Calendar
 setYear cal = set1 cal Year
 
+-- | Return the month of the calendar. The values are calendar specific and 0-based.
+--
+-- >>> import qualified Data.Text as T
+-- >>> c1 <- calendar (T.pack "CET") (Locale "de_DE") TraditionalCalendarType
+-- >>> month c1
+-- 9
+-- >>> day c1
+-- 2021-10-12
 month :: Calendar -> Int
 month cal = unsafePerformIO $ getField cal Month
 
@@ -412,6 +527,9 @@ _amPm = lens amPm setAmPm
 _hour :: Lens' Calendar Int
 _hour = lens hour setHour
 
+_hourOfDay :: Lens' Calendar Int
+_hourOfDay = lens hour setHourOfDay
+
 _minute :: Lens' Calendar Int
 _minute = lens minute setMinute
 
@@ -431,8 +549,7 @@ _day :: Lens' Calendar Cal.Day
 _day = lens day setDay
 
 instance Show Calendar where
-  show cal = show (year cal) ++ "-" ++ show (1 + month cal) ++ "-" ++ show (dayOfMonth cal) ++ 
-             " " ++ show (hourOfDay cal) ++ ":" ++ show (minute cal) ++ ":" ++ show (second cal)
+  show cal = show (utcTime cal)
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ucal_open" ucal_open
     :: Ptr UChar -> Int32 -> CString -> UCalendar -> Ptr UErrorCode
@@ -451,6 +568,9 @@ foreign import ccall unsafe "hs_text_icu.h __hs_ucal_set" ucal_set
 foreign import ccall unsafe "hs_text_icu.h __hs_ucal_setDate" ucal_setDate
     :: Ptr UCalendar -> Int32 -> Int32 -> Int32
     -> IO ()
+foreign import ccall unsafe "hs_text_icu.h __hs_ucal_setDateTime" ucal_setDateTime
+    :: Ptr UCalendar -> Int32 -> Int32 -> Int32 -> Int32 -> Int32 -> Int32
+    -> IO ()
 foreign import ccall unsafe "hs_text_icu.h __hs_ucal_add" ucal_add
     :: Ptr UCalendar -> UCalendarDateFields -> Int32 -> Ptr UErrorCode
     -> IO ()
@@ -463,3 +583,6 @@ foreign import ccall unsafe "hs_text_icu.h _hs__ucal_openTimeZoneIDEnumeration" 
 foreign import ccall unsafe "hs_text_icu.h __hs_ucal_openTimeZones" ucal_openTimeZones
     :: Ptr UErrorCode
     -> IO (Ptr UEnumerator)
+foreign import ccall unsafe "hs_text_icu.h __hs_ucal_setTimeZone" ucal_setTimeZone
+    :: Ptr UCalendar -> CString -> Int32 -> Ptr UErrorCode
+    -> IO ()

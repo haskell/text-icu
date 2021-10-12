@@ -1,7 +1,7 @@
 {-# LANGUAGE ImportQualifiedPost, EmptyDataDecls, BangPatterns, ForeignFunctionInterface, RecordWildCards #-}
 -- |
 -- Module      : Data.Text.ICU.Calendar
--- Copyright   : (c) 2010 Bryan O'Sullivan
+-- Copyright   : (c) 2021 Torsten Kemps-Benedix
 --
 -- License     : BSD-style
 -- Maintainer  : bos@serpentine.com
@@ -17,26 +17,16 @@ module Data.Text.ICU.Enumerator
 
 #include <unicode/uenum.h>
 
-import Control.DeepSeq (NFData(..))
-import Control.Monad (forM)
-import Data.IORef (newIORef, writeIORef)
 import Data.Int (Int32)
 import Data.Text (Text)
 import qualified Data.Text.Foreign as T
-import Data.Text.Foreign (I16, useAsPtr)
-import Data.Text.ICU.Calendar.Types
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
-import Data.Text.ICU.Internal (LocaleName(..), UBool, UChar, asBool, withLocaleName)
-import Foreign.C.String (CString, peekCString)
-import Foreign.C.Types (CInt(..))
+import Data.Text.ICU.Internal (UChar)
 import Foreign.ForeignPtr (newForeignPtr, withForeignPtr, ForeignPtr)
 import Foreign.Marshal.Alloc (alloca)
-import Foreign.Marshal.Array (allocaArray, peekArray)
-import Foreign.Marshal.Utils (with)
 import Foreign.Ptr (FunPtr, Ptr, nullPtr)
 import Foreign.Storable (peek)
 import Prelude hiding (last)
-import System.IO.Unsafe (unsafePerformIO)
 
 data UEnumerator
 

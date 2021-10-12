@@ -1,6 +1,51 @@
 #include "hs_text_icu.h"
 #include "stdbool.h"
 
+UNumberFormatter *__hs_unumf_openForSkeletonAndLocale(const UChar *skeleton, int32_t skeletonLen, const char *locale, UErrorCode *ec)
+{
+    unumf_openForSkeletonAndLocale(skeleton, skeletonLen, locale, ec);
+}
+
+void __hs_unumf_close(UNumberFormatter *uformatter)
+{
+    unumf_close(uformatter);
+}
+
+UFormattedNumber *__hs_unumf_openResult(UErrorCode *ec)
+{
+    unumf_openResult(ec);
+}
+
+void __hs_unumf_closeResult(UFormattedNumber *uresult)
+{
+    unumf_closeResult(uresult);
+}
+
+void __hs_unumf_formatInt(const UNumberFormatter *uformatter, int64_t value, UFormattedNumber *uresult, UErrorCode *ec)
+{
+    unumf_formatInt(uformatter, value, uresult, ec);
+}
+
+void __hs_unumf_formatDouble(const UNumberFormatter *uformatter, double value, UFormattedNumber *uresult, UErrorCode *ec)
+{
+    unumf_formatDouble(uformatter, value, uresult, ec);
+}
+
+int32_t __hs_unumf_resultToString(const UFormattedNumber *uresult, UChar *buffer, int32_t bufferCapacity, UErrorCode *ec)
+{
+    unumf_resultToString(uresult, buffer, bufferCapacity, ec);
+}
+
+const char *__hs_uloc_getAvailable(int32_t n)
+{
+    return uloc_getAvailable(n);
+}
+
+int32_t __hs_uloc_countAvailable(void)
+{
+    return uloc_countAvailable();
+}
+
 void __hs_uenum_close(UEnumeration *en)
 {
     uenum_close(en);
@@ -16,7 +61,7 @@ UCalendar *__hs_ucal_open(const UChar *zoneID, int32_t len, const char *locale, 
     return ucal_open(zoneID, len, locale, type, status);
 }
 
-UCalendar *__hs_ucal_clone (const UCalendar *cal, UErrorCode *status)
+UCalendar *__hs_ucal_clone(const UCalendar *cal, UErrorCode *status)
 {
     ucal_clone(cal, status);
 }
@@ -31,9 +76,14 @@ void __hs_ucal_set(UCalendar *cal, UCalendarDateFields field, int32_t value)
     ucal_set(cal, field, value);
 }
 
-void __hs_ucal_setDate (UCalendar *cal, int32_t year, int32_t month, int32_t date, UErrorCode *status)
+void __hs_ucal_setDate(UCalendar *cal, int32_t year, int32_t month, int32_t date, UErrorCode *status)
 {
-    __hs_ucal_setDate (cal, year, month, date, status);
+    __hs_ucal_setDate(cal, year, month, date, status);
+}
+
+void __hs_ucal_setDateTime(UCalendar *cal, int32_t year, int32_t month, int32_t date, int32_t hr, int32_t min, int32_t sec, UErrorCode *status)
+{
+    __hs_ucal_setDateTime(cal, year, month, date, hr, min, sec, status);
 }
 
 void __hs_ucal_add(UCalendar *cal, UCalendarDateFields field, int32_t value, UErrorCode *status)
@@ -51,14 +101,19 @@ void __hs_ucal_close(UCalendar *cal)
     ucal_close(cal);
 }
 
-UEnumeration* _hs__ucal_openTimeZoneIDEnumeration(USystemTimeZoneType zoneType, UErrorCode *ec)
+UEnumeration *_hs__ucal_openTimeZoneIDEnumeration(USystemTimeZoneType zoneType, UErrorCode *ec)
 {
     ucal_openTimeZoneIDEnumeration(zoneType, NULL, NULL, ec);
 }
 
-UEnumeration* __hs_ucal_openTimeZones(UErrorCode *ec)
+UEnumeration *__hs_ucal_openTimeZones(UErrorCode *ec)
 {
     return ucal_openTimeZones(ec);
+}
+
+void __hs_ucal_setTimeZone(UCalendar *cal, const UChar *zoneID, int32_t len, UErrorCode *status)
+{
+    ucal_setTimeZone(cal, zoneID, len, status);
 }
 
 UBreakIterator *__hs_ubrk_open(UBreakIteratorType type, const char *locale,

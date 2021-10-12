@@ -61,7 +61,9 @@ library
       Data.Text.ICU.Collate
       Data.Text.ICU.Convert
       Data.Text.ICU.Error
+      Data.Text.ICU.Locale
       Data.Text.ICU.Normalize
+      Data.Text.ICU.NumberFormatter
       Data.Text.ICU.Regex
       Data.Text.ICU.Spoof
       Data.Text.ICU.Types
@@ -69,7 +71,6 @@ library
       Data.Text.ICU.BitMask
       Data.Text.ICU.Break.Pure
       Data.Text.ICU.Break.Types
-      Data.Text.ICU.Calendar.Types
       Data.Text.ICU.Collate.Internal
       Data.Text.ICU.Collate.Pure
       Data.Text.ICU.Convert.Internal

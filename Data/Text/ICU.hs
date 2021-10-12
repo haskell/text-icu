@@ -20,6 +20,8 @@ module Data.Text.ICU
 
     -- * Types
       LocaleName(..)
+    -- * Locales
+    , availableLocales
     -- * Boundary analysis
     -- $break
     , Breaker
@@ -107,8 +109,14 @@ module Data.Text.ICU
     , getRestrictionLevel
     -- ** Persistence
     , serialize
-    -- ** Calendars
-    , timeZones
+    -- * Calendars
+    , Calendar, CalendarType(..), SystemTimeZoneType(..), CalendarField(..), 
+    -- ** Construction
+    calendar,
+    -- ** Operations on calendars
+    roll, add, set1, set, get,
+    -- * Number formatting
+    NumberFormatter, numberFormatter, formatIntegral, formatIntegral', formatDouble, formatDouble'
     ) where
 
 import Data.Text.ICU.Break.Pure
@@ -116,7 +124,9 @@ import Data.Text.ICU.Calendar
 import Data.Text.ICU.Collate.Pure
 import Data.Text.ICU.Internal
 import Data.Text.ICU.Iterator
+import Data.Text.ICU.Locale
 import Data.Text.ICU.Normalize
+import Data.Text.ICU.NumberFormatter
 import Data.Text.ICU.Regex.Pure
 import qualified Data.Text.ICU.Spoof as S
 import Data.Text.ICU.Spoof.Pure
