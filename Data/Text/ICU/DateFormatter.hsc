@@ -10,6 +10,17 @@
 --
 -- Calendar formatter implemented as bindings to
 -- the International Components for Unicode (ICU) libraries.
+-- You display or print a Date by first converting it to a locale-specific string that conforms 
+-- to the conventions of the end user’s Locale. For example, Germans recognize 20.4.98 as a valid 
+-- date, and Americans recognize 4/20/98.
+--
+-- 👉 Note: The appropriate Calendar support is required for different locales. For example, the 
+-- Buddhist calendar is the official calendar in Thailand so the typical assumption of Gregorian 
+-- Calendar usage should not be used. ICU will pick the appropriate Calendar based on the locale 
+-- you supply when opening a Calendar or DateFormat.
+--
+-- Date and time formatters are used to convert dates and times from their internal representations 
+-- to textual form in a language-independent manner.
 
 module Data.Text.ICU.DateFormatter
     (DateFormatter, FormatStyle(..), DateFormatSymbolType(..), standardDateFormatter, patternDateFormatter, dateSymbols, formatCalendar
@@ -34,12 +45,12 @@ import System.IO.Unsafe (unsafePerformIO)
 
 -- | The possible date/time format styles.
 data FormatStyle =
-       FullFormatStyle -- ^ Full style. 
-       | LongFormatStyle -- ^ Long style.
-       | MediumFormatStyle -- ^ Medium style.
-       | ShortFormatStyle -- ^ Short style.
+       FullFormatStyle -- ^ Full style, such as Tuesday, April 12, 1952 AD or 3:30:42pm PST
+       | LongFormatStyle -- ^ Long style, such as January 12, 1952 or 3:30:32pm
+       | MediumFormatStyle -- ^ Medium style, such as Jan. 12, 1952
+       | ShortFormatStyle -- ^ Short style, such as 12/13/52 or 3:30pm
        | DefaultFormatStyle -- ^ Default style
-       | RelativeFormatStyle -- ^ Relative style.
+       | RelativeFormatStyle -- ^ Relative style: ICU currently provides limited support for formatting dates using a “relative” style, specified using RELATIVE_SHORT, RELATIVE_MEDIUM, RELATIVE_LONG or RELATIVE_FULL. As currently implemented, relative date formatting only affects the formatting of dates within a limited range of calendar days before or after the current date, based on the CLDR <field type="day">/<relative> data: For example, in English, “Yesterday”, “Today”, and “Tomorrow”. Within this range, the specific relative style currently makes no difference. Outside of this range, relative dates are formatted using the corresponding non-relative style (SHORT, MEDIUM, etc.). Relative time styles are not currently supported, and behave just like the corresponding non-relative style.
        | NoFormatStyle -- ^ No style.
   deriving (Eq, Enum, Show)
 
@@ -113,7 +124,9 @@ type UDateFormatSymbolType = CInt
 
 data UDateFormat
 
--- | Abstract data type holding a foreign pointer to the ICU date format object.
+-- | This is an abstract data type holding a reference to the ICU date format object. Create a 'DateFormatter'
+-- with either 'standardDateFormatter' or 'patternDateFormatter' and use it in order to format 'Calendar'
+-- objects with the function 'formatCalendar'.
 newtype DateFormatter = DateFormatter (ForeignPtr UDateFormat)
 
 -- | Create a new 'DateFormatter' from the standard styles.
@@ -132,6 +145,34 @@ standardDateFormatter timeStyle dateStyle loc timeZoneId =
 -- https://unicode-org.github.io/icu/userguide/format_parse/datetime/#datetime-format-syntax. For examples
 -- the pattern "yyyy.MM.dd G 'at' HH:mm:ss zzz" produces “1996.07.10 AD at 15:08:56 PDT” in English for
 -- the PDT time zone.
+--
+-- A date pattern is a string of characters, where specific strings of characters are replaced with date and 
+--time data from a calendar when formatting or used to generate data for a calendar when parsing.
+-- 
+-- The [Date Field Symbol Table](https://www.unicode.org/reports/tr35/tr35-dates.html#Date_Field_Symbol_Table) 
+-- contains the characters used in patterns to show the appropriate formats 
+-- for a given locale, such as yyyy for the year. Characters may be used multiple times. For example, if y is 
+-- used for the year, "yy" might produce “99”, whereas "yyyy" produces “1999”. For most numerical fields, the 
+-- number of characters specifies the field width. For example, if h is the hour, "h" might produce “5”, but 
+-- "hh" produces “05”. For some characters, the count specifies whether an abbreviated or full form should be 
+-- used, but may have other choices, as given below.
+-- 
+-- Two single quotes represents a literal single quote, either inside or outside single quotes. Text within 
+-- single quotes is not interpreted in any way (except for two adjacent single quotes). Otherwise all ASCII 
+-- letter from a to z and A to Z are reserved as syntax characters, and require quoting if they are to represent 
+-- literal characters. In addition, certain ASCII punctuation characters may become variable in the future (eg 
+-- ':' being interpreted as the time separator and '/' as a date separator, and replaced by respective locale-sensitive 
+-- characters in display).
+-- 
+-- “Stand-alone” values refer to those designed to stand on their own independently, as opposed to being with 
+-- other formatted values. “2nd quarter” would use the wide stand-alone format "qqqq", whereas “2nd quarter 2007” 
+-- would use the regular format "QQQQ yyyy". For more information about format and stand-alone forms, see 
+-- [CLDR Calendar Elements](https://www.unicode.org/reports/tr35/tr35-dates.html#months_days_quarters_eras).
+-- 
+-- The pattern characters used in the Date Field Symbol Table are defined by CLDR; for more information see 
+-- [CLDR Date Field Symbol Table](https://www.unicode.org/reports/tr35/tr35-dates.html#Date_Field_Symbol_Table).
+-- 
+-- 👉 Note that the examples may not reflect current CLDR data.
 patternDateFormatter :: Text -> LocaleName -> Text -> IO DateFormatter
 patternDateFormatter pattern loc timeZoneId =
   withLocaleName loc $ \locale ->

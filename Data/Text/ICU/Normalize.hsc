@@ -263,16 +263,28 @@ compare opts a b = unsafePerformIO .
                     (reduceCompareOptions opts)
 
 foreign import ccall unsafe "hs_text_icu.h __hs_unorm_compare" unorm_compare
-    :: Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> Word32
-    -> Ptr UErrorCode -> IO Int32
+    :: Ptr UChar -> Int32 
+    -> Ptr UChar -> Int32 
+    -> Word32
+    -> Ptr UErrorCode 
+    -> IO Int32
 
 foreign import ccall unsafe "hs_text_icu.h __hs_unorm_quickCheck" unorm_quickCheck
-    :: Ptr UChar -> Int32 -> UNormalizationMode -> Ptr UErrorCode
+    :: Ptr UChar -> Int32 
+    -> UNormalizationMode 
+    -> Ptr UErrorCode
     -> IO UNormalizationCheckResult
 
 foreign import ccall unsafe "hs_text_icu.h __hs_unorm_isNormalized" unorm_isNormalized
-    :: Ptr UChar -> Int32 -> UNormalizationMode -> Ptr UErrorCode -> IO UBool
+    :: Ptr UChar -> Int32 
+    -> UNormalizationMode 
+    -> Ptr UErrorCode 
+    -> IO UBool
 
 foreign import ccall unsafe "hs_text_icu.h __hs_unorm_normalize" unorm_normalize
-    :: Ptr UChar -> Int32 -> UNormalizationMode -> Int32
-    -> Ptr UChar -> Int32 -> Ptr UErrorCode -> IO Int32
+    :: Ptr UChar -> Int32 
+    -> UNormalizationMode 
+    -> Int32
+    -> Ptr UChar -> Int32 
+    -> Ptr UErrorCode 
+    -> IO Int32

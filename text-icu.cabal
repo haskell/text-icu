@@ -1,5 +1,5 @@
 name:           text-icu
-version:        0.7.1.0
+version:        0.8.0.0
 synopsis:       Bindings to the ICU library
 homepage:       https://github.com/bos/text-icu
 bug-reports:    https://github.com/bos/text-icu/issues
@@ -31,6 +31,10 @@ description:
   * Regular expression search and replace.
   .
   * Security checks for visually confusable (spoofable) strings.
+  .
+  * Calendar objects holding dates and times.
+  .
+  * Number and calendar formatting.
 maintainer:     Bryan O'Sullivan <bos@serpentine.com>
 copyright:      2009-2015 Bryan O'Sullivan
 category:       Data, Text
