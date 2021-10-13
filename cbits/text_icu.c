@@ -1,6 +1,36 @@
 #include "hs_text_icu.h"
 #include "stdbool.h"
 
+UDateFormat *__hs_udat_open(UDateFormatStyle timeStyle, UDateFormatStyle dateStyle, const char *locale, const UChar *tzID, int32_t tzIDLength, const UChar *pattern, int32_t patternLength, UErrorCode *status)
+{
+    udat_open(timeStyle, dateStyle, locale, tzID, tzIDLength, pattern, patternLength, status);
+}
+
+void __hs_udat_close(UDateFormat *format)
+{
+    udat_close(format);
+}
+
+UDateFormat *__hs_udat_clone(const UDateFormat *fmt, UErrorCode *status)
+{
+    udat_clone(fmt, status);
+}
+
+int32_t __hs_udat_formatCalendar(const UDateFormat *format, UCalendar *calendar, UChar *result, int32_t capacity, UFieldPosition *position, UErrorCode *status)
+{
+    udat_formatCalendar(format, calendar, result, capacity, position, status);
+}
+
+int32_t __hs_udat_getSymbols(const UDateFormat *fmt, UDateFormatSymbolType type, int32_t symbolIndex, UChar *result, int32_t resultLength, UErrorCode *status)
+{
+    udat_getSymbols(fmt, type, symbolIndex, result, resultLength, status);
+}
+
+int32_t __hs_udat_countSymbols(const UDateFormat *fmt, UDateFormatSymbolType type)
+{
+    udat_countSymbols(fmt, type);
+}
+
 UNumberFormatter *__hs_unumf_openForSkeletonAndLocale(const UChar *skeleton, int32_t skeletonLen, const char *locale, UErrorCode *ec)
 {
     unumf_openForSkeletonAndLocale(skeleton, skeletonLen, locale, ec);

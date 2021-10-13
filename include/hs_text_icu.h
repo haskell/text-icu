@@ -9,6 +9,7 @@
 #include "unicode/uchar.h"
 #include "unicode/ucnv.h"
 #include "unicode/ucol.h"
+#include "unicode/udat.h"
 #include "unicode/uenum.h"
 #include "unicode/uiter.h"
 #include "unicode/uloc.h"
@@ -19,6 +20,15 @@
 #include "unicode/ustring.h"
 
 #include <stdint.h>
+
+/* udat.h */
+
+UDateFormat *__hs_udat_open(UDateFormatStyle timeStyle, UDateFormatStyle dateStyle, const char *locale, const UChar *tzID, int32_t tzIDLength, const UChar *pattern, int32_t patternLength, UErrorCode *status);
+void __hs_udat_close(UDateFormat *format);
+UDateFormat *__hs_udat_clone(const UDateFormat *fmt, UErrorCode *status);
+int32_t __hs_udat_formatCalendar(const UDateFormat *format, UCalendar *calendar, UChar *result, int32_t capacity, UFieldPosition *position, UErrorCode *status);
+int32_t __hs_udat_getSymbols(const UDateFormat *fmt, UDateFormatSymbolType type, int32_t symbolIndex, UChar *result, int32_t resultLength, UErrorCode *status);
+int32_t __hs_udat_countSymbols(const UDateFormat *fmt, UDateFormatSymbolType type);
 
 /* unumberformatter.h */
 

@@ -14,7 +14,7 @@
 module Data.Text.ICU.Calendar
     (
       -- * Data
-      Calendar, CalendarType(..), SystemTimeZoneType(..), CalendarField(..),
+      Calendar(..), CalendarType(..), SystemTimeZoneType(..), CalendarField(..), UCalendar,
       -- * High-level interface
       -- ** Operations on calendars
       roll, add, set1, set, get,

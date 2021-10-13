@@ -116,12 +116,15 @@ module Data.Text.ICU
     -- ** Operations on calendars
     roll, add, set1, set, get,
     -- * Number formatting
-    NumberFormatter, numberFormatter, formatIntegral, formatIntegral', formatDouble, formatDouble'
+    NumberFormatter, numberFormatter, formatIntegral, formatIntegral', formatDouble, formatDouble',
+    -- * Date formatting
+    DateFormatter, FormatStyle(..), DateFormatSymbolType(..), standardDateFormatter, patternDateFormatter, dateSymbols, formatCalendar,
     ) where
 
 import Data.Text.ICU.Break.Pure
 import Data.Text.ICU.Calendar
 import Data.Text.ICU.Collate.Pure
+import Data.Text.ICU.DateFormatter
 import Data.Text.ICU.Internal
 import Data.Text.ICU.Iterator
 import Data.Text.ICU.Locale

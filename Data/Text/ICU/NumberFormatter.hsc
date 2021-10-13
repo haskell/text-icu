@@ -75,7 +75,7 @@ formatIntegral (NumberFormatter nf) x = unsafePerformIO do
 formatIntegral' :: (Integral a) => Text -> LocaleName -> a -> Text
 formatIntegral' skel loc x = unsafePerformIO do
   nf <- numberFormatter skel loc
-  formatIntegral nf x
+  pure $ formatIntegral nf x
 
 -- | Format a Double.
 --
@@ -102,7 +102,7 @@ formatDouble (NumberFormatter nf) x = unsafePerformIO do
 formatDouble' :: Text -> LocaleName -> Double -> Text
 formatDouble' skel loc x = unsafePerformIO do
   nf <- numberFormatter skel loc
-  formatDouble nf x
+  pure $ formatDouble nf x
 
 foreign import ccall unsafe "hs_text_icu.h __hs_unumf_openForSkeletonAndLocale" unumf_openForSkeletonAndLocale
     :: Ptr UChar -> Int32 -> CString -> Ptr UErrorCode -> IO (Ptr UNumberFormatter)

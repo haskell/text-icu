@@ -60,6 +60,7 @@ library
       Data.Text.ICU.Char
       Data.Text.ICU.Collate
       Data.Text.ICU.Convert
+      Data.Text.ICU.DateFormatter
       Data.Text.ICU.Error
       Data.Text.ICU.Locale
       Data.Text.ICU.Normalize
