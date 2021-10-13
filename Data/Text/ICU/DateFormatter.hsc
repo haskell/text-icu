@@ -18,7 +18,7 @@ module Data.Text.ICU.DateFormatter
 #include <unicode/udat.h>
 
 import Control.Monad (forM)
-import Data.Int (Int32, Int64)
+import Data.Int (Int32)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.Foreign (useAsPtr, fromPtr)
@@ -26,12 +26,13 @@ import Data.Text.ICU.Error.Internal (UErrorCode, handleError, handleOverflowErro
 import Data.Text.ICU.Internal (LocaleName(..), UChar, withLocaleName)
 import Data.Text.ICU.Calendar
 import Foreign.C.String (CString)
-import Foreign.C.Types (CInt(..), CDouble(..))
+import Foreign.C.Types (CInt(..))
 import Foreign.ForeignPtr (newForeignPtr, withForeignPtr, ForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr, castPtr, nullPtr)
 import Prelude hiding (last)
 import System.IO.Unsafe (unsafePerformIO)
 
+-- | The possible date/time format styles.
 data FormatStyle =
        FullFormatStyle -- ^ Full style. 
        | LongFormatStyle -- ^ Long style.
@@ -42,6 +43,7 @@ data FormatStyle =
        | NoFormatStyle -- ^ No style.
   deriving (Eq, Enum, Show)
 
+toUDateFormatStyle :: FormatStyle -> CInt
 toUDateFormatStyle FullFormatStyle = #const UDAT_FULL
 toUDateFormatStyle LongFormatStyle = #const UDAT_LONG
 toUDateFormatStyle MediumFormatStyle = #const UDAT_MEDIUM
@@ -50,6 +52,7 @@ toUDateFormatStyle DefaultFormatStyle = #const UDAT_DEFAULT
 toUDateFormatStyle RelativeFormatStyle = #const UDAT_RELATIVE
 toUDateFormatStyle NoFormatStyle = #const UDAT_NONE
 
+-- | The possible types of date format symbols.
 data DateFormatSymbolType =
         Eras -- ^  The era names, for example AD.
         | Months -- ^  The month names, for example February.
@@ -77,6 +80,7 @@ data DateFormatSymbolType =
         | ZodiacNamesAbbreviated -- ^ Calendar zodiac names (only supported for some calendars, and only for FORMAT usage)
         | ZodiacNamesNarrow -- ^  Calendar zodiac names (only supported for some calendars, and only for FORMAT usage; udat_setSymbols not supported for UDAT_ZODIAC_NAMES_NARROW)
 
+toUDateFormatSymbolType :: DateFormatSymbolType -> CInt
 toUDateFormatSymbolType Eras = #const UDAT_ERAS
 toUDateFormatSymbolType Months = #const UDAT_MONTHS
 toUDateFormatSymbolType ShortMonths = #const UDAT_SHORT_MONTHS
@@ -109,9 +113,10 @@ type UDateFormatSymbolType = CInt
 
 data UDateFormat
 
+-- | Abstract data type holding a foreign pointer to the ICU date format object.
 newtype DateFormatter = DateFormatter (ForeignPtr UDateFormat)
 
--- | Create a new 'DateFormatter'.
+-- | Create a new 'DateFormatter' from the standard styles.
 --
 -- >>> import Data.Text
 -- >>> dfDe <- standardDateFormatter LongFormatStyle LongFormatStyle (Locale "de_DE") (pack "CET")
@@ -123,13 +128,16 @@ standardDateFormatter timeStyle dateStyle loc timeZoneId =
       dfPtr <- newForeignPtr udat_close df
       pure $ DateFormatter dfPtr
 
--- | Create a new 'DateFormatter'.
+-- | Create a new 'DateFormatter' using a custom pattern as described at 
+-- https://unicode-org.github.io/icu/userguide/format_parse/datetime/#datetime-format-syntax. For examples
+-- the pattern "yyyy.MM.dd G 'at' HH:mm:ss zzz" produces “1996.07.10 AD at 15:08:56 PDT” in English for
+-- the PDT time zone.
 patternDateFormatter :: Text -> LocaleName -> Text -> IO DateFormatter
 patternDateFormatter pattern loc timeZoneId =
   withLocaleName loc $ \locale ->
     useAsPtr timeZoneId $ \tzPtr tzLen -> do
       useAsPtr pattern $ \patPtr patLen -> do
-        df <- handleError $ udat_open (fromIntegral (#const UDAT_PATTERN)) (fromIntegral (#const UDAT_PATTERN)) locale tzPtr (fromIntegral tzLen) patPtr (fromIntegral patLen)
+        df <- handleError $ udat_open (fromIntegral ((#const UDAT_PATTERN) :: Int32)) (fromIntegral ((#const UDAT_PATTERN) :: Int32)) locale tzPtr (fromIntegral tzLen) patPtr (fromIntegral patLen)
         dfPtr <- newForeignPtr udat_close df
         pure $ DateFormatter dfPtr
 
@@ -142,8 +150,8 @@ patternDateFormatter pattern loc timeZoneId =
 -- >>> dfAt <- standardDateFormatter LongFormatStyle LongFormatStyle (Locale "de_AT") (pack "CET")
 -- >>> dateSymbols dfAt Months
 -- ["J\228nner","Februar","M\228rz","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"]
-dateSymbols :: DateFormatter -> DateFormatSymbolType -> IO [Text]
-dateSymbols (DateFormatter df) symType = do
+dateSymbols :: DateFormatter -> DateFormatSymbolType -> [Text]
+dateSymbols (DateFormatter df) symType = unsafePerformIO do
   withForeignPtr df $ \dfPtr -> do
     n <- udat_countSymbols dfPtr (toUDateFormatSymbolType symType)
     syms <- forM [0..(n-1)] \i -> do
@@ -152,30 +160,20 @@ dateSymbols (DateFormatter df) symType = do
         (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
     pure $ filter (not . T.null) syms
 
+-- | Format a 'Calendar' using a 'DateFormatter'.
+--
 -- >>> import Data.Text
 -- >>> dfDe <- standardDateFormatter LongFormatStyle LongFormatStyle (Locale "de_DE") (pack "CET")
 -- >>> c <- calendar (pack "CET") (Locale "de_DE") TraditionalCalendarType
 -- >>> formatCalendar dfDe c
 -- "13. Oktober 2021 um 12:44:09 GMT+2"
-formatCalendar :: DateFormatter -> Calendar -> IO Text
-formatCalendar (DateFormatter df) (Calendar cal) =
+formatCalendar :: DateFormatter -> Calendar -> Text
+formatCalendar (DateFormatter df) (Calendar cal) = unsafePerformIO $
   withForeignPtr df $ \dfPtr -> do
     withForeignPtr cal $ \calPtr -> do
       handleOverflowError (fromIntegral (64 :: Int))
         (\dptr dlen -> udat_formatCalendar dfPtr calPtr dptr dlen nullPtr)
         (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
-
-{- 
-UDateFormat *__hs_udat_open(UDateFormatStyle timeStyle, UDateFormatStyle dateStyle, const char *locale, 
-  const UChar *tzID, int32_t tzIDLength, 
-  const UChar *pattern, int32_t patternLength, 
-  UErrorCode *status);
-void __hs_udat_close(UDateFormat *format);
-UDateFormat *__hs_udat_clone(const UDateFormat *fmt, UErrorCode *status);
-int32_t __hs_udat_formatCalendar(const UDateFormat *format, UCalendar *calendar, UChar *result, int32_t capacity, UFieldPosition *position, UErrorCode *status);
-int32_t __hs_udat_getSymbols(const UDateFormat *fmt, UDateFormatSymbolType type, int32_t symbolIndex, UChar *result, int32_t resultLength, UErrorCode *status);
-int32_t __hs_udat_countSymbols(const UDateFormat *fmt, UDateFormatSymbolType type);
- -}
 
 foreign import ccall unsafe "hs_text_icu.h __hs_udat_open" udat_open
     :: UDateFormatStyle -> UDateFormatStyle 
@@ -186,8 +184,6 @@ foreign import ccall unsafe "hs_text_icu.h __hs_udat_open" udat_open
     -> IO (Ptr UDateFormat)
 foreign import ccall unsafe "hs_text_icu.h &__hs_udat_close" udat_close
     :: FunPtr (Ptr UDateFormat -> IO ())
-foreign import ccall unsafe "hs_text_icu.h __hs_udat_clone" udat_clone
-    :: Ptr UDateFormat -> Ptr UErrorCode -> IO (Ptr UDateFormat)
 foreign import ccall unsafe "hs_text_icu.h __hs_udat_formatCalendar" udat_formatCalendar
     :: Ptr UDateFormat 
     -> Ptr UCalendar 

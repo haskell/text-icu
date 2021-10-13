@@ -12,7 +12,14 @@
 -- the International Components for Unicode (ICU) libraries.
 
 module Data.Text.ICU.NumberFormatter
-    (NumberFormatter, numberFormatter, formatIntegral, formatIntegral', formatDouble, formatDouble'
+    (
+      -- * Data
+      NumberFormatter, 
+      -- * Formatter
+      numberFormatter,
+      -- $skeleton
+      -- * Formatting functions
+      formatIntegral, formatIntegral', formatDouble, formatDouble'
     ) where
 
 #include <unicode/unumberformatter.h>
@@ -28,6 +35,31 @@ import Foreign.ForeignPtr (newForeignPtr, withForeignPtr, ForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr, castPtr)
 import Prelude hiding (last)
 import System.IO.Unsafe (unsafePerformIO)
+
+-- $skeleton
+--
+-- Here are some examples for number skeletons, see 
+-- https://unicode-org.github.io/icu/userguide/format_parse/numbers/skeletons.html#examples for more:
+--
+-- +----------------------------+-----------------+--------+--------------+-------------------------------------------------------------+
+-- | Long Skeleton              | Concise Skeleton | Input | en-US Output | Comments                                                    |
+-- +============================+==================+=======+==============+=============================================================+
+-- | percent                    | %                | 25    | 25%          |                                                             |
+-- | .00                        |.00               | 25    | 25.00        | Equivalent to Precision::fixedFraction(2)                   |
+-- | percent .00                | % .00            | 25    | 25.00%       |                                                             |
+-- | scale/100                  | scale/100        | 0.3   | 30           | Multiply by 100 before formatting                           |
+-- | percent scale/100          | %x100            | 0.3   | 30%          |                                                             |
+-- | measure-unit/length-meter  | unit/meter       | 5     | 5 m          | UnitWidth defaults to Short                                 |
+-- | unit-width-full-name       | unit/meter       | 5     | 5 meters     |                                                             |
+-- | compact-short              | K                | 5000  | 5K           |                                                             |
+-- | compact-long               | KK               | 5000  | 5 thousand   |                                                             |
+-- | group-min2                 | ,?               | 5000  | 5000         | Require 2 digits in group for separator                     |
+-- | group-min2                 | ,?               | 15000 | 15,000       |                                                             |
+-- | sign-always                | +!               | 60    | +60          | Show sign on all numbers                                    |
+-- | sign-always                | +!               | 0     | +0           |                                                             |
+-- | sign-except-zero           | +?               | 60    | +60          | Show sign on all numbers except 0                           |
+-- | sign-except-zero           | +?               | 0     | 0            |                                                             |
+-- +----------------------------+-----------------+--------+--------------+-------------------------------------------------------------+
 
 data UNumberFormatter
 data UFormattedNumber
