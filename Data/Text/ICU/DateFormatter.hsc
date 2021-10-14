@@ -45,13 +45,13 @@ import System.IO.Unsafe (unsafePerformIO)
 
 -- | The possible date/time format styles.
 data FormatStyle =
-       FullFormatStyle -- ^ Full style, such as Tuesday, April 12, 1952 AD or 3:30:42pm PST
-       | LongFormatStyle -- ^ Long style, such as January 12, 1952 or 3:30:32pm
-       | MediumFormatStyle -- ^ Medium style, such as Jan. 12, 1952
-       | ShortFormatStyle -- ^ Short style, such as 12/13/52 or 3:30pm
-       | DefaultFormatStyle -- ^ Default style
+       FullFormatStyle       -- ^ Full style, such as Tuesday, April 12, 1952 AD or 3:30:42pm PST
+       | LongFormatStyle     -- ^ Long style, such as January 12, 1952 or 3:30:32pm
+       | MediumFormatStyle   -- ^ Medium style, such as Jan. 12, 1952
+       | ShortFormatStyle    -- ^ Short style, such as 12/13/52 or 3:30pm
+       | DefaultFormatStyle  -- ^ Default style
        | RelativeFormatStyle -- ^ Relative style: ICU currently provides limited support for formatting dates using a “relative” style, specified using RELATIVE_SHORT, RELATIVE_MEDIUM, RELATIVE_LONG or RELATIVE_FULL. As currently implemented, relative date formatting only affects the formatting of dates within a limited range of calendar days before or after the current date, based on the CLDR <field type="day">/<relative> data: For example, in English, “Yesterday”, “Today”, and “Tomorrow”. Within this range, the specific relative style currently makes no difference. Outside of this range, relative dates are formatted using the corresponding non-relative style (SHORT, MEDIUM, etc.). Relative time styles are not currently supported, and behave just like the corresponding non-relative style.
-       | NoFormatStyle -- ^ No style.
+       | NoFormatStyle       -- ^ No style.
   deriving (Eq, Enum, Show)
 
 toUDateFormatStyle :: FormatStyle -> CInt
@@ -65,31 +65,31 @@ toUDateFormatStyle NoFormatStyle = #const UDAT_NONE
 
 -- | The possible types of date format symbols.
 data DateFormatSymbolType =
-        Eras -- ^  The era names, for example AD.
-        | Months -- ^  The month names, for example February.
-        | ShortMonths -- ^  The short month names, for example Feb.
-        | Weekdays -- ^  The CLDR-style format "wide" weekday names, for example Monday.
-        | ShortWeekdays -- ^  The CLDR-style format "abbreviated" (not "short") weekday names, for example "Mon." For the CLDR-style format "short" weekday names, use UDAT_SHORTER_WEEKDAYS.
-        | AmPms -- ^  The AM/PM names, for example AM.
-        | LocalizedChars -- ^  The localized characters.
-        | EraNames -- ^  The long era names, for example Anno Domini.
-        | NarrowMonths -- ^  The narrow month names, for example F.
-        | NarrowWeekdays -- ^  The CLDR-style format "narrow" weekday names, for example "M".
-        | StandaloneMonths -- ^  Standalone context versions of months.
-        | StandaloneWeekdays -- ^  The CLDR-style stand-alone "wide" weekday names.
-        | StandaoneShortWeekdays -- ^  The CLDR-style stand-alone "abbreviated" (not "short") weekday names. For the CLDR-style stand-alone "short" weekday names, use UDAT_STANDALONE_SHORTER_WEEKDAYS.
-        | StandaloneNarrowWeekdays -- ^  The CLDR-style stand-alone "narrow" weekday names.
-        | Quarters -- ^  The quarters, for example 1st Quarter.
-        | ShortQuarters -- ^  The short quarter names, for example Q1.
-        | StandaloneQuarters -- ^  Standalone context versions of quarters.
-        | ShorterWeekdays -- ^  The CLDR-style short weekday names, e.g. "Su", Mo", etc. These are named "SHORTER" to contrast with the constants using SHORT above, which actually get the CLDR-style abbreviated versions of the corresponding names.
-        | StandaloneShorterWeekdays -- ^  Standalone version of UDAT_SHORTER_WEEKDAYS.
-        | CyclicYearsWide -- ^  Cyclic year names (only supported for some calendars, and only for FORMAT usage; udat_setSymbols not supported for UDAT_CYCLIC_YEARS_WIDE)
-        | CyclicYearsAbbreviated -- ^  Cyclic year names (only supported for some calendars, and only for FORMAT usage)
-        | CyclicYearsNarrow -- ^  Cyclic year names (only supported for some calendars, and only for FORMAT usage; udat_setSymbols not supported for UDAT_CYCLIC_YEARS_NARROW)
-        | ZodiacNamesWide -- ^  Calendar zodiac names (only supported for some calendars, and only for FORMAT usage; udat_setSymbols not supported for UDAT_ZODIAC_NAMES_WIDE)
-        | ZodiacNamesAbbreviated -- ^ Calendar zodiac names (only supported for some calendars, and only for FORMAT usage)
-        | ZodiacNamesNarrow -- ^  Calendar zodiac names (only supported for some calendars, and only for FORMAT usage; udat_setSymbols not supported for UDAT_ZODIAC_NAMES_NARROW)
+        Eras                        -- ^ The era names, for example AD.
+        | Months                    -- ^ The month names, for example February.
+        | ShortMonths               -- ^ The short month names, for example Feb.
+        | Weekdays                  -- ^ The CLDR-style format "wide" weekday names, for example Monday.
+        | ShortWeekdays             -- ^ The CLDR-style format "abbreviated" (not "short") weekday names, for example "Mon." For the CLDR-style format "short" weekday names, use UDAT_SHORTER_WEEKDAYS.
+        | AmPms                     -- ^ The AM/PM names, for example AM.
+        | LocalizedChars            -- ^ The localized characters.
+        | EraNames                  -- ^ The long era names, for example Anno Domini.
+        | NarrowMonths              -- ^ The narrow month names, for example F.
+        | NarrowWeekdays            -- ^ The CLDR-style format "narrow" weekday names, for example "M".
+        | StandaloneMonths          -- ^ Standalone context versions of months.
+        | StandaloneWeekdays        -- ^ The CLDR-style stand-alone "wide" weekday names.
+        | StandaoneShortWeekdays    -- ^ The CLDR-style stand-alone "abbreviated" (not "short") weekday names. For the CLDR-style stand-alone "short" weekday names, use UDAT_STANDALONE_SHORTER_WEEKDAYS.
+        | StandaloneNarrowWeekdays  -- ^ The CLDR-style stand-alone "narrow" weekday names.
+        | Quarters                  -- ^ The quarters, for example 1st Quarter.
+        | ShortQuarters             -- ^ The short quarter names, for example Q1.
+        | StandaloneQuarters        -- ^ Standalone context versions of quarters.
+        | ShorterWeekdays           -- ^ The CLDR-style short weekday names, e.g. "Su", Mo", etc. These are named "SHORTER" to contrast with the constants using SHORT above, which actually get the CLDR-style abbreviated versions of the corresponding names.
+        | StandaloneShorterWeekdays -- ^ Standalone version of UDAT_SHORTER_WEEKDAYS.
+        | CyclicYearsWide           -- ^ Cyclic year names (only supported for some calendars, and only for FORMAT usage; udat_setSymbols not supported for UDAT_CYCLIC_YEARS_WIDE)
+        | CyclicYearsAbbreviated    -- ^ Cyclic year names (only supported for some calendars, and only for FORMAT usage)
+        | CyclicYearsNarrow         -- ^ Cyclic year names (only supported for some calendars, and only for FORMAT usage; udat_setSymbols not supported for UDAT_CYCLIC_YEARS_NARROW)
+        | ZodiacNamesWide           -- ^ Calendar zodiac names (only supported for some calendars, and only for FORMAT usage; udat_setSymbols not supported for UDAT_ZODIAC_NAMES_WIDE)
+        | ZodiacNamesAbbreviated    -- ^ Calendar zodiac names (only supported for some calendars, and only for FORMAT usage)
+        | ZodiacNamesNarrow         -- ^ Calendar zodiac names (only supported for some calendars, and only for FORMAT usage; udat_setSymbols not supported for UDAT_ZODIAC_NAMES_NARROW)
 
 toUDateFormatSymbolType :: DateFormatSymbolType -> CInt
 toUDateFormatSymbolType Eras = #const UDAT_ERAS
