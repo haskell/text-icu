@@ -48,14 +48,15 @@ module Data.Text.ICU
     , fromText
     , fromUtf8
     -- * Normalization
-    , NormalizationMode(..)
-    , normalize
-    , quickCheck
-    , isNormalized
+    -- $compat
+    -- ** Normalize unicode strings
+    , nfc, nfd, nfkc, nfkd, nfkcCasefold
+    -- ** Checks for normalization
+    , quickCheck, isNormalized
     -- * String comparison
     -- ** Normalization-sensitive string comparison
     , CompareOption(..)
-    , compare
+    , compareUnicode
     -- ** Locale-sensitive string collation
     -- $collate
     , Collator
@@ -128,7 +129,7 @@ import Data.Text.ICU.DateFormatter
 import Data.Text.ICU.Internal
 import Data.Text.ICU.Iterator
 import Data.Text.ICU.Locale
-import Data.Text.ICU.Normalize
+import Data.Text.ICU.Normalize2
 import Data.Text.ICU.NumberFormatter
 import Data.Text.ICU.Regex.Pure
 import qualified Data.Text.ICU.Spoof as S
@@ -210,3 +211,6 @@ import Data.Text (Text)
 -- See <http://unicode.org/reports/tr36/ UTR #36> and
 -- <http://unicode.org/reports/tr39/ UTS #39> for detailed information
 -- about the underlying algorithms and databases used by these functions.
+
+-- $compat
+-- See module 'Data.Text.ICU.Normalization2' for the full interface which provides some compatibility with the former API.

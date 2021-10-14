@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, DeriveDataTypeable, ForeignFunctionInterface #-}
+{-# LANGUAGE EmptyDataDecls, BlockArguments, ImportQualifiedPost, CPP, DeriveDataTypeable, ForeignFunctionInterface #-}
 -- |
 -- Module      : Data.Text.ICU.Normalize
 -- Copyright   : (c) 2009, 2010 Bryan O'Sullivan
@@ -10,24 +10,21 @@
 --
 -- Character set normalization functions for Unicode, implemented as
 -- bindings to the International Components for Unicode (ICU)
--- libraries.
---
--- This module is based on the now deprecated "unorm.h" functions.
--- Please use Data.Text.ICU.Normalize2 instead.
+-- libraries. See http://www.unicode.org/reports/tr15/ for a description
+-- of Unicode normalization modes and why these are needed.
 
-module Data.Text.ICU.Normalize {-# DEPRECATED "Use Data.Text.ICU.Normalize2 instead" #-}
+module Data.Text.ICU.Normalize2
     (
     -- * Unicode normalization API
     -- $api
-      NormalizationMode(..)
-    -- * Normalization functions
-    , normalize
-    -- * Normalization checks
-    , quickCheck
-    , isNormalized
-    -- * Normalization-sensitive comparison
-    , CompareOption(..)
-    , compare
+    -- * Create normalizers
+    NormalizationMode(..), normalizer, nfcNormalizer, nfdNormalizer, nfkcNormalizer, nfkdNormalizer, nfkcCasefoldNormalizer,
+    -- * Normalize unicode strings
+    nfc, nfd, nfkc, nfkd, nfkcCasefold, normalize, normalizeWith,
+    -- * Checks for normalization
+    quickCheck, isNormalized,
+    -- * Comparison of unicode strings
+    compareUnicode, compareUnicode', CompareOption(..), 
     ) where
 
 #ifdef mingw32_HOST_OS
@@ -46,6 +43,7 @@ import Data.Typeable (Typeable)
 import Data.Int (Int32)
 import Data.Word (Word32)
 import Foreign.C.Types (CInt(..))
+import Foreign.ForeignPtr (newForeignPtr_, withForeignPtr, ForeignPtr)
 import Foreign.Ptr (Ptr, castPtr)
 import System.IO.Unsafe (unsafePerformIO)
 import Prelude hiding (compare)
@@ -156,6 +154,167 @@ import Data.Bits ((.|.))
 -- normalized to 'NFC'.  For more usage examples, see the Unicode
 -- Standard Annex.
 
+-- | This is an abstract data type holding a reference to the ICU `UNormalizer2` object.
+data Normalizer = Normalizer (ForeignPtr UNormalizer2)
+
+data UNormalizer2
+
+-- | Normalization modes analog (but not identical) to the ones in the 
+-- 'Data.Text.ICU.Normalize' module.
+data NormalizationMode
+    = NFD            -- ^ Canonical decomposition.
+    | NFKD           -- ^ Compatibility decomposition.
+    | NFC            -- ^ Canonical decomposition followed by canonical composition.
+    | NFKC           -- ^ Compatibility decomposition followed by canonical composition.
+    | NFKCCasefold   -- ^ NFKC with Casefold.
+      deriving (Eq, Show, Enum, Typeable)
+
+createNormalizerWith :: (Ptr UErrorCode -> IO (Ptr UNormalizer2)) -> IO Normalizer
+createNormalizerWith f = do
+    n <- handleError $ f
+    -- from the ICU documentation: "Returns an unmodifiable singleton instance of `unorm2_getInstance()`. Do not delete it."
+    -- Thats why we use newForeignPtr_ here.
+    nPtr <- newForeignPtr_ n
+    pure $ Normalizer nPtr
+
+-- | Create a normalizer for a given normalization mode. This function is more similar to 
+-- the interface in the 'Data.Text.ICU.Normalize' module.
+normalizer :: NormalizationMode -> IO Normalizer
+normalizer NFD = nfdNormalizer
+normalizer NFKD = nfkdNormalizer
+normalizer NFC = nfcNormalizer
+normalizer NFKC = nfkcNormalizer
+normalizer NFKCCasefold = nfkcCasefoldNormalizer
+
+-- | Create an NFC normalizer.
+nfcNormalizer :: IO Normalizer
+nfcNormalizer = createNormalizerWith unorm2_getNFCInstance
+
+-- | Create an NFD normalizer.
+nfdNormalizer :: IO Normalizer
+nfdNormalizer = createNormalizerWith unorm2_getNFDInstance
+
+-- | Create an NFKC normalizer.
+nfkcNormalizer :: IO Normalizer
+nfkcNormalizer = createNormalizerWith unorm2_getNFKCInstance
+
+-- | Create an NFKD normalizer.
+nfkdNormalizer :: IO Normalizer
+nfkdNormalizer = createNormalizerWith unorm2_getNFKDInstance
+
+-- | Create an NFKCCasefold normalizer.
+nfkcCasefoldNormalizer :: IO Normalizer
+nfkcCasefoldNormalizer = createNormalizerWith unorm2_getNFKCCasefoldInstance
+
+-- * Normalization
+
+-- | Normalize a string with the given normalizer.
+normalizeWith :: Normalizer -> Text -> Text
+normalizeWith (Normalizer nf) t = unsafePerformIO $
+  withForeignPtr nf $ \nfPtr -> do
+    useAsPtr t $ \sptr slen ->
+      let slen' = fromIntegral slen
+      in handleOverflowError (fromIntegral slen)
+          (\dptr dlen -> unorm2_normalize nfPtr sptr slen' dptr (fromIntegral dlen))
+          (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
+
+-- | Normalize a string using the given normalization mode.
+normalize :: NormalizationMode -> Text -> Text
+normalize NFC = nfc
+normalize NFD = nfd
+normalize NFKC = nfkc
+normalize NFKD = nfkd
+normalize NFKCCasefold = nfkcCasefold
+
+-- | Create an NFC normalizer and apply this to the given text.
+--
+-- Let's have a look at a concrete example that contains the letter a with an acute accent twice. 
+-- First as a comination of two codepoints and second as a canonical composite or precomposed 
+-- character. Both look exactly the same but one character consists of two and one of only one 
+-- codepoint. A bytewise comparison does not give equality of these.
+--
+-- >>> import Data.Text
+-- >>> let t = pack "a\x301á"
+-- >>> t
+-- "a\769\225"
+-- >>> putStr t
+-- áá
+-- pack "a\x301" == pack "á"
+-- False
+--
+-- But now lets apply some normalization functions and see how these characters coincide afterwards
+-- in two different ways:
+--
+-- >>> nfc t
+-- "\225\225"
+-- >>> nfd t
+-- "a\769a\769"
+-- 
+-- That is exactly what 'compareUnicode'' does:
+--
+-- >>> pack "a\x301" `compareUnicode'` pack "á"
+nfc :: Text -> Text
+nfc t = unsafePerformIO do
+  nf <- nfcNormalizer
+  pure $ normalizeWith nf t
+
+-- | Create an NFKC normalizer and apply this to the given text.
+nfkc :: Text -> Text
+nfkc t = unsafePerformIO do
+  nf <- nfkcNormalizer
+  pure $ normalizeWith nf t
+
+-- | Create an NFD normalizer and apply this to the given text.
+nfd :: Text -> Text
+nfd t = unsafePerformIO do
+  nf <- nfdNormalizer
+  pure $ normalizeWith nf t
+
+-- | Create an NFC normalizer and apply this to the given text.
+nfkd :: Text -> Text
+nfkd t = unsafePerformIO do
+  nf <- nfkdNormalizer
+  pure $ normalizeWith nf t
+
+-- | Create an NFKCCasefold normalizer and apply this to the given text.
+nfkcCasefold :: Text -> Text
+nfkcCasefold t = unsafePerformIO do
+  nf <- nfkcCasefoldNormalizer
+  pure $ normalizeWith nf t
+
+-- * Checks for normalization
+
+-- | Perform an efficient check on a string, to quickly determine if
+-- the string is in a particular normalization form.
+--
+-- A 'Nothing' result indicates that a definite answer could not be
+-- determined quickly, and a more thorough check is required,
+-- e.g. with 'isNormalized'.  The user may have to convert the string
+-- to its normalized form and compare the results.
+--
+-- A result of 'Just' 'True' or 'Just' 'False' indicates that the
+-- string definitely is, or is not, in the given normalization form.
+quickCheck :: Normalizer -> Text -> Maybe Bool
+quickCheck (Normalizer nf) t = unsafePerformIO $ 
+  withForeignPtr nf $ \nfPtr ->
+    useAsPtr t $ \sptr slen ->
+      fmap toNCR . handleError $ unorm2_quickCheck nfPtr sptr (fromIntegral slen)
+
+-- | Indicate whether a string is in a given normalization form.
+--
+-- Unlike 'quickCheck', this function returns a definitive result.
+-- For 'NFD', 'NFKD', and 'FCD' normalization forms, both functions
+-- work in exactly the same ways.  For 'NFC' and 'NFKC' forms, where
+-- 'quickCheck' may return 'Nothing', this function will perform
+-- further tests to arrive at a definitive result.
+isNormalized :: Normalizer -> Text -> Bool
+isNormalized (Normalizer nf) t = unsafePerformIO $ 
+  withForeignPtr nf $ \nfPtr ->
+    useAsPtr t $ \sptr slen ->
+      fmap asBool . handleError $ unorm2_isNormalized nfPtr sptr (fromIntegral slen)
+
+-- * Comparison
+
 type UCompareOption = Word32
 
 -- | Options to 'compare'.
@@ -184,66 +343,7 @@ reduceCompareOptions :: [CompareOption] -> UCompareOption
 reduceCompareOptions = foldl' orO (#const U_COMPARE_CODE_POINT_ORDER)
     where a `orO` b = a .|. fromCompareOption b
 
-type UNormalizationMode = CInt
-
--- | Normalization modes.
-data NormalizationMode
-    = None   -- ^ No decomposition/composition.
-    | NFD    -- ^ Canonical decomposition.
-    | NFKD   -- ^ Compatibility decomposition.
-    | NFC    -- ^ Canonical decomposition followed by canonical composition.
-    | NFKC   -- ^ Compatibility decomposition followed by canonical composition.
-    | FCD    -- ^ \"Fast C or D\" form.
-      deriving (Eq, Show, Enum, Typeable)
-
-toNM :: NormalizationMode -> UNormalizationMode
-toNM None = #const UNORM_NONE
-toNM NFD  = #const UNORM_NFD
-toNM NFKD = #const UNORM_NFKD
-toNM NFC  = #const UNORM_NFC
-toNM NFKC = #const UNORM_NFKC
-toNM FCD  = #const UNORM_FCD
-
--- | Normalize a string according to the specified normalization mode.
-normalize :: NormalizationMode -> Text -> Text
-normalize mode t = unsafePerformIO . useAsPtr t $ \sptr slen ->
-  let slen' = fromIntegral slen
-      mode' = toNM mode
-  in handleOverflowError (fromIntegral slen)
-     (\dptr dlen -> unorm_normalize sptr slen' mode' 0 dptr (fromIntegral dlen))
-     (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
-
-
--- | Perform an efficient check on a string, to quickly determine if
--- the string is in a particular normalization form.
---
--- A 'Nothing' result indicates that a definite answer could not be
--- determined quickly, and a more thorough check is required,
--- e.g. with 'isNormalized'.  The user may have to convert the string
--- to its normalized form and compare the results.
---
--- A result of 'Just' 'True' or 'Just' 'False' indicates that the
--- string definitely is, or is not, in the given normalization form.
-quickCheck :: NormalizationMode -> Text -> Maybe Bool
-quickCheck mode t =
-  unsafePerformIO . useAsPtr t $ \ptr len ->
-    fmap toNCR . handleError $ unorm_quickCheck ptr (fromIntegral len)
-                               (toNM mode)
-
--- | Indicate whether a string is in a given normalization form.
---
--- Unlike 'quickCheck', this function returns a definitive result.
--- For 'NFD', 'NFKD', and 'FCD' normalization forms, both functions
--- work in exactly the same ways.  For 'NFC' and 'NFKC' forms, where
--- 'quickCheck' may return 'Nothing', this function will perform
--- further tests to arrive at a definitive result.
-isNormalized :: NormalizationMode -> Text -> Bool
-isNormalized mode t =
-  unsafePerformIO . useAsPtr t $ \ptr len ->
-    fmap asBool . handleError $ unorm_isNormalized ptr (fromIntegral len)
-                                (toNM mode)
-
--- | Compare two strings for canonical equivalence.  Further options
+-- | Compare two strings for canonical equivalence. Further options
 -- include case-insensitive comparison and code point order (as
 -- opposed to code unit order).
 --
@@ -257,13 +357,33 @@ isNormalized mode t =
 -- the 'FCD' conditions. Only in this case, and only if the strings
 -- are relatively long, is memory allocated temporarily.  For 'FCD'
 -- strings and short non-'FCD' strings there is no memory allocation.
-compare :: [CompareOption] -> Text -> Text -> Ordering
-compare opts a b = unsafePerformIO .
+compareUnicode :: [CompareOption] -> Text -> Text -> Ordering
+compareUnicode opts a b = unsafePerformIO do
   useAsPtr a $ \aptr alen ->
     useAsPtr b $ \bptr blen ->
       fmap asOrdering . handleError $
       unorm_compare aptr (fromIntegral alen) bptr (fromIntegral blen)
                     (reduceCompareOptions opts)
+
+-- | This is equivalent to `compareUnicode []`.
+compareUnicode' :: Text -> Text -> Ordering
+compareUnicode' = compareUnicode []
+
+foreign import ccall unsafe "hs_text_icu.h __hs_unorm2_getNFCInstance" unorm2_getNFCInstance
+    :: Ptr UErrorCode 
+    -> IO (Ptr UNormalizer2)
+foreign import ccall unsafe "hs_text_icu.h __hs_unorm2_getNFDInstance" unorm2_getNFDInstance
+    :: Ptr UErrorCode 
+    -> IO (Ptr UNormalizer2)
+foreign import ccall unsafe "hs_text_icu.h __hs_unorm2_getNFKCInstance" unorm2_getNFKCInstance
+    :: Ptr UErrorCode 
+    -> IO (Ptr UNormalizer2)
+foreign import ccall unsafe "hs_text_icu.h __hs_unorm2_getNFKDInstance" unorm2_getNFKDInstance
+    :: Ptr UErrorCode 
+    -> IO (Ptr UNormalizer2)
+foreign import ccall unsafe "hs_text_icu.h __hs_unorm2_getNFKCCasefoldInstance" unorm2_getNFKCCasefoldInstance
+    :: Ptr UErrorCode 
+    -> IO (Ptr UNormalizer2)
 
 foreign import ccall unsafe "hs_text_icu.h __hs_unorm_compare" unorm_compare
     :: Ptr UChar -> Int32 
@@ -272,22 +392,21 @@ foreign import ccall unsafe "hs_text_icu.h __hs_unorm_compare" unorm_compare
     -> Ptr UErrorCode 
     -> IO Int32
 
-foreign import ccall unsafe "hs_text_icu.h __hs_unorm_quickCheck" unorm_quickCheck
-    :: Ptr UChar -> Int32 
-    -> UNormalizationMode 
+foreign import ccall unsafe "hs_text_icu.h __hs_unorm2_quickCheck" unorm2_quickCheck
+    :: Ptr UNormalizer2
+    -> Ptr UChar -> Int32 
     -> Ptr UErrorCode
     -> IO UNormalizationCheckResult
 
-foreign import ccall unsafe "hs_text_icu.h __hs_unorm_isNormalized" unorm_isNormalized
-    :: Ptr UChar -> Int32 
-    -> UNormalizationMode 
+foreign import ccall unsafe "hs_text_icu.h __hs_unorm2_isNormalized" unorm2_isNormalized
+    :: Ptr UNormalizer2
+    -> Ptr UChar -> Int32 
     -> Ptr UErrorCode 
     -> IO UBool
 
-foreign import ccall unsafe "hs_text_icu.h __hs_unorm_normalize" unorm_normalize
-    :: Ptr UChar -> Int32 
-    -> UNormalizationMode 
-    -> Int32
+foreign import ccall unsafe "hs_text_icu.h __hs_unorm2_normalize" unorm2_normalize
+    :: Ptr UNormalizer2
+    -> Ptr UChar -> Int32 
     -> Ptr UChar -> Int32 
     -> Ptr UErrorCode 
     -> IO Int32

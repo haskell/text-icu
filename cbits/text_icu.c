@@ -395,6 +395,46 @@ void __hs_uiter_setUTF8(UCharIterator *iter, const char *s, int32_t length)
     uiter_setUTF8(iter, s, length);
 }
 
+const UNormalizer2 *__hs_unorm2_getNFCInstance(UErrorCode *pErrorCode)
+{
+    return unorm2_getNFCInstance(pErrorCode);
+}
+
+const UNormalizer2 *__hs_unorm2_getNFDInstance(UErrorCode *pErrorCode)
+{
+    return unorm2_getNFDInstance(pErrorCode);
+}
+
+const UNormalizer2 *__hs_unorm2_getNFKCInstance(UErrorCode *pErrorCode)
+{
+    return unorm2_getNFKCInstance(pErrorCode);
+}
+
+const UNormalizer2 *__hs_unorm2_getNFKDInstance(UErrorCode *pErrorCode)
+{
+    return unorm2_getNFKDInstance(pErrorCode);
+}
+
+const UNormalizer2 *__hs_unorm2_getNFKCCasefoldInstance(UErrorCode *pErrorCode)
+{
+    return unorm2_getNFKCCasefoldInstance(pErrorCode);
+}
+
+int32_t __hs_unorm2_normalize(const UNormalizer2 *norm2, const UChar *src, int32_t length, UChar *dest, int32_t capacity, UErrorCode *pErrorCode)
+{
+    return unorm2_normalize(norm2, src, length, dest, capacity, pErrorCode);
+}
+
+UBool __hs_unorm2_isNormalized(const UNormalizer2 *norm2, const UChar *s, int32_t length, UErrorCode *pErrorCode)
+{
+    return unorm2_isNormalized(norm2, s, length, pErrorCode);
+}
+
+UNormalizationCheckResult __hs_unorm2_quickCheck(const UNormalizer2 *norm2, const UChar *s, int32_t length, UErrorCode *pErrorCode)
+{
+    return unorm2_quickCheck(norm2, s, length, pErrorCode);
+}
+
 int32_t __hs_unorm_compare(const UChar *s1, int32_t length1,
                            const UChar *s2, int32_t length2,
                            uint32_t options,

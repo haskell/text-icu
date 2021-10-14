@@ -68,6 +68,7 @@ library
       Data.Text.ICU.Error
       Data.Text.ICU.Locale
       Data.Text.ICU.Normalize
+      Data.Text.ICU.Normalize2
       Data.Text.ICU.NumberFormatter
       Data.Text.ICU.Regex
       Data.Text.ICU.Spoof
