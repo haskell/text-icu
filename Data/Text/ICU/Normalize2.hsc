@@ -22,7 +22,7 @@ module Data.Text.ICU.Normalize2
     -- * Normalize unicode strings
     nfc, nfd, nfkc, nfkd, nfkcCasefold, normalize, normalizeWith,
     -- * Checks for normalization
-    quickCheck, isNormalized,
+    quickCheck, isNormalized, isNormalizedWith,
     -- * Comparison of unicode strings
     compareUnicode, compareUnicode', CompareOption(..), 
     ) where
@@ -294,11 +294,28 @@ nfkcCasefold t = unsafePerformIO do
 --
 -- A result of 'Just' 'True' or 'Just' 'False' indicates that the
 -- string definitely is, or is not, in the given normalization form.
-quickCheck :: Normalizer -> Text -> Maybe Bool
-quickCheck (Normalizer nf) t = unsafePerformIO $ 
+quickCheckWith :: Normalizer -> Text -> Maybe Bool
+quickCheckWith (Normalizer nf) t = unsafePerformIO $ 
   withForeignPtr nf $ \nfPtr ->
     useAsPtr t $ \sptr slen ->
       fmap toNCR . handleError $ unorm2_quickCheck nfPtr sptr (fromIntegral slen)
+
+quickCheck :: NormalizationMode -> Text -> Maybe Bool
+quickCheck NFD t = unsafePerformIO do
+  nf <- nfdNormalizer
+  pure $ quickCheckWith nf t
+quickCheck NFC t = unsafePerformIO do
+  nf <- nfcNormalizer
+  pure $ quickCheckWith nf t
+quickCheck NFKD t = unsafePerformIO do
+  nf <- nfkdNormalizer
+  pure $ quickCheckWith nf t
+quickCheck NFKC t = unsafePerformIO do
+  nf <- nfkcNormalizer
+  pure $ quickCheckWith nf t
+quickCheck NFKCCasefold t = unsafePerformIO do
+  nf <- nfkcCasefoldNormalizer
+  pure $ quickCheckWith nf t
 
 -- | Indicate whether a string is in a given normalization form.
 --
@@ -307,11 +324,28 @@ quickCheck (Normalizer nf) t = unsafePerformIO $
 -- work in exactly the same ways.  For 'NFC' and 'NFKC' forms, where
 -- 'quickCheck' may return 'Nothing', this function will perform
 -- further tests to arrive at a definitive result.
-isNormalized :: Normalizer -> Text -> Bool
-isNormalized (Normalizer nf) t = unsafePerformIO $ 
+isNormalizedWith :: Normalizer -> Text -> Bool
+isNormalizedWith (Normalizer nf) t = unsafePerformIO $ 
   withForeignPtr nf $ \nfPtr ->
     useAsPtr t $ \sptr slen ->
       fmap asBool . handleError $ unorm2_isNormalized nfPtr sptr (fromIntegral slen)
+
+isNormalized :: NormalizationMode -> Text -> Bool
+isNormalized NFD t = unsafePerformIO do
+  nf <- nfdNormalizer
+  pure $ isNormalizedWith nf t
+isNormalized NFC t = unsafePerformIO do
+  nf <- nfcNormalizer
+  pure $ isNormalizedWith nf t
+isNormalized NFKD t = unsafePerformIO do
+  nf <- nfkdNormalizer
+  pure $ isNormalizedWith nf t
+isNormalized NFKC t = unsafePerformIO do
+  nf <- nfkcNormalizer
+  pure $ isNormalizedWith nf t
+isNormalized NFKCCasefold t = unsafePerformIO do
+  nf <- nfkcCasefoldNormalizer
+  pure $ isNormalizedWith nf t
 
 -- * Comparison
 

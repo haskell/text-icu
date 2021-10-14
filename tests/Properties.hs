@@ -12,9 +12,9 @@ import Control.DeepSeq (NFData(..))
 import Data.Function (on)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
-import Data.Text.ICU (NormalizationMode(..))
-import QuickCheckUtils (NonEmptyText(..), LatinSpoofableText(..),
-                        NonSpoofableText(..))
+import Data.Text.ICU.Normalize2 (NormalizationMode(..))
+import qualified Data.Text.ICU.Normalize2 as I
+import QuickCheckUtils (NonEmptyText(..), LatinSpoofableText(..), NonSpoofableText(..))
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import qualified Data.Text as T
@@ -53,7 +53,7 @@ t_charIterator_Utf8 a b = (compare `on` I.fromUtf8) ba bb == compare ba bb
 t_normalize mode = t_nonEmpty $ I.normalize mode
 
 t_quickCheck_isNormalized mode normMode txt
-  | mode `elem` [NFD, NFKD, FCD]
+  | mode `elem` [NFD, NFKD, NFC, NFKC, NFKCCasefold]
               =                        quickCheck == Just isNormalized
   | otherwise = fromMaybe isNormalized quickCheck ==      isNormalized
   where quickCheck   = I.quickCheck mode normTxt
