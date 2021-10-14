@@ -23,7 +23,7 @@ be installed separately).
 
 Upstream ICU occasionally introduces backwards-incompatible API
 breaks.  This package tries to stay up to date with upstream, and is
-currently more or less in sync with ICU 55.
+currently more or less in sync with ICU 69.
 
 
 # Get involved!
