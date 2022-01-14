@@ -21,9 +21,8 @@ module Data.Text.ICU.Text
 
 import Data.Int (Int32)
 import Data.Text (Text)
-import Data.Text.Foreign (fromPtr, useAsPtr)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleOverflowError)
-import Data.Text.ICU.Internal (LocaleName, UChar, withLocaleName)
+import Data.Text.ICU.Internal (LocaleName, UChar, withLocaleName, useAsUCharPtr, fromUCharPtr)
 import Data.Word (Word32)
 import Foreign.C.String (CString)
 import Foreign.Ptr (Ptr, castPtr)
@@ -45,11 +44,11 @@ toCaseFold :: Bool -- ^ Whether to include or exclude mappings for
                    -- 'I' in @CaseFolding.txt@.
            -> Text -> Text
 toCaseFold excludeI s = unsafePerformIO .
-  useAsPtr s $ \sptr slen -> do
+  useAsUCharPtr s $ \sptr slen -> do
     let opts = fromIntegral . fromEnum $ excludeI
     handleOverflowError (fromIntegral slen)
         (\dptr dlen -> u_strFoldCase dptr dlen sptr (fromIntegral slen) opts)
-        (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
+        (\dptr dlen -> fromUCharPtr (castPtr dptr) (fromIntegral dlen))
 
 type CaseMapper = Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> CString
                 -> Ptr UErrorCode -> IO Int32
@@ -57,10 +56,10 @@ type CaseMapper = Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> CString
 caseMap :: CaseMapper -> LocaleName -> Text -> Text
 caseMap mapFn loc s = unsafePerformIO .
   withLocaleName loc $ \locale ->
-    useAsPtr s $ \sptr slen ->
+    useAsUCharPtr s $ \sptr slen ->
       handleOverflowError (fromIntegral slen)
       (\dptr dlen -> mapFn dptr dlen sptr (fromIntegral slen) locale)
-      (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
+      (\dptr dlen -> fromUCharPtr (castPtr dptr) (fromIntegral dlen))
 
 -- | Lowercase the characters in a string.
 --

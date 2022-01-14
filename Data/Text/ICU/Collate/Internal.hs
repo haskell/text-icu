@@ -20,6 +20,7 @@ module Data.Text.ICU.Collate.Internal
     , wrap
     ) where
 
+import Control.Exception (mask_)
 import Data.Typeable (Typeable)
 import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, withForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr)
@@ -41,8 +42,8 @@ withCollator :: MCollator -> (Ptr UCollator -> IO a) -> IO a
 withCollator (MCollator col) action = withForeignPtr col action
 {-# INLINE withCollator #-}
 
-wrap :: Ptr UCollator -> IO MCollator
-wrap = fmap MCollator . newForeignPtr ucol_close
+wrap :: IO (Ptr UCollator) -> IO MCollator
+wrap a = mask_ $ fmap MCollator $ newForeignPtr ucol_close =<< a
 {-# INLINE wrap #-}
 
 foreign import ccall unsafe "hs_text_icu.h &__hs_ucol_close" ucol_close

@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns, RecordWildCards #-}
+{-# LANGUAGE BangPatterns, RecordWildCards, CPP #-}
 -- |
 -- Module      : Data.Text.ICU.Break.Pure
 -- Copyright   : (c) 2010 Bryan O'Sullivan
@@ -40,10 +40,9 @@ module Data.Text.ICU.Break.Pure
 
 import Control.DeepSeq (NFData(..))
 import Data.Text (Text, empty)
-import Data.Text.Foreign (dropWord16, takeWord16)
 import Data.Text.ICU.Break (Line, Word)
 import Data.Text.ICU.Break.Types (BreakIterator(..))
-import Data.Text.ICU.Internal (LocaleName)
+import Data.Text.ICU.Internal (LocaleName, takeWord, dropWord)
 import System.IO.Unsafe (unsafeInterleaveIO, unsafePerformIO)
 import qualified Data.Text.ICU.Break as IO
 
@@ -115,8 +114,8 @@ breaks (B b) t = unsafePerformIO $ do
           Just n -> do
             s <- IO.getStatus bi
             let d = n-p
-                u = dropWord16 p t
-            (Break (takeWord16 p t) (takeWord16 d u) (dropWord16 d u) s :) `fmap` go n
+                u = dropWord p t
+            (Break (takeWord p t) (takeWord d u) (dropWord d u) s :) `fmap` go n
   unsafeInterleaveIO $ go =<< IO.first bi
 
 -- | Return a list of all breaks in a string, from right to left.
@@ -131,6 +130,6 @@ breaksRight (B b) t = unsafePerformIO $ do
           Just n -> do
             s <- IO.getStatus bi
             let d = p-n
-                u = dropWord16 n t
-            (Break (takeWord16 n t) (takeWord16 d u) (dropWord16 d u) s :) `fmap` go n
+                u = dropWord n t
+            (Break (takeWord n t) (takeWord d u) (dropWord d u) s :) `fmap` go n
   unsafeInterleaveIO $ go =<< IO.last bi

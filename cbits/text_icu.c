@@ -13,10 +13,10 @@ void __hs_ubrk_close(UBreakIterator *bi)
     ubrk_close(bi);
 }
 
-void __hs_ubrk_setText(UBreakIterator* bi, const UChar *text,
-		       int32_t textLength, UErrorCode *status)
+void __hs_ubrk_setUText(UBreakIterator* bi, UText *text,
+                        UErrorCode *status)
 {
-    ubrk_setText(bi, text, textLength, status);
+    ubrk_setUText(bi, text, status);
 }
 
 UBreakIterator * __hs_ubrk_safeClone(const UBreakIterator *bi,
@@ -117,6 +117,13 @@ UCollationResult __hs_ucol_strcoll(const UCollator *coll,
     return ucol_strcoll(coll, source, sourceLength, target, targetLength);
 }
 
+UCollationResult __hs_ucol_strcollUTF8(
+    const UCollator *coll, const char *source, int32_t sourceLength,
+    const char *target, int32_t targetLength, UErrorCode *status)
+{
+    return ucol_strcollUTF8(coll, source, sourceLength, target, targetLength, status);
+}
+
 UCollationResult __hs_ucol_strcollIter(const UCollator *coll,
 				       UCharIterator *sIter,
 				       UCharIterator *tIter,
@@ -172,11 +179,27 @@ int32_t __hs_ucnv_toUChars(UConverter *cnv, UChar *dest, int32_t destCapacity,
     return ucnv_toUChars(cnv, dest, destCapacity, src, srcLength, pErrorCode);
 }
 
+int32_t __hs_ucnv_toAlgorithmic_UTF8(
+    UConverter *cnv, char *dest, int32_t destCapacity,
+    const char *src, int32_t srcLength,
+    UErrorCode *pErrorCode)
+{
+    return ucnv_toAlgorithmic(UCNV_UTF8, cnv, dest, destCapacity, src, srcLength, pErrorCode);
+}
+
 int32_t __hs_ucnv_fromUChars(UConverter *cnv, char *dest, int32_t destCapacity,
 			     const UChar *src, int32_t srcLength,
 			     UErrorCode *pErrorCode)
 {
     return ucnv_fromUChars(cnv, dest, destCapacity, src, srcLength, pErrorCode);
+}
+
+int32_t __hs_ucnv_fromAlgorithmic_UTF8(
+    UConverter *cnv, char *dest, int32_t destCapacity,
+    const char *src, int32_t srcLength,
+    UErrorCode *pErrorCode)
+{
+    return ucnv_fromAlgorithmic(cnv, UCNV_UTF8, dest, destCapacity, src, srcLength, pErrorCode);
 }
 
 int __hs_ucnv_compareNames(const char *name1, const char *name2)
@@ -309,6 +332,22 @@ int32_t __hs_u_strCompareIter(UCharIterator *iter1, UCharIterator *iter2)
     return u_strCompareIter(iter1, iter2, true);
 }
 
+UChar* __hs_u_strFromUTF8Lenient(
+    UChar *dest, int32_t destCapacity, int32_t *pDestLength,
+    const char *src, int32_t srcLength, UErrorCode *pErrorCode)
+{
+    return u_strFromUTF8Lenient(dest, destCapacity, pDestLength,
+                                src, srcLength, pErrorCode);
+}
+
+char* __hs_u_strToUTF8(
+    char *dest, int32_t destCapacity, int32_t *pDestLength,
+    const UChar *src, int32_t srcLength,
+    UErrorCode *pErrorCode)
+{
+    return u_strToUTF8(dest, destCapacity, pDestLength, src, srcLength, pErrorCode);
+}
+
 UBlockCode __hs_ublock_getCode(UChar32 c)
 {
     return ublock_getCode(c);
@@ -404,10 +443,10 @@ int32_t __hs_uregex_flags(const URegularExpression *regexp,
     return uregex_flags(regexp, status);
 }
 
-void __hs_uregex_setText(URegularExpression *regexp, const UChar *text,
-			 int32_t textLength, UErrorCode *status)
+void __hs_uregex_setUText(URegularExpression *regexp, UText *text,
+                          UErrorCode *status)
 {
-    return uregex_setText(regexp, text, textLength, status);
+    return uregex_setUText(regexp, text, status);
 }
 
 const UChar *__hs_uregex_getText(URegularExpression *regexp,
@@ -535,6 +574,32 @@ int32_t __hs_uspoof_getSkeleton(USpoofChecker *sc,
     return uspoof_getSkeleton(sc, type, id, length, dest, destCapacity, status);
 }
 
+int32_t __hs_uspoof_checkUTF8(
+    USpoofChecker *sc, const char *id,
+    int32_t length, int32_t *position,
+    UErrorCode *status)
+{
+    return uspoof_checkUTF8(sc, id, length, position, status);
+}
+
+int32_t __hs_uspoof_areConfusableUTF8(
+    USpoofChecker *sc,
+    const char *id1, int32_t length1,
+    const char *id2, int32_t length2,
+    UErrorCode *status)
+{
+    return uspoof_areConfusableUTF8(sc, id1, length1, id2, length2, status);
+}
+
+int32_t __hs_uspoof_getSkeletonUTF8(
+    USpoofChecker *sc,
+    int32_t type, const char *id, int32_t length,
+    char *dest, int32_t destCapacity,
+    UErrorCode *status)
+{
+    return uspoof_getSkeletonUTF8(sc, type, id, length, dest, destCapacity, status);
+}
+
 int32_t __hs_uspoof_serialize(USpoofChecker *sc, void *data, int32_t capacity,
                               UErrorCode *status)
 {
@@ -544,4 +609,19 @@ int32_t __hs_uspoof_serialize(USpoofChecker *sc, void *data, int32_t capacity,
 void __hs_uspoof_close(USpoofChecker *sc)
 {
     uspoof_close(sc);
+}
+
+UText* __hs_utext_openUChars(UText *ut, const UChar *s, int64_t length,
+                             UErrorCode * status)
+{
+    return utext_openUChars(ut, s, length, status);
+}
+UText* __hs_utext_openUTF8(UText *ut, const char *s, int64_t length,
+                           UErrorCode * status)
+{
+    return utext_openUTF8(ut, s, length, status);
+}
+void __hs_utext_close(UText *ut)
+{
+    utext_close(ut);
 }

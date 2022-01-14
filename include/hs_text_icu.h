@@ -13,6 +13,7 @@
 #include "unicode/uregex.h"
 #include "unicode/uspoof.h"
 #include "unicode/ustring.h"
+#include "unicode/utext.h"
 
 #include <stdint.h>
 
@@ -22,8 +23,8 @@ UBreakIterator* __hs_ubrk_open(UBreakIteratorType type, const char *locale,
 			       const UChar *text, int32_t textLength,
 			       UErrorCode *status);
 void __hs_ubrk_close(UBreakIterator *bi);
-void __hs_ubrk_setText(UBreakIterator* bi, const UChar *text,
-		       int32_t textLength, UErrorCode *status);
+void __hs_ubrk_setUText(UBreakIterator* bi, UText *text,
+                        UErrorCode *status);
 UBreakIterator * __hs_ubrk_safeClone(const UBreakIterator *bi,
 				     void *stackBuffer, int32_t *pBufferSize,
 				     UErrorCode *status);
@@ -70,6 +71,9 @@ UColAttributeValue __hs_ucol_getAttribute(const UCollator *coll,
 UCollationResult __hs_ucol_strcoll(const UCollator *coll,
 				   const UChar *source, int32_t sourceLength,
 				   const UChar *target, int32_t targetLength);
+UCollationResult __hs_ucol_strcollUTF8(
+    const UCollator *coll, const char *source, int32_t sourceLength,
+    const char *target, int32_t targetLength, UErrorCode *status);
 UCollationResult __hs_ucol_strcollIter(const UCollator *coll,
 				       UCharIterator *sIter,
 				       UCharIterator *tIter,
@@ -95,6 +99,14 @@ int32_t __hs_ucnv_toUChars(UConverter *cnv, UChar *dest, int32_t destCapacity,
 int32_t __hs_ucnv_fromUChars(UConverter *cnv, char *dest, int32_t destCapacity,
 			     const UChar *src, int32_t srcLength,
 			     UErrorCode *pErrorCode);
+int32_t __hs_ucnv_toAlgorithmic_UTF8(
+    UConverter *cnv, char *dest, int32_t destCapacity,
+    const char *src, int32_t srcLength,
+    UErrorCode *pErrorCode);
+int32_t __hs_ucnv_fromAlgorithmic_UTF8(
+    UConverter *cnv, char *dest, int32_t destCapacity,
+    const char *src, int32_t srcLength,
+    UErrorCode *pErrorCode);
 int __hs_ucnv_compareNames(const char *name1, const char *name2);
 const char *__hs_ucnv_getDefaultName(void);
 void __hs_ucnv_setDefaultName(const char *name);
@@ -148,8 +160,8 @@ const UChar *__hs_uregex_pattern(const URegularExpression *regexp,
 				 int32_t *patLength, UErrorCode *status);
 int32_t __hs_uregex_flags(const URegularExpression *regexp,
 			  UErrorCode *status);
-void __hs_uregex_setText(URegularExpression *regexp, const UChar *text,
-			 int32_t textLength, UErrorCode *status);
+void __hs_uregex_setUText(URegularExpression *regexp, UText *text,
+			  UErrorCode *status);
 const UChar *__hs_uregex_getText(URegularExpression *regexp,
 				 int32_t *textLength, UErrorCode *status);
 UBool __hs_uregex_find(URegularExpression *regexp, int32_t startIndex,
@@ -176,6 +188,14 @@ int32_t __hs_u_strToLower(UChar *dest, int32_t destCapacity,
 			  const UChar *src, int32_t srcLength,
 			  const char *locale, UErrorCode *pErrorCode);
 int32_t __hs_u_strCompareIter(UCharIterator *iter1, UCharIterator *iter2);
+
+UChar* __hs_u_strFromUTF8Lenient(
+    UChar *dest, int32_t destCapacity, int32_t *pDestLength,
+    const char *src, int32_t srcLength, UErrorCode *pErrorCode);
+char* __hs_u_strToUTF8(
+    char *dest, int32_t destCapacity, int32_t *pDestLength,
+    const UChar *src, int32_t srcLength,
+    UErrorCode *pErrorCode);
 
 /* uspoof.h */
 
@@ -215,6 +235,28 @@ int32_t __hs_uspoof_getSkeleton(USpoofChecker *sc, int32_t checks,
                                 const UChar *id, int32_t length,
                                 UChar *dest, int32_t destCapacity,
                                 UErrorCode *status);
+int32_t __hs_uspoof_checkUTF8(
+    USpoofChecker *sc, const char *id,
+    int32_t length, int32_t *position,
+    UErrorCode *status);
+int32_t __hs_uspoof_areConfusableUTF8(
+    USpoofChecker *sc,
+    const char *id1, int32_t length1,
+    const char *id2, int32_t length2,
+    UErrorCode *status);
+int32_t __hs_uspoof_getSkeletonUTF8(
+    USpoofChecker *sc, int32_t checks,
+    const char *id, int32_t length,
+    char *dest, int32_t destCapacity,
+    UErrorCode *status);
 int32_t __hs_uspoof_serialize(USpoofChecker *sc, void *data, int32_t capacity,
                               UErrorCode *status);
 void __hs_uspoof_close(USpoofChecker *sc);
+
+/* utext.t */
+
+UText* __hs_utext_openUChars(UText *ut, const UChar *s, int64_t length,
+                             UErrorCode * status);
+UText* __hs_utext_openUTF8(UText *ut, const char *s, int64_t length,
+                           UErrorCode * status);
+void __hs_utext_close(UText *ut);

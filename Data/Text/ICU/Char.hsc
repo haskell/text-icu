@@ -131,6 +131,10 @@ data Direction =
   | PopDirectionalFormat
   | DirNonSpacingMark
   | BoundaryNeutral
+  | FirstStrongIsolate
+  | LeftToRightIsolate
+  | RightToLeftIsolate
+  | PopDirectionalIsolate
   deriving (Eq, Enum, Show, Typeable)
 
 instance NFData Direction where
@@ -401,6 +405,83 @@ data BlockCode =
   | OldHungarian
   | SupplementalSymbolsAndPictographs
   | SuttonSignwriting
+
+    -- New blocks in Unicode 9.0 (ICU 58)
+
+  | Adlam
+  | Bhaiksuki
+  | CyrillicExtendedC
+  | GlagoliticSupplement
+  | IdeographicSymbolsAndPunctuation
+  | Marchen
+  | MongolianSupplement
+  | Newa
+  | Osage
+  | Tangut
+  | TangutComponents
+
+    -- New blocks in Unicode 10.0 (ICU 60)
+
+  | CjkUnifiedIdeographsExtensionF
+  | KanaExtendedA
+  | MasaramGondi
+  | Nushu
+  | Soyombo
+  | SyriacSupplement
+  | ZanabazarSquare
+
+    -- New blocks in Unicode 11.0 (ICU 62)
+
+  | ChessSymbols
+  | Dogra
+  | GeorgianExtended
+  | GunjalaGondi
+  | HanifiRohingya
+  | IndicSiyaqNumbers
+  | Makasar
+  | MayanNumerals
+  | Medefaidrin
+  | OldSogdian
+  | Sogdian
+
+    -- New blocks in Unicode 12.0 (ICU 64)
+
+  | EgyptianHieroglyphFormatControls
+  | Elymaic
+  | Nandinagari
+  | NyiakengPuachueHmong
+  | OttomanSiyaqNumbers
+  | SmallKanaExtension
+  | SymbolsAndPictographsExtendedA
+  | TamilSupplement
+  | Wancho
+
+    -- New blocks in Unicode 13.0 (ICU 66)
+
+  | Chorasmian
+  | CjkUnifiedIdeographsExtensionG
+  | DivesAkuru
+  | KhitanSmallScript
+  | LisuSupplement
+  | SymbolsForLegacyComputing
+  | TangutSupplement
+  | Yezidi
+
+    -- New blocks in Unicode 14.0 (ICU 70)
+
+  | ArabicExtendedB
+  | CyproMinoan
+  | EthiopicExtendedB
+  | KanaExtendedB
+  | LatinExtendedF
+  | LatinExtendedG
+  | OldUyghur
+  | Tangsa
+  | Toto
+  | UnifiedCanadianAboriginalSyllabicsExtendedA
+  | Vithkuqi
+  | ZnamennyMusicalNotation
+
   deriving (Eq, Enum, Bounded, Show, Typeable)
 
 instance NFData BlockCode where

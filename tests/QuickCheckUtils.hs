@@ -4,16 +4,11 @@
 module QuickCheckUtils (NonEmptyText(..), LatinSpoofableText(..),
                         NonSpoofableText(..)) where
 
-import Control.Applicative ((<$>))
-import Control.DeepSeq (NFData(..))
 import Data.Text.ICU (Collator, LocaleName(..), NormalizationMode(..))
 import Data.Text.ICU.Break (available)
 import Test.QuickCheck (Arbitrary(..), Gen, elements, listOf1)
 import qualified Data.Text as T
 import qualified Data.Text.ICU as I
-
-instance NFData Ordering where
-    rnf !_  = ()
 
 instance Arbitrary T.Text where
     arbitrary = T.pack `fmap` arbitrary
@@ -35,7 +30,7 @@ instance Arbitrary NonEmptyText where
 newtype LatinSpoofableText = LatinSpoofableText { latinSpoofableText :: T.Text }
                            deriving Show
 instance Arbitrary LatinSpoofableText where
-    arbitrary = LatinSpoofableText <$> T.pack <$>
+    arbitrary = LatinSpoofableText <$> T.pack . (<>) "latin" <$>
                 listOf1 genCyrillicLatinSpoofableChar
 
 genCyrillicLatinSpoofableChar :: Gen Char

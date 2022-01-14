@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE ForeignFunctionInterface, CPP #-}
 -- |
 -- Module      : Data.Text.ICU.Convert
 -- Copyright   : (c) 2009, 2010 Bryan O'Sullivan
@@ -34,11 +34,18 @@ module Data.Text.ICU.Convert
     , standardNames
     ) where
 
+import Control.Exception (mask_)
 import Data.ByteString.Internal (ByteString, createAndTrim)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.Int (Int32)
 import Data.Text (Text)
-import Data.Text.Foreign (fromPtr, lengthWord16, useAsPtr)
+import Data.Text.Foreign (fromPtr, useAsPtr)
+#if MIN_VERSION_text(2,0,0)
+import Data.Word (Word8)
+#else
+import Data.Text.ICU.Internal (UChar)
+#endif
+import Data.Text.ICU.Internal (lengthWord)
 import Data.Text.ICU.Convert.Internal
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
 import Data.Word (Word16)
@@ -48,7 +55,7 @@ import Foreign.ForeignPtr (newForeignPtr)
 import Foreign.Marshal.Array (allocaArray)
 import Foreign.Ptr (FunPtr, Ptr, castPtr)
 import System.IO.Unsafe (unsafePerformIO)
-import Data.Text.ICU.Internal (UBool, UChar, asBool, asOrdering, withName)
+import Data.Text.ICU.Internal (UBool, asBool, asOrdering, withName)
 
 -- | Do a fuzzy compare of two converter/alias names.  The comparison
 -- is case-insensitive, ignores leading zeroes if they are not
@@ -95,7 +102,7 @@ open :: String                  -- ^ Name of the converter to use.
                                 -- (see 'usesFallback' for details).
      -> IO Converter
 open name mf = do
-  c <- fmap Converter . newForeignPtr ucnv_close =<< withName name (handleError . ucnv_open)
+  c <- mask_ $ fmap Converter . newForeignPtr ucnv_close =<< withName name (handleError . ucnv_open)
   case mf of
     Just f -> withConverter c $ \p -> ucnv_setFallback p . fromIntegral . fromEnum $ f
     _ -> return ()
@@ -107,20 +114,30 @@ fromUnicode cnv t =
   unsafePerformIO . useAsPtr t $ \tptr tlen ->
     withConverter cnv $ \cptr -> do
       let capacity = fromIntegral . max_bytes_for_string cptr . fromIntegral $
-                     lengthWord16 t
+                     lengthWord t
       createAndTrim (fromIntegral capacity) $ \sptr ->
         fmap fromIntegral . handleError $
-           ucnv_fromUChars cptr (castPtr sptr) capacity tptr (fromIntegral tlen)
+#if MIN_VERSION_text(2,0,0)
+           ucnv_fromAlgorithmic_UTF8
+#else
+           ucnv_fromUChars
+#endif
+           cptr (castPtr sptr) capacity tptr (fromIntegral tlen)
 
 -- | Decode an encoded string into a Unicode string using the given converter.
 toUnicode :: Converter -> ByteString -> Text
 toUnicode cnv bs =
   unsafePerformIO . unsafeUseAsCStringLen bs $ \(sptr, slen) ->
     withConverter cnv $ \cptr -> do
-      let capacity = slen * 2
+      let (capacity, conv) =
+#if MIN_VERSION_text(2,0,0)
+              (slen * 4, ucnv_toAlgorithmic_UTF8)
+#else
+              (slen * 2, ucnv_toUChars)
+#endif
       allocaArray capacity $ \tptr ->
         fromPtr tptr =<< (fmap fromIntegral . handleError $
-                          ucnv_toUChars cptr tptr (fromIntegral capacity) sptr
+                          conv cptr tptr (fromIntegral capacity) sptr
                                         (fromIntegral slen))
 
 -- | Determines whether the converter uses fallback mappings or not.
@@ -185,6 +202,18 @@ foreign import ccall unsafe "hs_text_icu.h &__hs_ucnv_close" ucnv_close
 foreign import ccall unsafe "__get_max_bytes_for_string" max_bytes_for_string
     :: Ptr UConverter -> CInt -> CInt
 
+#if MIN_VERSION_text(2,0,0)
+
+foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_toAlgorithmic_UTF8" ucnv_toAlgorithmic_UTF8
+    :: Ptr UConverter -> Ptr Word8 -> Int32 -> CString -> Int32
+    -> Ptr UErrorCode -> IO Int32
+
+foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_fromAlgorithmic_UTF8" ucnv_fromAlgorithmic_UTF8
+    :: Ptr UConverter -> CString -> Int32 -> Ptr Word8 -> Int32
+    -> Ptr UErrorCode -> IO Int32
+
+#else
+
 foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_toUChars" ucnv_toUChars
     :: Ptr UConverter -> Ptr UChar -> Int32 -> CString -> Int32
     -> Ptr UErrorCode -> IO Int32
@@ -192,6 +221,8 @@ foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_toUChars" ucnv_toUChars
 foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_fromUChars" ucnv_fromUChars
     :: Ptr UConverter -> CString -> Int32 -> Ptr UChar -> Int32
     -> Ptr UErrorCode -> IO Int32
+
+#endif
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_compareNames" ucnv_compareNames
     :: CString -> CString -> IO CInt

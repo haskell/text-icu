@@ -24,6 +24,7 @@ module Data.Text.ICU.Spoof.Internal
     , wrapWithSerialized
     ) where
 
+import Control.Exception (mask_)
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, withForeignPtr)
@@ -54,8 +55,8 @@ withSpoof (MSpoof _ spoof) = withForeignPtr spoof
 
 -- | Wraps a raw 'USpoof' handle in an 'MSpoof', closing the handle when
 -- the last reference to the object is dropped.
-wrap :: Ptr USpoof -> IO MSpoof
-wrap = fmap (MSpoof Nothing) . newForeignPtr uspoof_close
+wrap :: IO (Ptr USpoof) -> IO MSpoof
+wrap a = mask_ $ fmap (MSpoof Nothing) $ newForeignPtr uspoof_close =<< a
 {-# INLINE wrap #-}
 
 -- | Wraps a previously serialized spoof checker and raw 'USpoof' handle

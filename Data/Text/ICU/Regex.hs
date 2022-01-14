@@ -35,7 +35,7 @@ module Data.Text.ICU.Regex
     , clone
     -- ** Managing text to search
     , setText
-    , getText
+    , getUTextPtr
     -- ** Inspection
     , pattern
     -- ** Searching
@@ -50,16 +50,14 @@ module Data.Text.ICU.Regex
     , end_
     ) where
 
+import Control.Exception (mask_)
 import Data.Text.ICU.Regex.Internal
 import qualified Control.Exception as E
 import Data.IORef (newIORef, readIORef, writeIORef)
 import Data.Text (Text)
-import qualified Data.Text.Foreign as T
-import Data.Text.Foreign (I16)
-import Data.Text.ICU.Internal (asBool)
+import Data.Text.ICU.Internal (asBool, UTextPtr, asUTextPtr, emptyUTextPtr, TextI, withUTextPtr, fromUCharPtr)
 import Data.Text.ICU.Error.Internal (ParseError(..), handleError)
-import Data.Word (Word16)
-import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, withForeignPtr)
+import Foreign.ForeignPtr (newForeignPtr, withForeignPtr)
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Storable (peek)
 import System.IO.Unsafe (unsafePerformIO)
@@ -85,18 +83,16 @@ regex' opts pat = (Right `fmap` regex opts pat) `E.catch` \(err::ParseError) ->
 -- different strings.
 setText :: Regex -> Text -> IO ()
 setText Regex{..} t = do
-  (hayfp, hayLen) <- T.asForeignPtr t
+  hayfp <- asUTextPtr t
   withForeignPtr reRe $ \rePtr ->
-    withForeignPtr hayfp $ \hayPtr -> handleError $
-      uregex_setText rePtr hayPtr (fromIntegral hayLen)
-  writeIORef reText $! H hayfp hayLen
+    withUTextPtr hayfp $ \hayPtr -> handleError $
+      uregex_setUText rePtr hayPtr
+  writeIORef reText hayfp
 
 -- | Get the subject text that is currently associated with this
 -- regular expression object.
-getText :: Regex -> IO (ForeignPtr Word16, I16)
-getText Regex{..} = do
-  H fp len <- readIORef reText
-  return (fp, len)
+getUTextPtr :: Regex -> IO UTextPtr
+getUTextPtr Regex{..} = readIORef reText
 
 -- | Return the source form of the pattern used to construct this
 -- regular expression or match.
@@ -104,7 +100,7 @@ pattern :: Regex -> Text
 pattern Regex{..} = unsafePerformIO . withForeignPtr reRe $ \rePtr ->
   alloca $ \lenPtr -> do
     textPtr <- handleError $ uregex_pattern rePtr lenPtr
-    (T.fromPtr textPtr . fromIntegral) =<< peek lenPtr
+    (fromUCharPtr textPtr . fromIntegral) =<< peek lenPtr
 
 -- | Find the first matching substring of the input string that
 -- matches the pattern.
@@ -117,7 +113,7 @@ pattern Regex{..} = unsafePerformIO . withForeignPtr reRe $ \rePtr ->
 --
 -- If a match is found, 'start', 'end', and 'group' will provide more
 -- information regarding the match.
-find :: Regex -> I16 -> IO Bool
+find :: Regex -> TextI -> IO Bool
 find Regex{..} n =
     fmap asBool . withForeignPtr reRe $ \rePtr -> handleError $
     uregex_find rePtr (fromIntegral n)
@@ -146,9 +142,9 @@ findNext Regex{..} =
 -- operation requires its own instance of a 'Regex'.
 clone :: Regex -> IO Regex
 {-# INLINE clone #-}
-clone Regex{..} = do
+clone Regex{..} = mask_ $ do
   fp <- newForeignPtr uregex_close =<< withForeignPtr reRe (handleError . uregex_clone)
-  Regex fp `fmap` newIORef (H emptyForeignPtr 0)
+  Regex fp `fmap` newIORef emptyUTextPtr
 
 -- | Return the number of capturing groups in this regular
 -- expression's pattern.
@@ -160,7 +156,7 @@ groupCount Regex{..} =
 -- matched by the specified capture group during the previous match
 -- operation.  Returns @-1@ if the capture group was not part of the
 -- last match.
-start_ :: Regex -> Int -> IO I16
+start_ :: Regex -> Int -> IO TextI
 start_ Regex{..} n =
     fmap fromIntegral . withForeignPtr reRe $ \rePtr -> handleError $
     uregex_start rePtr (fromIntegral n)
@@ -169,7 +165,7 @@ start_ Regex{..} n =
 -- matched by the specified capture group during the previous match
 -- operation.  Returns @-1@ if the capture group was not part of
 -- the last match.
-end_ :: Regex -> Int -> IO I16
+end_ :: Regex -> Int -> IO TextI
 end_ Regex{..} n =
   fmap fromIntegral . withForeignPtr reRe $ \rePtr -> handleError $
   uregex_end rePtr (fromIntegral n)
@@ -178,16 +174,16 @@ end_ Regex{..} n =
 -- matched by the specified capture group during the previous match
 -- operation.  Returns 'Nothing' if the capture group was not part of
 -- the last match.
-start :: Regex -> Int -> IO (Maybe I16)
+start :: Regex -> Int -> IO (Maybe TextI)
 start r n = check `fmap` start_ r n
 
 -- | Returns the index in the input string of the end of the text
 -- matched by the specified capture group during the previous match
 -- operation.  Returns 'Nothing' if the capture group was not part of
 -- the last match.
-end :: Regex -> Int -> IO (Maybe I16)
+end :: Regex -> Int -> IO (Maybe TextI)
 end r n = check `fmap` end_ r n
 
-check :: I16 -> Maybe I16
+check :: TextI -> Maybe TextI
 check (-1) = Nothing
 check k    = Just $! fromIntegral k

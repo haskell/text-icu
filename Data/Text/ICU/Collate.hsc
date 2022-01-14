@@ -48,7 +48,7 @@ import Data.Text.ICU.Collate.Internal (Collator(..), MCollator, UCollator,
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
 import Data.Text.ICU.Internal
     (LocaleName, UChar, CharIterator, UCharIterator,
-     asOrdering, withCharIterator, withLocaleName)
+     asOrdering, withCharIterator, withLocaleName, useAsUCharPtr)
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Foreign.C.String (CString)
@@ -242,7 +242,7 @@ type UCollationResult = CInt
 open :: LocaleName
      -- ^ The locale containing the required collation rules.
      -> IO MCollator
-open loc = wrap =<< withLocaleName loc (handleError . ucol_open)
+open loc = wrap $ withLocaleName loc (handleError . ucol_open)
 
 -- | Set the value of an 'MCollator' attribute.
 setAttribute :: MCollator -> Attribute -> IO ()
@@ -269,7 +269,12 @@ collate c a b =
     useAsPtr a $ \aptr alen ->
       useAsPtr b $ \bptr blen ->
         fmap asOrdering . handleError $
-        ucol_strcoll cptr aptr (fromIntegral alen) bptr (fromIntegral blen)
+#if MIN_VERSION_text(2,0,0)
+        ucol_strcollUTF8
+#else
+        ucol_strcoll
+#endif
+        cptr aptr (fromIntegral alen) bptr (fromIntegral blen)
 
 -- | Compare two 'CharIterator's.
 --
@@ -291,7 +296,7 @@ sortKey c t
     | T.null t = return empty
     | otherwise = do
   withCollator c $ \cptr ->
-    useAsPtr t $ \tptr tlen -> do
+    useAsUCharPtr t $ \tptr tlen -> do
       let len = fromIntegral tlen
           loop n = do
             fp <- mallocByteString (fromIntegral n)
@@ -315,11 +320,10 @@ freeze = fmap C . clone
 -- Subsequent changes to the input 'MCollator' will not affect the state of
 -- the returned 'MCollator'.
 clone :: MCollator -> IO MCollator
-clone c = do
-  p <- withCollator c $ \cptr ->
+clone c =
+  wrap $ withCollator c $ \cptr ->
     with (#const U_COL_SAFECLONE_BUFFERSIZE)
       (handleError . ucol_safeClone cptr nullPtr)
-  wrap p
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ucol_open" ucol_open
     :: CString -> Ptr UErrorCode -> IO (Ptr UCollator)
@@ -330,9 +334,15 @@ foreign import ccall unsafe "hs_text_icu.h __hs_ucol_getAttribute" ucol_getAttri
 foreign import ccall unsafe "hs_text_icu.h __hs_ucol_setAttribute" ucol_setAttribute
     :: Ptr UCollator -> UColAttribute -> UColAttributeValue -> Ptr UErrorCode -> IO ()
 
+#if MIN_VERSION_text(2,0,0)
+foreign import ccall unsafe "hs_text_icu.h __hs_ucol_strcollUTF8" ucol_strcollUTF8
+    :: Ptr UCollator -> Ptr Word8 -> Int32 -> Ptr Word8 -> Int32
+    -> Ptr UErrorCode -> IO UCollationResult
+#else
 foreign import ccall unsafe "hs_text_icu.h __hs_ucol_strcoll" ucol_strcoll
     :: Ptr UCollator -> Ptr UChar -> Int32 -> Ptr UChar -> Int32
     -> Ptr UErrorCode -> IO UCollationResult
+#endif
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ucol_getSortKey" ucol_getSortKey
     :: Ptr UCollator -> Ptr UChar -> Int32 -> Ptr Word8 -> Int32

@@ -5,4 +5,4 @@ import Test.Framework (defaultMain)
 import qualified Properties
 
 main :: IO ()
-main = defaultMain [Properties.tests]
+main = defaultMain [Properties.propertyTests, Properties.testCases]

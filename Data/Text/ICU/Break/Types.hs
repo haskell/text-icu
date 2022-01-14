@@ -16,12 +16,12 @@ module Data.Text.ICU.Break.Types
 
 import Data.IORef (IORef)
 import Data.Int (Int32)
-import Data.Text (Text)
 import Foreign.ForeignPtr (ForeignPtr)
+import Data.Text.ICU.Internal (UTextPtr)
 
 -- A boundary breaker.
 data BreakIterator a = BR {
-      brText :: IORef Text
+      brText :: IORef UTextPtr
     , brStatus :: Int32 -> a
     , brIter :: ForeignPtr UBreakIterator
     }
