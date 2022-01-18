@@ -136,18 +136,23 @@ propertyTests =
 
 testCases :: Test
 testCases =
-  testGroup "Test cases" $ hUnitTestToTests $
-  Test.HUnit.TestList
+  testGroup "Test cases" $ hUnitTestToTests $ Test.HUnit.TestList $
   [I.normalize NFC "Ame\x0301lie" ~?= "Amélie"
+  ,I.normalize NFC "(⊃｡•́︵•̀｡)⊃" ~?= "(⊃｡•́︵•̀｡)⊃"
   ,map I.brkBreak (I.breaks (I.breakWord (Locale "en_US")) "Hi, Amélie!")
      ~?= ["Hi",","," ","Amélie","!"]
   ,map I.brkBreak (I.breaksRight (I.breakLine (Locale "ru")) "Привет, мир!")
      ~?= ["мир!","Привет, "]
-  ,I.fromUnicode (converter "cp1251") "Привет, мир!"
-     ~?= "\207\240\232\226\229\242, \236\232\240!"
   ,(I.unfold I.group <$> I.findAll "[abc]+" "xx b yy ac") ~?= [["b"],["ac"]]
   ,I.toUpper (Locale "de-DE") "ß" ~?= "SS"
   ,I.toCaseFold False "ﬂag" ~?= "flag"
   ,I.blockCode '\x1FA50' ~?= I.ChessSymbols
   ,I.direction '\x2068' ~?= I.FirstStrongIsolate
   ]
+  <>
+  concat
+  [conv "ISO-2022-CN" "程序設計"  "\ESC$)A\SO3LPr\ESC$)G]CSS\SI"
+  ,conv "cp1251" "Привет, мир!"  "\207\240\232\226\229\242, \236\232\240!"
+  ]
+  where conv n f t = [I.fromUnicode c f ~?= t, I.toUnicode c t ~?= f]
+            where c = converter n
