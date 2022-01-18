@@ -205,7 +205,7 @@ fromUCharPtr p l =
             (fromIntegral l) err
         dl <- peek dstLen
         fromPtr dst (fromIntegral dl)
-    where capacity = fromIntegral l * 2
+    where capacity = fromIntegral l * 3
 
 dropWord = dropWord8
 takeWord = takeWord8
