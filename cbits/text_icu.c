@@ -147,7 +147,7 @@ int32_t __hs_ucol_getSortKey(const UCollator *coll,
     return ucol_getSortKey(coll, source, sourceLength, result, resultLength);
 }
 
-int __get_max_bytes_for_string(UConverter *cnv, int src_length)
+int __hs_ucnv_get_max_bytes_for_string(UConverter *cnv, int src_length)
 {
     return UCNV_GET_MAX_BYTES_FOR_STRING(src_length, ucnv_getMaxCharSize(cnv));
 }

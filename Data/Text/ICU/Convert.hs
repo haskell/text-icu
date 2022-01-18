@@ -113,7 +113,7 @@ fromUnicode :: Converter -> Text -> ByteString
 fromUnicode cnv t =
   unsafePerformIO . useAsPtr t $ \tptr tlen ->
     withConverter cnv $ \cptr -> do
-      let capacity = fromIntegral . max_bytes_for_string cptr . fromIntegral $
+      let capacity = fromIntegral . ucnv_max_bytes_for_string cptr . fromIntegral $
                      lengthWord t
       createAndTrim (fromIntegral capacity) $ \sptr ->
         fmap fromIntegral . handleError $
@@ -199,7 +199,7 @@ foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_open" ucnv_open
 foreign import ccall unsafe "hs_text_icu.h &__hs_ucnv_close" ucnv_close
     :: FunPtr (Ptr UConverter -> IO ())
 
-foreign import ccall unsafe "__get_max_bytes_for_string" max_bytes_for_string
+foreign import ccall unsafe "__hs_ucnv_get_max_bytes_for_string" ucnv_max_bytes_for_string
     :: Ptr UConverter -> CInt -> CInt
 
 #if MIN_VERSION_text(2,0,0)

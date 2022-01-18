@@ -88,7 +88,7 @@ int32_t __hs_ucol_getSortKey(const UCollator *coll,
 
 /* ucnv.h */
 
-int __get_max_bytes_for_string(UConverter *cnv, int src_length);
+int __hs_ucnv_get_max_bytes_for_string(UConverter *cnv, int src_length);
 const char *__hs_u_errorName(UErrorCode code);
 const char *__hs_ucnv_getName(const UConverter *converter, UErrorCode *err);
 UConverter* __hs_ucnv_open(const char *converterName, UErrorCode *err);
