@@ -15,6 +15,8 @@ This library is implemented as bindings to the well-respected [ICU
 library](http://www.icu-project.org/) (which is not bundled, and must
 be installed separately).
 
+For Ubuntu `apt-get install libicu-dev` should suffice.
+
 
 # Compatibility
 
