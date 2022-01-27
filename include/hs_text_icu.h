@@ -14,6 +14,7 @@
 #include "unicode/uspoof.h"
 #include "unicode/ustring.h"
 #include "unicode/utext.h"
+#include "unicode/ucsdet.h"
 
 #include <stdint.h>
 
@@ -260,3 +261,35 @@ UText* __hs_utext_openUChars(UText *ut, const UChar *s, int64_t length,
 UText* __hs_utext_openUTF8(UText *ut, const char *s, int64_t length,
                            UErrorCode * status);
 void __hs_utext_close(UText *ut);
+
+/* ucsdet.h */
+UCharsetDetector *__hs_ucsdet_open(UErrorCode *status);
+void __hs_ucsdet_close(UCharsetDetector *ucsd);
+void __hs_ucsdet_setText(UCharsetDetector *ucsd,
+                         const char *textIn, int32_t length,
+                         UErrorCode *status);
+void __hs_ucsdet_setDeclaredEncoding(UCharsetDetector *ucsd,
+                                     const char *encoding, int32_t length,
+                                     UErrorCode *status);
+const UCharsetMatch *__hs_ucsdet_detect (UCharsetDetector *ucsd, UErrorCode *status);
+const UCharsetMatch **__hs_ucsdet_detectAll(UCharsetDetector *ucsd,
+                                            int32_t *matchesFound,
+                                            UErrorCode *status);
+const char *__hs_ucsdet_getName(const UCharsetMatch *ucsm,
+                                UErrorCode *status);
+int32_t __hs_ucsdet_getConfidence(const UCharsetMatch *ucsm,
+                                  UErrorCode *status);
+const char *__hs_ucsdet_getLanguage(const UCharsetMatch *ucsm,
+                                    UErrorCode *status);
+int32_t __hs_ucsdet_getUChars(const UCharsetMatch *ucsm,
+                              UChar *buf, int32_t capacity,
+                              UErrorCode *status);
+UEnumeration *__hs_ucsdet_getAllDetectableCharsets(const UCharsetDetector *ucsd,
+                                                   UErrorCode *status);
+UBool __hs_ucsdet_isInputFilterEnabled(const UCharsetDetector *ucsd);
+UBool __hs_ucsdet_enableInputFilter(UCharsetDetector *ucsd, UBool filter);
+UEnumeration *__hs_ucsdet_getDetectableCharsets(const UCharsetDetector *ucsd,
+                                                UErrorCode *status);
+void __hs_ucsdet_setDetectableCharset(UCharsetDetector *ucsd,
+                                      const char *encoding, UBool enabled,
+                                      UErrorCode *status);
