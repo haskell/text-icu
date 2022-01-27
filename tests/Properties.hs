@@ -4,23 +4,28 @@
 -- return results, without checking whether the results are correct.
 -- Weak tests are described as such.
 
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
-module Properties (tests) where
+module Properties (propertyTests, testCases) where
 
 import Control.DeepSeq (NFData(..))
 import Data.Function (on)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
-import Data.Text.ICU (NormalizationMode(..))
+import Data.Text.ICU (NormalizationMode(..), LocaleName(..))
 import QuickCheckUtils (NonEmptyText(..), LatinSpoofableText(..),
                         NonSpoofableText(..))
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
+import Test.Framework.Providers.HUnit (hUnitTestToTests)
+import Test.HUnit ((~?=))
+import qualified Test.HUnit (Test(..))
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.ICU as I
+import qualified Data.Text.ICU.Convert as I
 import qualified Data.Text.ICU.Char as I
+import System.IO.Unsafe (unsafePerformIO)
 
 t_rnf :: (NFData b) => (a -> b) -> a -> Bool
 t_rnf f t = rnf (f t) == ()
@@ -60,9 +65,22 @@ t_quickCheck_isNormalized mode normMode txt
 
 -- Collation
 
--- This test is weak.
+t_collate a b = c a b == flipOrdering (c b a)
+    where c = I.collate I.uca
 
-t_collate_root txt = t_rnf $ I.collate I.uca txt
+flipOrdering :: Ordering -> Ordering
+flipOrdering = \ case
+    GT -> LT
+    LT -> GT
+    EQ -> EQ
+
+-- Convert
+
+converter e = unsafePerformIO $ I.open e Nothing
+
+t_convert a = I.toUnicode c (I.fromUnicode c a) == a
+    where c = converter "UTF-32"
+
 
 -- Unicode character database
 
@@ -83,12 +101,13 @@ t_numericValue = t_rnf $ I.numericValue
 
 t_nonspoofable (NonSpoofableText t) = I.spoofCheck I.spoof t == I.CheckOK
 t_spoofable (LatinSpoofableText t) = I.spoofCheck I.spoof t ==
-                                     I.CheckFailed [I.WholeScriptConfusable]
-t_confusable (NonEmptyText t) = I.areConfusable I.spoof t t ==
-                                I.CheckFailed [I.SingleScriptConfusable]
+                                     I.CheckFailed [I.RestrictionLevel]
+t_confusable (NonEmptyText t) = I.areConfusable I.spoof t t `elem`
+  [I.CheckFailed [I.MixedScriptConfusable]
+  ,I.CheckFailed [I.SingleScriptConfusable]]
 
-tests :: Test
-tests =
+propertyTests :: Test
+propertyTests =
   testGroup "Properties" [
     testProperty "t_toCaseFold" t_toCaseFold
   , testProperty "t_toLower" t_toLower
@@ -98,12 +117,13 @@ tests =
   , testProperty "t_charIterator_Utf8" t_charIterator_Utf8
   , testProperty "t_normalize" t_normalize
   , testProperty "t_quickCheck_isNormalized" t_quickCheck_isNormalized
-  , testProperty "t_collate_root" t_collate_root
+  , testProperty "t_collate" t_collate
+  , testProperty "t_convert" t_convert
   , testProperty "t_blockCode" t_blockCode
   , testProperty "t_charFullName" t_charFullName
   , testProperty "t_charName" t_charName
   , testProperty "t_combiningClass" t_combiningClass
-  , testProperty "t_direction" t_direction
+  , testProperty "t_direction" $ t_direction
 --, testProperty "t_property" t_property
   , testProperty "t_isMirrored" t_isMirrored
   , testProperty "t_mirror" t_mirror
@@ -113,3 +133,26 @@ tests =
   , testProperty "t_nonspoofable" t_nonspoofable
   , testProperty "t_confusable" t_confusable
   ]
+
+testCases :: Test
+testCases =
+  testGroup "Test cases" $ hUnitTestToTests $ Test.HUnit.TestList $
+  [I.normalize NFC "Ame\x0301lie" ~?= "Amélie"
+  ,I.normalize NFC "(⊃｡•́︵•̀｡)⊃" ~?= "(⊃｡•́︵•̀｡)⊃"
+  ,map I.brkBreak (I.breaks (I.breakWord (Locale "en_US")) "Hi, Amélie!")
+     ~?= ["Hi",","," ","Amélie","!"]
+  ,map I.brkBreak (I.breaksRight (I.breakLine (Locale "ru")) "Привет, мир!")
+     ~?= ["мир!","Привет, "]
+  ,(I.unfold I.group <$> I.findAll "[abc]+" "xx b yy ac") ~?= [["b"],["ac"]]
+  ,I.toUpper (Locale "de-DE") "ß" ~?= "SS"
+  ,I.toCaseFold False "ﬂag" ~?= "flag"
+  ,I.blockCode '\x1FA50' ~?= I.ChessSymbols
+  ,I.direction '\x2068' ~?= I.FirstStrongIsolate
+  ]
+  <>
+  concat
+  [conv "ISO-2022-CN" "程序設計"  "\ESC$)A\SO3LPr\ESC$)G]CSS\SI"
+  ,conv "cp1251" "Привет, мир!"  "\207\240\232\226\229\242, \236\232\240!"
+  ]
+  where conv n f t = [I.fromUnicode c f ~?= t, I.toUnicode c t ~?= f]
+            where c = converter n

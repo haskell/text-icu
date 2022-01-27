@@ -48,7 +48,6 @@ module Data.Text.ICU.Spoof
 #include <unicode/uspoof.h>
 #include <unicode/utypes.h>
 
-import Control.Applicative
 import Control.DeepSeq (NFData(..))
 import Control.Exception (Exception, throwIO, catchJust)
 import Data.Bits ((.&.))
@@ -67,7 +66,10 @@ import Data.Text.ICU.Error (u_PARSE_ERROR)
 import Data.Text.ICU.Error.Internal (UErrorCode, UParseError,
                                      ParseError(..), handleError,
                                      handleOverflowError, handleParseError)
+#if MIN_VERSION_text(2,0,0)
+#else
 import Data.Text.ICU.Internal (UChar)
+#endif
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Foreign.C.String (CString, peekCString, withCString)
@@ -280,7 +282,7 @@ instance Exception OpenFromSourceParseError
 -- security issues with default options (all 'SpoofCheck's except
 -- 'CharLimit').
 open :: IO MSpoof
-open = wrap =<< handleError uspoof_open
+open = wrap $ handleError uspoof_open
 
 isParseError :: ParseError -> Maybe ParseError
 isParseError = Just
@@ -295,10 +297,10 @@ openFromSource (confusables, confusablesWholeScript) =
       with 0 $ \errTypePtr ->
         catchJust
           isParseError
-          (wrap =<< (handleParseError
+          (wrap $ handleParseError
             (== u_PARSE_ERROR)
             (uspoof_openFromSource cptr (fromIntegral clen) wptr
-              (fromIntegral wlen) errTypePtr)))
+              (fromIntegral wlen) errTypePtr))
           (throwOpenFromSourceParseError errTypePtr)
 
 throwOpenFromSourceParseError :: Ptr Int32 -> ParseError -> IO a
@@ -365,9 +367,13 @@ areConfusable s t1 t2 = withSpoof s $ \sptr ->
   useAsPtr t1 $ \t1ptr t1len ->
     useAsPtr t2 $ \t2ptr t2len ->
       makeSpoofCheckResult <$>
-      handleError (uspoof_areConfusable sptr
-                   t1ptr (fromIntegral t1len)
-                   t2ptr (fromIntegral t2len))
+      handleError (
+#if MIN_VERSION_text(2,0,0)
+          uspoof_areConfusableUTF8
+#else
+          uspoof_areConfusable
+#endif
+          sptr t1ptr (fromIntegral t1len) t2ptr (fromIntegral t2len))
 
 -- | Generates re-usable "skeleton" strings which can be used (via
 -- Unicode equality) to check if an identifier is confusable
@@ -389,8 +395,13 @@ getSkeleton :: MSpoof -> Maybe SkeletonTypeOverride -> Text -> IO Text
 getSkeleton s o t = withSpoof s $ \sptr ->
   useAsPtr t $ \tptr tlen ->
     handleOverflowError (fromIntegral tlen)
-      (\dptr dlen -> uspoof_getSkeleton sptr oflags tptr
-                     (fromIntegral tlen) dptr (fromIntegral dlen))
+      (\dptr dlen ->
+#if MIN_VERSION_text(2,0,0)
+          uspoof_getSkeletonUTF8
+#else
+          uspoof_getSkeleton
+#endif
+          sptr oflags tptr (fromIntegral tlen) dptr (fromIntegral dlen))
       (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
     where oflags = maybe 0 (fromIntegral . toBitMask) o
 
@@ -399,7 +410,13 @@ spoofCheck :: MSpoof -> Text -> IO SpoofCheckResult
 spoofCheck s t = withSpoof s $ \sptr ->
   useAsPtr t $ \tptr tlen ->
     makeSpoofCheckResult <$> handleError
-      (uspoof_check sptr tptr (fromIntegral tlen) nullPtr)
+      (
+#if MIN_VERSION_text(2,0,0)
+       uspoof_checkUTF8
+#else
+       uspoof_check
+#endif
+       sptr tptr (fromIntegral tlen) nullPtr)
 
 -- | Serializes the rules in this spoof checker to a byte array,
 -- suitable for re-use by 'openFromSerialized'.
@@ -449,6 +466,24 @@ foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_setAllowedLocales"
   uspoof_setAllowedLocales
     :: Ptr USpoof -> CString -> Ptr UErrorCode -> IO ()
 
+#if MIN_VERSION_text(2,0,0)
+
+foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_areConfusableUTF8"
+  uspoof_areConfusableUTF8
+    :: Ptr USpoof -> Ptr Word8 -> Int32 -> Ptr Word8 -> Int32 -> Ptr UErrorCode
+       -> IO USpoofCheck
+
+foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_checkUTF8" uspoof_checkUTF8
+    :: Ptr USpoof -> Ptr Word8 -> Int32 -> Ptr Int32 -> Ptr UErrorCode
+       -> IO USpoofCheck
+
+foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_getSkeletonUTF8"
+  uspoof_getSkeletonUTF8
+    :: Ptr USpoof -> USkeletonTypeOverride -> Ptr Word8 -> Int32 -> Ptr Word8 ->
+       Int32 -> Ptr UErrorCode -> IO Int32
+
+#else
+
 foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_areConfusable"
   uspoof_areConfusable
     :: Ptr USpoof -> Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> Ptr UErrorCode
@@ -462,6 +497,8 @@ foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_getSkeleton"
   uspoof_getSkeleton
     :: Ptr USpoof -> USkeletonTypeOverride -> Ptr UChar -> Int32 -> Ptr UChar ->
        Int32 -> Ptr UErrorCode -> IO Int32
+
+#endif
 
 foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_serialize"
   uspoof_serialize

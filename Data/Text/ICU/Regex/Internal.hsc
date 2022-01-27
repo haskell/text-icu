@@ -22,11 +22,9 @@ module Data.Text.ICU.Regex.Internal
     (
     -- * Types
       MatchOption(..)
-    , Haystack(..)
     , Regex(..)
     , URegularExpression
     -- * Functions
-    , emptyForeignPtr
     , regex
     , uregex_clone
     , uregex_close
@@ -37,25 +35,23 @@ module Data.Text.ICU.Regex.Internal
     , uregex_group
     , uregex_groupCount
     , uregex_pattern
-    , uregex_setText
+    , uregex_setUText
     , uregex_start
     ) where
 
+import Control.Exception (mask_)
 import Control.Monad (when)
 import Data.IORef (IORef, newIORef)
 import Data.Int (Int32)
 import Data.Text (Text)
-import qualified Data.Text as T
-import qualified Data.Text.Foreign as T
-import Data.Text.ICU.Internal (UBool, UChar)
+import Data.Text.ICU.Internal (UBool, UChar, UTextPtr, UText, useAsUCharPtr, withUTextPtr, emptyUTextPtr)
 import Data.Text.ICU.Error (isRegexError)
 import Data.Text.ICU.Error.Internal (UParseError, UErrorCode,
                                      handleError, handleParseError)
 import Data.Typeable (Typeable)
-import Data.Word (Word16, Word32)
+import Data.Word (Word32)
 import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, touchForeignPtr, withForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr)
-import System.IO.Unsafe (unsafePerformIO)
 
 #include <unicode/uregex.h>
 
@@ -126,8 +122,6 @@ data MatchOption
     -- process.  A limit is enabled by default.
       deriving (Eq, Show, Typeable)
 
-data Haystack = H (ForeignPtr Word16) {-# UNPACK #-} !T.I16
-
 -- | A compiled regular expression.
 --
 -- 'Regex' values are usually constructed using the 'regex' or
@@ -137,33 +131,29 @@ data Haystack = H (ForeignPtr Word16) {-# UNPACK #-} !T.I16
 -- quotes (though this does not allow you to specify any 'Option's).
 data Regex = Regex {
       reRe :: ForeignPtr URegularExpression
-    , reText :: IORef Haystack
+    , reText :: IORef UTextPtr
     }
-
-emptyForeignPtr :: ForeignPtr Word16
-emptyForeignPtr = unsafePerformIO $ fst `fmap` T.asForeignPtr T.empty
-{-# NOINLINE emptyForeignPtr #-}
 
 -- | Compile a regular expression with the given options.  This
 -- function throws a 'ParseError' if the pattern is invalid.
 --
 -- The 'Regex' is initialized with empty text to search against.
 regex :: [MatchOption] -> Text -> IO Regex
-regex opts pat = T.useAsPtr pat $ \pptr plen -> do
+regex opts pat = useAsUCharPtr pat $ \pptr plen -> mask_ $ do
   let (flags,workLimit,stackLimit) = toURegexpOpts opts
+      hayfp = emptyUTextPtr
   ptr <- handleParseError isRegexError $
          uregex_open pptr (fromIntegral plen) flags
   refp <- newForeignPtr uregex_close ptr
-  (hayfp, hayLen) <- T.asForeignPtr T.empty
   withForeignPtr refp $ \rePtr ->
-    withForeignPtr hayfp $ \hayPtr -> handleError $
-      uregex_setText rePtr hayPtr (fromIntegral hayLen)
+    withUTextPtr hayfp $ \hayPtr -> handleError $
+      uregex_setUText rePtr hayPtr
   when (workLimit > -1) .
     handleError $ uregex_setTimeLimit ptr (fromIntegral workLimit)
   when (stackLimit > -1) .
     handleError $ uregex_setStackLimit ptr (fromIntegral stackLimit)
   touchForeignPtr refp
-  Regex refp `fmap` newIORef (H hayfp 0)
+  Regex refp `fmap` newIORef hayfp
 
 data URegularExpression
 
@@ -206,8 +196,8 @@ foreign import ccall unsafe "hs_text_icu.h __hs_uregex_pattern" uregex_pattern
     :: Ptr URegularExpression -> Ptr Int32 -> Ptr UErrorCode
     -> IO (Ptr UChar)
 
-foreign import ccall unsafe "hs_text_icu.h __hs_uregex_setText" uregex_setText
-    :: Ptr URegularExpression -> Ptr UChar -> Int32 -> Ptr UErrorCode -> IO ()
+foreign import ccall unsafe "hs_text_icu.h __hs_uregex_setUText" uregex_setUText
+    :: Ptr URegularExpression -> Ptr UText -> Ptr UErrorCode -> IO ()
 
 foreign import ccall unsafe "hs_text_icu.h __hs_uregex_getText" uregex_getText
     :: Ptr URegularExpression -> Ptr Int32 -> Ptr UErrorCode -> IO (Ptr UChar)

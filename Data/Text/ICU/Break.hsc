@@ -51,13 +51,13 @@ module Data.Text.ICU.Break
 
 import Control.DeepSeq (NFData(..))
 import Control.Monad (forM)
+import Control.Exception (mask_)
 import Data.IORef (newIORef, writeIORef)
 import Data.Int (Int32)
 import Data.Text (Text)
-import Data.Text.Foreign (I16, useAsPtr)
 import Data.Text.ICU.Break.Types (BreakIterator(..), UBreakIterator)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
-import Data.Text.ICU.Internal (LocaleName(..), UBool, UChar, asBool, withLocaleName)
+import Data.Text.ICU.Internal (LocaleName(..), UBool, UChar, asBool, withLocaleName, TextI, UText, asUTextPtr, withUTextPtr)
 import Foreign.C.String (CString, peekCString)
 import Foreign.C.Types (CInt(..))
 import Foreign.ForeignPtr (newForeignPtr, withForeignPtr)
@@ -153,29 +153,31 @@ breakWord = open (#const UBRK_WORD) asWord
 -- specified locale.
 open :: UBreakIteratorType -> (Int32 -> a) -> LocaleName -> Text
      -> IO (BreakIterator a)
-open brk f loc t = withLocaleName loc $ \locale ->
-  useAsPtr t $ \ptr len -> do
-    bi <- handleError $ ubrk_open brk locale ptr (fromIntegral len)
-    r <- newIORef t
+open brk f loc t = withLocaleName loc $ \locale -> do
+  b <- mask_ $ do
+    bi <- handleError $ ubrk_open brk locale nullPtr 0
+    r <- newIORef undefined
     BR r f `fmap` newForeignPtr ubrk_close bi
+  setText b t
+  return b
 
 -- | Point an existing 'BreakIterator' at a new piece of text.
 setText :: BreakIterator a -> Text -> IO ()
-setText BR{..} t =
-  useAsPtr t $ \ptr len -> do
-    withForeignPtr brIter $ \p -> handleError $
-                                  ubrk_setText p ptr (fromIntegral len)
-    writeIORef brText t
+setText BR{..} t = do
+  fp <- asUTextPtr t
+  withUTextPtr fp $ \ ptr -> do
+    withForeignPtr brIter $ \p -> handleError $ ubrk_setUText p ptr
+    writeIORef brText fp
 
 -- | Thread safe cloning operation.  This is substantially faster than
 -- creating a new 'BreakIterator' from scratch.
 clone :: BreakIterator a -> IO (BreakIterator a)
-clone BR{..} = do
+clone BR{..} = mask_ $ do
   bi <- withForeignPtr brIter $ \p ->
         with 1 $ handleError . ubrk_safeClone p nullPtr
   BR brText brStatus `fmap` newForeignPtr ubrk_close bi
 
-asIndex :: (Ptr UBreakIterator -> IO Int32) -> BreakIterator a -> IO (Maybe I16)
+asIndex :: (Ptr UBreakIterator -> IO Int32) -> BreakIterator a -> IO (Maybe TextI)
 asIndex act BR{..} = do
   i <- withForeignPtr brIter act
   return $! if i == (#const UBRK_DONE)
@@ -183,34 +185,34 @@ asIndex act BR{..} = do
             else Just $! fromIntegral i
 
 -- | Reset the breaker to the beginning of the text to be scanned.
-first :: BreakIterator a -> IO I16
+first :: BreakIterator a -> IO TextI
 first BR{..} = fromIntegral `fmap` withForeignPtr brIter ubrk_first
 
 -- | Reset the breaker to the end of the text to be scanned.
-last :: BreakIterator a -> IO I16
+last :: BreakIterator a -> IO TextI
 last BR{..} = fromIntegral `fmap` withForeignPtr brIter ubrk_last
 
 -- | Advance the iterator and break at the text boundary that follows the
 -- current text boundary.
-next :: BreakIterator a -> IO (Maybe I16)
+next :: BreakIterator a -> IO (Maybe TextI)
 next = asIndex ubrk_next
 
 -- | Advance the iterator and break at the text boundary that precedes the
 -- current text boundary.
-previous :: BreakIterator a -> IO (Maybe I16)
+previous :: BreakIterator a -> IO (Maybe TextI)
 previous = asIndex ubrk_previous
 
 -- | Determine the text boundary preceding the specified offset.
-preceding :: BreakIterator a -> Int -> IO (Maybe I16)
+preceding :: BreakIterator a -> Int -> IO (Maybe TextI)
 preceding bi i = asIndex (flip ubrk_preceding (fromIntegral i)) bi
 
 -- | Determine the text boundary following the specified offset.
-following :: BreakIterator a -> Int -> IO (Maybe I16)
+following :: BreakIterator a -> Int -> IO (Maybe TextI)
 following bi i = asIndex (flip ubrk_following (fromIntegral i)) bi
 
 -- | Return the character index most recently returned by 'next',
 -- 'previous', 'first', or 'last'.
-current :: BreakIterator a -> IO (Maybe I16)
+current :: BreakIterator a -> IO (Maybe TextI)
 current = asIndex ubrk_current
 
 -- | Return the status from the break rule that determined the most recently
@@ -250,8 +252,8 @@ foreign import ccall unsafe "hs_text_icu.h __hs_ubrk_open" ubrk_open
     :: UBreakIteratorType -> CString -> Ptr UChar -> Int32 -> Ptr UErrorCode
     -> IO (Ptr UBreakIterator)
 
-foreign import ccall unsafe "hs_text_icu.h __hs_ubrk_setText" ubrk_setText
-    :: Ptr UBreakIterator -> Ptr UChar -> Int32 -> Ptr UErrorCode
+foreign import ccall unsafe "hs_text_icu.h __hs_ubrk_setUText" ubrk_setUText
+    :: Ptr UBreakIterator -> Ptr UText -> Ptr UErrorCode
     -> IO ()
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ubrk_safeClone" ubrk_safeClone

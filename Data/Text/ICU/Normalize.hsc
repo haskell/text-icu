@@ -35,9 +35,8 @@ module Data.Text.ICU.Normalize
 #include <unicode/unorm.h>
 
 import Data.Text (Text)
-import Data.Text.Foreign (fromPtr, useAsPtr)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError, handleOverflowError)
-import Data.Text.ICU.Internal (UBool, UChar, asBool, asOrdering)
+import Data.Text.ICU.Internal (UBool, UChar, asBool, asOrdering, useAsUCharPtr, fromUCharPtr)
 import Data.Text.ICU.Normalize.Internal (UNormalizationCheckResult, toNCR)
 import Data.Typeable (Typeable)
 import Data.Int (Int32)
@@ -203,12 +202,12 @@ toNM FCD  = #const UNORM_FCD
 
 -- | Normalize a string according the specified normalization mode.
 normalize :: NormalizationMode -> Text -> Text
-normalize mode t = unsafePerformIO . useAsPtr t $ \sptr slen ->
+normalize mode t = unsafePerformIO . useAsUCharPtr t $ \sptr slen ->
   let slen' = fromIntegral slen
       mode' = toNM mode
   in handleOverflowError (fromIntegral slen)
      (\dptr dlen -> unorm_normalize sptr slen' mode' 0 dptr (fromIntegral dlen))
-     (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
+     (\dptr dlen -> fromUCharPtr (castPtr dptr) (fromIntegral dlen))
 
 
 -- | Perform an efficient check on a string, to quickly determine if
@@ -223,7 +222,7 @@ normalize mode t = unsafePerformIO . useAsPtr t $ \sptr slen ->
 -- string definitely is, or is not, in the given normalization form.
 quickCheck :: NormalizationMode -> Text -> Maybe Bool
 quickCheck mode t =
-  unsafePerformIO . useAsPtr t $ \ptr len ->
+  unsafePerformIO . useAsUCharPtr t $ \ptr len ->
     fmap toNCR . handleError $ unorm_quickCheck ptr (fromIntegral len)
                                (toNM mode)
 
@@ -236,7 +235,7 @@ quickCheck mode t =
 -- further tests to arrive at a definitive result.
 isNormalized :: NormalizationMode -> Text -> Bool
 isNormalized mode t =
-  unsafePerformIO . useAsPtr t $ \ptr len ->
+  unsafePerformIO . useAsUCharPtr t $ \ptr len ->
     fmap asBool . handleError $ unorm_isNormalized ptr (fromIntegral len)
                                 (toNM mode)
 
@@ -256,8 +255,8 @@ isNormalized mode t =
 -- strings and short non-'FCD' strings there is no memory allocation.
 compare :: [CompareOption] -> Text -> Text -> Ordering
 compare opts a b = unsafePerformIO .
-  useAsPtr a $ \aptr alen ->
-    useAsPtr b $ \bptr blen ->
+  useAsUCharPtr a $ \aptr alen ->
+    useAsUCharPtr b $ \bptr blen ->
       fmap asOrdering . handleError $
       unorm_compare aptr (fromIntegral alen) bptr (fromIntegral blen)
                     (reduceCompareOptions opts)

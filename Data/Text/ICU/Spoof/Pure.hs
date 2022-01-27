@@ -68,6 +68,7 @@ applySpoofParams (SpoofParams c lev loc) s = unsafePerformIO $ do
 -- 'S.SpoofCheck's except 'CharLimit').
 spoof :: Spoof
 spoof = unsafePerformIO $ S `fmap` S.open
+{-# NOINLINE spoof #-}
 
 -- | Open an immutable 'Spoof' checker with specific 'SpoofParams'
 -- to control its behavior.

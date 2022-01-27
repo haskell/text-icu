@@ -52,6 +52,7 @@ import Data.String (IsString(..))
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Foreign as T
+import Data.Text.ICU.Internal (TextI, fromUCharPtr, lengthWord, withUTextPtrText, utextPtrLength)
 import Data.Text.ICU.Error.Internal (ParseError(..), handleError)
 import qualified Data.Text.ICU.Regex as IO
 import Data.Text.ICU.Regex.Internal hiding (Regex(..), regex)
@@ -83,7 +84,7 @@ instance IsString Regex where
 -- | A match for a regular expression.
 data Match = Match {
       matchRe :: Internal.Regex
-    , _matchPrev :: T.I16
+    , _matchPrev :: TextI
     }
 
 instance Show Match where
@@ -123,7 +124,7 @@ pattern :: Regular r => r -> Text
 pattern r = unsafePerformIO . withForeignPtr (regFp r) $ \rePtr ->
   alloca $ \lenPtr -> do
     textPtr <- handleError $ uregex_pattern rePtr lenPtr
-    (T.fromPtr textPtr . fromIntegral) =<< peek lenPtr
+    (fromUCharPtr textPtr . fromIntegral) =<< peek lenPtr
 
 -- | Find the first match for the regular expression in the given text.
 find :: Regex -> Text -> Maybe Match
@@ -137,7 +138,7 @@ find re0 haystack = unsafePerformIO .
 findAll :: Regex -> Text -> [Match]
 findAll re0 haystack = unsafePerformIO . unsafeInterleaveIO $ go 0
   where
-    len = fromIntegral . T.lengthWord16 $ haystack
+    len = fromIntegral . lengthWord $ haystack
     go !n | n >= len  = return []
           | otherwise = matching re0 haystack $ \re -> do
       found <- IO.find re n
@@ -180,8 +181,8 @@ group n m = grouping n m $ \re -> do
   let n' = fromIntegral n
   start <- fromIntegral `fmap` IO.start_ re n'
   end <- fromIntegral `fmap` IO.end_ re n'
-  (fp,_) <- IO.getText re
-  withForeignPtr fp $ \ptr ->
+  ut <- IO.getUTextPtr re
+  withUTextPtrText ut $ \ptr ->
     T.fromPtr (ptr `advancePtr` fromIntegral start) (end - start)
 
 -- | Return the prefix of the /n/th capturing group in a match (the
@@ -190,16 +191,16 @@ group n m = grouping n m $ \re -> do
 prefix :: Int -> Match -> Maybe Text
 prefix n m = grouping n m $ \re -> do
   start <- fromIntegral `fmap` IO.start_ re n
-  (fp,_) <- IO.getText re
-  withForeignPtr fp (`T.fromPtr` start)
+  ut <- IO.getUTextPtr re
+  withUTextPtrText ut (`T.fromPtr` start)
 
 -- | Return the span of text between the end of the previous match and
 -- the beginning of the current match.
 span :: Match -> Text
 span (Match re p) = unsafePerformIO $ do
   start <- IO.start_ re 0
-  (fp,_) <- IO.getText re
-  withForeignPtr fp $ \ptr ->
+  ut <- IO.getUTextPtr re
+  withUTextPtrText ut $ \ptr ->
     T.fromPtr (ptr `advancePtr` fromIntegral p) (start - p)
 
 -- | Return the suffix of the /n/th capturing group in a match (the
@@ -208,9 +209,9 @@ span (Match re p) = unsafePerformIO $ do
 suffix :: Int -> Match -> Maybe Text
 suffix n m = grouping n m $ \re -> do
   end <- fromIntegral `fmap` IO.end_ re n
-  (fp,len) <- IO.getText re
-  withForeignPtr fp $ \ptr -> do
-    T.fromPtr (ptr `advancePtr` fromIntegral end) (len - end)
+  ut <- IO.getUTextPtr re
+  withUTextPtrText ut $ \ptr -> do
+    T.fromPtr (ptr `advancePtr` fromIntegral end) (utextPtrLength ut - end)
 
 grouping :: Int -> Match -> (Internal.Regex -> IO a) -> Maybe a
 grouping n (Match m _) act = unsafePerformIO $ do
