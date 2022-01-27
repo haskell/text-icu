@@ -27,6 +27,7 @@ module Data.Text.ICU.CharsetDetection.Internal
     , withCharsetMatch
     ) where
 
+import Control.Exception (mask_)
 import Data.Typeable (Typeable)
 import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, newForeignPtr_, withForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr)
@@ -47,7 +48,7 @@ data CharsetDetector = CharsetDetector {
 } deriving (Typeable)
 
 mkCharsetDetector :: IO CharsetDetector
-mkCharsetDetector = handleError ucsdet_open >>= wrapUCharsetDetector
+mkCharsetDetector = wrapUCharsetDetector $ handleError ucsdet_open
 
 -- | Temporarily unwraps an 'CharsetDetector' to perform operations on its
 -- raw 'UCharsetDetector' handle.
@@ -57,8 +58,8 @@ withCharsetDetector (CharsetDetector ucsd) = withForeignPtr ucsd
 
 -- | Wraps a raw 'UCharsetDetector' in an 'CharsetDetector', closing the
 -- handle when the last reference to the object is dropped.
-wrapUCharsetDetector :: Ptr UCharsetDetector -> IO CharsetDetector
-wrapUCharsetDetector = fmap CharsetDetector . newForeignPtr ucsdet_close
+wrapUCharsetDetector :: IO (Ptr UCharsetDetector) -> IO CharsetDetector
+wrapUCharsetDetector a = mask_ $ fmap CharsetDetector $ newForeignPtr ucsdet_close =<< a
 {-# INLINE wrapUCharsetDetector #-}
 
 -- | Opaque handle to a character set match
@@ -70,8 +71,8 @@ data CharsetMatch = CharsetMatch {
     charsetMatchPtr :: {-# UNPACK #-} !(ForeignPtr UCharsetMatch)
 } deriving (Typeable)
 
-wrapUCharsetMatch :: Ptr UCharsetMatch -> IO CharsetMatch
-wrapUCharsetMatch = fmap CharsetMatch . newForeignPtr_
+wrapUCharsetMatch :: IO (Ptr UCharsetMatch) -> IO CharsetMatch
+wrapUCharsetMatch a = mask_ $ fmap CharsetMatch $ newForeignPtr_ =<< a
 
 withCharsetMatch :: CharsetMatch -> (Ptr UCharsetMatch -> IO a) -> IO a
 withCharsetMatch (CharsetMatch ucsm) = withForeignPtr ucsm
