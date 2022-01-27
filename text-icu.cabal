@@ -57,6 +57,7 @@ library
       Data.Text.ICU
       Data.Text.ICU.Break
       Data.Text.ICU.Char
+      Data.Text.ICU.CharsetDetection
       Data.Text.ICU.Collate
       Data.Text.ICU.Convert
       Data.Text.ICU.Error
@@ -68,6 +69,7 @@ library
       Data.Text.ICU.BitMask
       Data.Text.ICU.Break.Pure
       Data.Text.ICU.Break.Types
+      Data.Text.ICU.CharsetDetection.Internal
       Data.Text.ICU.Collate.Internal
       Data.Text.ICU.Collate.Pure
       Data.Text.ICU.Convert.Internal
