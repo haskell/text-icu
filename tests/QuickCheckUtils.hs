@@ -10,7 +10,6 @@ import Test.QuickCheck (Arbitrary(..), Gen, elements, listOf1, suchThat, vectorO
 import Data.Word (Word8)
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as TE
 import qualified Data.Text.ICU as I
 
 instance Arbitrary T.Text where
@@ -71,4 +70,3 @@ instance Arbitrary Utf8Text where
             (arbitrary :: Gen Word8)
             (`elem` ([0x41..0x5A] ++ [0x61..0x7A]))
         )
-

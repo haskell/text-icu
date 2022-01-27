@@ -194,10 +194,11 @@ int32_t __hs_uregex_group(URegularExpression *regexp, int32_t groupNum,
 			  UErrorCode *status);
 
 /* ushape.h */
-int32_t __hs_ushape_arabic(const UChar *source, int32_t sourceLength,
-			     UChar *result, int32_t resultLength,
-			     int32_t options,
-			     UErrorCode *status);
+
+int32_t __hs_u_shapeArabic(const UChar *source, int32_t sourceLength,
+                           UChar *result, int32_t resultLength,
+                           int32_t options,
+                           UErrorCode *status);
 
 /* ustring.h */
 

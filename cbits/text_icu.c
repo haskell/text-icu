@@ -355,12 +355,12 @@ int32_t __hs_unorm_normalize(const UChar *source, int32_t sourceLength,
                            resultLength, status);
 }
 
-int32_t __hs_ushape_arabic(const UChar *source, int32_t sourceLength,
-			     UChar *result, int32_t resultLength,
-           int32_t options, UErrorCode *status)
+int32_t __hs_u_shapeArabic(const UChar *source, int32_t sourceLength,
+                           UChar *result, int32_t resultLength,
+                           int32_t options, UErrorCode *status)
 {
     return u_shapeArabic(source, sourceLength, result,
-			   resultLength, options, status);
+                         resultLength, options, status);
 }
 
 

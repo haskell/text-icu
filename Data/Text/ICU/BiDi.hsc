@@ -36,18 +36,17 @@ module Data.Text.ICU.BiDi
 
 #include <unicode/ubidi.h>
 
+import Control.Exception (mask_)
 import Data.Text.ICU.BiDi.Internal
 import Foreign.ForeignPtr (newForeignPtr)
 import Foreign.Marshal.Utils (with)
 import Foreign.Storable (peek)
-import Foreign.Ptr (FunPtr, Ptr, castPtr)
+import Foreign.Ptr (FunPtr, Ptr)
 import Data.Int (Int32, Int16)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError, handleOverflowError)
 import Data.Text (Text)
-import Data.Text.ICU.Internal (UChar)
-import Data.Text.Foreign (useAsPtr)
+import Data.Text.ICU.Internal (UChar, useAsUCharPtr, fromUCharPtr)
 import Foreign.C.Types (CInt(..))
-import Data.Text.Foreign (fromPtr)
 import Data.List (foldl')
 import Data.Bits ((.|.))
 import System.IO.Unsafe (unsafePerformIO)
@@ -55,7 +54,7 @@ import Data.Traversable (for)
 
 -- | Allocate a BiDi structure.
 open :: IO BiDi
-open = fmap BiDi . newForeignPtr ubidi_close =<< ubidi_open
+open = mask_ $ fmap BiDi . newForeignPtr ubidi_close =<< ubidi_open
 
 -- | Allocate a BiDi structure with preallocated memory for internal structures.
 openSized ::
@@ -65,7 +64,7 @@ openSized ::
            -- An attempt to access visual runs on an object that was not preallocated for as many runs as the text was actually resolved to will fail, unless this value is 0.
   -> IO BiDi
 openSized maxlen maxruncount =
-  fmap BiDi . newForeignPtr ubidi_close =<< handleError (ubidi_openSized maxlen maxruncount)
+  mask_ $ fmap BiDi . newForeignPtr ubidi_close =<< handleError (ubidi_openSized maxlen maxruncount)
 
 -- | Perform the Unicode Bidi algorithm. It is defined in the Unicode Standard Annex #9, version 13,
 -- also described in The Unicode Standard, Version 4.0.
@@ -79,7 +78,7 @@ setPara ::
   -> IO ()
 setPara bidi t paraLevel =
   withBiDi bidi $ \bptr ->
-    useAsPtr t $ \sptr slen -> handleError (ubidi_setPara bptr sptr (fromIntegral slen) paraLevel)
+    useAsUCharPtr t $ \sptr slen -> handleError (ubidi_setPara bptr sptr (fromIntegral slen) paraLevel)
 
 -- | Sets a BiDi to contain the reordering information, especially the resolved levels,
 -- for all the characters in a line of text
@@ -149,7 +148,7 @@ writeReordered bidi opts = do
   withBiDi bidi $ \bptr ->
     handleOverflowError (fromIntegral destLen)
       (\dptr dlen -> ubidi_writeReordered bptr dptr (fromIntegral dlen) options')
-      (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
+      (\dptr dlen -> fromUCharPtr dptr (fromIntegral dlen))
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ubidi_open" ubidi_open
   :: IO (Ptr UBiDi)

@@ -24,9 +24,11 @@ import Test.QuickCheck.Monadic (monadicIO, run, assert)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.ICU as I
+import qualified Data.Text.ICU.BiDi as BiDi
 import qualified Data.Text.ICU.Convert as I
 import qualified Data.Text.ICU.Char as I
 import qualified Data.Text.ICU.CharsetDetection as CD
+import qualified Data.Text.ICU.Shape as S
 import System.IO.Unsafe (unsafePerformIO)
 
 t_rnf :: (NFData b) => (a -> b) -> a -> Bool
@@ -157,6 +159,10 @@ testCases =
   ,I.toCaseFold False "ﬂag" ~?= "flag"
   ,I.blockCode '\x1FA50' ~?= I.ChessSymbols
   ,I.direction '\x2068' ~?= I.FirstStrongIsolate
+  ,I.getSkeleton I.spoof Nothing "\1089\1072t" ~?= "cat"
+  ,S.shapeArabic [S.LettersShape] (nosp "ا ب ت ث") ~?= (nosp "ﺍ ﺑ ﺘ ﺚ")
+  ,BiDi.reorderParagraphs [] (nosp "abc ا ب ت ث def\n123")
+     ~?= ["abc" <> T.reverse (nosp "ا ب ت ث") <> "def\n", "123"]
   ]
   <>
   concat
@@ -165,3 +171,4 @@ testCases =
   ]
   where conv n f t = [I.fromUnicode c f ~?= t, I.toUnicode c t ~?= f]
             where c = converter n
+        nosp = T.filter (/= ' ')

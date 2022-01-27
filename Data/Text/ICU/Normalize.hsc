@@ -42,7 +42,7 @@ import Data.Typeable (Typeable)
 import Data.Int (Int32)
 import Data.Word (Word32)
 import Foreign.C.Types (CInt(..))
-import Foreign.Ptr (Ptr, castPtr)
+import Foreign.Ptr (Ptr)
 import System.IO.Unsafe (unsafePerformIO)
 import Prelude hiding (compare)
 import Data.List (foldl')
@@ -207,7 +207,7 @@ normalize mode t = unsafePerformIO . useAsUCharPtr t $ \sptr slen ->
       mode' = toNM mode
   in handleOverflowError (fromIntegral slen)
      (\dptr dlen -> unorm_normalize sptr slen' mode' 0 dptr (fromIntegral dlen))
-     (\dptr dlen -> fromUCharPtr (castPtr dptr) (fromIntegral dlen))
+     (\dptr dlen -> fromUCharPtr dptr (fromIntegral dlen))
 
 
 -- | Perform an efficient check on a string, to quickly determine if

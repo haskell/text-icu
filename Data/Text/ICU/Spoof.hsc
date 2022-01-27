@@ -57,7 +57,7 @@ import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.Int (Int32)
 import Data.List (intercalate)
 import Data.Text (Text, pack, splitOn, strip, unpack)
-import Data.Text.Foreign (fromPtr, useAsPtr)
+import Data.Text.Foreign (useAsPtr)
 import Data.Text.ICU.BitMask (ToBitMask, fromBitMask, highestValueInBitMask,
                               toBitMask)
 import Data.Text.ICU.Spoof.Internal (MSpoof, USpoof, withSpoof, wrap,
@@ -67,14 +67,16 @@ import Data.Text.ICU.Error.Internal (UErrorCode, UParseError,
                                      ParseError(..), handleError,
                                      handleOverflowError, handleParseError)
 #if MIN_VERSION_text(2,0,0)
+import Data.Text.Foreign (fromPtr)
 #else
 import Data.Text.ICU.Internal (UChar)
+import Data.Text.ICU.Internal (fromUCharPtr)
 #endif
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Foreign.C.String (CString, peekCString, withCString)
 import Foreign.Marshal.Utils (with)
-import Foreign.Ptr (Ptr, castPtr, nullPtr, plusPtr)
+import Foreign.Ptr (Ptr, nullPtr, plusPtr)
 import Foreign.Storable (peek)
 import Foreign.ForeignPtr (withForeignPtr)
 
@@ -396,15 +398,15 @@ getSkeleton s o t = withSpoof s $ \sptr ->
   useAsPtr t $ \tptr tlen ->
     handleOverflowError (fromIntegral tlen)
       (\dptr dlen ->
-#if MIN_VERSION_text(2,0,0)
-          uspoof_getSkeletonUTF8
-#else
-          uspoof_getSkeleton
-#endif
-          sptr oflags tptr (fromIntegral tlen) dptr (fromIntegral dlen))
-      (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
+          getS sptr oflags tptr (fromIntegral tlen) dptr (fromIntegral dlen))
+      (\dptr dlen -> from dptr (fromIntegral dlen))
     where oflags = maybe 0 (fromIntegral . toBitMask) o
-
+          (getS, from) =
+#if MIN_VERSION_text(2,0,0)
+            (uspoof_getSkeletonUTF8, fromPtr)
+#else
+            (uspoof_getSkeleton, fromUCharPtr)
+#endif
 -- | Checks if a string could be confused with any other.
 spoofCheck :: MSpoof -> Text -> IO SpoofCheckResult
 spoofCheck s t = withSpoof s $ \sptr ->

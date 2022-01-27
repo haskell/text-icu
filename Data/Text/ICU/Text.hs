@@ -25,7 +25,7 @@ import Data.Text.ICU.Error.Internal (UErrorCode, handleOverflowError)
 import Data.Text.ICU.Internal (LocaleName, UChar, withLocaleName, useAsUCharPtr, fromUCharPtr)
 import Data.Word (Word32)
 import Foreign.C.String (CString)
-import Foreign.Ptr (Ptr, castPtr)
+import Foreign.Ptr (Ptr)
 import System.IO.Unsafe (unsafePerformIO)
 
 -- $case
@@ -48,7 +48,7 @@ toCaseFold excludeI s = unsafePerformIO .
     let opts = fromIntegral . fromEnum $ excludeI
     handleOverflowError (fromIntegral slen)
         (\dptr dlen -> u_strFoldCase dptr dlen sptr (fromIntegral slen) opts)
-        (\dptr dlen -> fromUCharPtr (castPtr dptr) (fromIntegral dlen))
+        (\dptr dlen -> fromUCharPtr dptr (fromIntegral dlen))
 
 type CaseMapper = Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> CString
                 -> Ptr UErrorCode -> IO Int32
@@ -59,7 +59,7 @@ caseMap mapFn loc s = unsafePerformIO .
     useAsUCharPtr s $ \sptr slen ->
       handleOverflowError (fromIntegral slen)
       (\dptr dlen -> mapFn dptr dlen sptr (fromIntegral slen) locale)
-      (\dptr dlen -> fromUCharPtr (castPtr dptr) (fromIntegral dlen))
+      (\dptr dlen -> fromUCharPtr dptr (fromIntegral dlen))
 
 -- | Lowercase the characters in a string.
 --

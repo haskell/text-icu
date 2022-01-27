@@ -40,20 +40,18 @@ import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.Int (Int32)
 import Data.Text (Text)
 import Data.Text.Foreign (fromPtr, useAsPtr)
-#if MIN_VERSION_text(2,0,0)
-import Data.Word (Word8)
-#else
+#if !MIN_VERSION_text(2,0,0)
 import Data.Text.ICU.Internal (UChar)
 #endif
 import Data.Text.ICU.Internal (lengthWord)
 import Data.Text.ICU.Convert.Internal
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
-import Data.Word (Word16)
+import Data.Word (Word8, Word16)
 import Foreign.C.String (CString, peekCString, withCString)
 import Foreign.C.Types (CInt(..))
 import Foreign.ForeignPtr (newForeignPtr)
 import Foreign.Marshal.Array (allocaArray)
-import Foreign.Ptr (FunPtr, Ptr, castPtr)
+import Foreign.Ptr (FunPtr, Ptr)
 import System.IO.Unsafe (unsafePerformIO)
 import Data.Text.ICU.Internal (UBool, asBool, asOrdering, withName)
 
@@ -122,7 +120,7 @@ fromUnicode cnv t =
 #else
            ucnv_fromUChars
 #endif
-           cptr (castPtr sptr) capacity tptr (fromIntegral tlen)
+           cptr sptr capacity tptr (fromIntegral tlen)
 
 -- | Decode an encoded string into a Unicode string using the given converter.
 toUnicode :: Converter -> ByteString -> Text
@@ -209,7 +207,7 @@ foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_toAlgorithmic_UTF8" ucnv_to
     -> Ptr UErrorCode -> IO Int32
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_fromAlgorithmic_UTF8" ucnv_fromAlgorithmic_UTF8
-    :: Ptr UConverter -> CString -> Int32 -> Ptr Word8 -> Int32
+    :: Ptr UConverter -> Ptr Word8 -> Int32 -> Ptr Word8 -> Int32
     -> Ptr UErrorCode -> IO Int32
 
 #else
@@ -219,7 +217,7 @@ foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_toUChars" ucnv_toUChars
     -> Ptr UErrorCode -> IO Int32
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ucnv_fromUChars" ucnv_fromUChars
-    :: Ptr UConverter -> CString -> Int32 -> Ptr UChar -> Int32
+    :: Ptr UConverter -> Ptr Word8 -> Int32 -> Ptr UChar -> Int32
     -> Ptr UErrorCode -> IO Int32
 
 #endif

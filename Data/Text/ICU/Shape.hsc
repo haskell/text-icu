@@ -22,12 +22,11 @@ module Data.Text.ICU.Shape
 #include <unicode/ushape.h>
 
 import Data.List (foldl')
-import Data.Text.Foreign (fromPtr, useAsPtr)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleOverflowError)
 import Data.Bits ((.|.))
 import Data.Int (Int32)
-import Foreign.Ptr (Ptr, castPtr)
-import Data.Text.ICU.Internal (UChar)
+import Foreign.Ptr (Ptr)
+import Data.Text.ICU.Internal (UChar, useAsUCharPtr, fromUCharPtr)
 import Data.Text (Text)
 import System.IO.Unsafe (unsafePerformIO)
 
@@ -93,14 +92,14 @@ fromShapeOption TextDirectionVisualLTR = #const U_SHAPE_TEXT_DIRECTION_VISUAL_LT
 --
 -- You probably want to call this with the LettersShape option in the default case.
 shapeArabic :: [ShapeOption] -> Text -> Text
-shapeArabic options t = unsafePerformIO . useAsPtr t $ \sptr slen ->
+shapeArabic options t = unsafePerformIO . useAsUCharPtr t $ \sptr slen ->
   let slen' = fromIntegral slen
       options' = reduceShapeOpts options
   in handleOverflowError (fromIntegral slen)
-      (\dptr dlen -> ushape_arabic sptr slen' dptr (fromIntegral dlen) options')
-      (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
+      (\dptr dlen -> u_shapeArabic sptr slen' dptr (fromIntegral dlen) options')
+      (\dptr dlen -> fromUCharPtr dptr (fromIntegral dlen))
 
-foreign import ccall unsafe "hs_text_icu.h __hs_ushape_arabic" ushape_arabic
+foreign import ccall unsafe "hs_text_icu.h __hs_u_shapeArabic" u_shapeArabic
   :: Ptr UChar -> Int32
   -> Ptr UChar -> Int32
   -> Int32 -> Ptr UErrorCode -> IO Int32

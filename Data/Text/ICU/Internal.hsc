@@ -31,20 +31,18 @@ import Data.Text.Encoding (decodeUtf8)
 import Data.Text.Foreign (useAsPtr, asForeignPtr, fromPtr)
 #if MIN_VERSION_text(2,0,0)
 import Data.Text.Foreign (I8, dropWord8, takeWord8, lengthWord8)
-import Data.Word (Word8)
 import Foreign.ForeignPtr (mallocForeignPtrArray)
 import Foreign.Marshal.Array (allocaArray)
 import Foreign.Storable (peek)
 #else
 import Data.Text.Foreign (I16, dropWord16, takeWord16, lengthWord16)
 #endif
-import Data.Word (Word16, Word32)
+import Data.Word (Word8, Word16, Word32)
 import Foreign.C.String (CString, withCString)
-import Foreign.C.Types (CChar)
 import Foreign.ForeignPtr (withForeignPtr, ForeignPtr, newForeignPtr)
 import Foreign.Marshal.Alloc (allocaBytes)
 import Foreign.Marshal.Utils (with)
-import Foreign.Ptr (Ptr, castPtr, nullPtr, FunPtr)
+import Foreign.Ptr (Ptr, nullPtr, FunPtr)
 import Data.Text.ICU.Error.Internal (UErrorCode)
 import System.IO.Unsafe (unsafePerformIO)
 
@@ -69,11 +67,11 @@ data UCharIterator
 withCharIterator :: CharIterator -> (Ptr UCharIterator -> IO a) -> IO a
 withCharIterator (CIUTF8 (PS fp _ l)) act =
     allocaBytes (#{size UCharIterator}) $ \i -> withForeignPtr fp $ \p ->
-    uiter_setUTF8 i (castPtr p) (fromIntegral l) >> act i
+    uiter_setUTF8 i p (fromIntegral l) >> act i
 withCharIterator (CIText t) act =
     allocaBytes (#{size UCharIterator}) $ \i -> useAsPtr t $ \p l ->
 #if MIN_VERSION_text(2,0,0)
-    uiter_setUTF8 i (castPtr p) (fromIntegral l) >> act i
+    uiter_setUTF8 i p (fromIntegral l) >> act i
 #else
     uiter_setString i p (fromIntegral l) >> act i
 #endif
@@ -126,7 +124,7 @@ foreign import ccall unsafe "hs_text_icu.h __hs_uiter_setString" uiter_setString
 #endif
 
 foreign import ccall unsafe "hs_text_icu.h __hs_uiter_setUTF8" uiter_setUTF8
-    :: Ptr UCharIterator -> Ptr CChar -> Int32 -> IO ()
+    :: Ptr UCharIterator -> Ptr Word8 -> Int32 -> IO ()
 
 
 data UText
