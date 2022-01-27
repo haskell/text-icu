@@ -31,6 +31,8 @@ description:
   * Regular expression search and replace.
   .
   * Security checks for visually confusable (spoofable) strings.
+  .
+  * Bidirectional Unicode algorithm
 maintainer:     Bryan O'Sullivan <bos@serpentine.com>
 copyright:      2009-2015 Bryan O'Sullivan
 category:       Data, Text
@@ -55,6 +57,7 @@ library
 
   exposed-modules:
       Data.Text.ICU
+      Data.Text.ICU.BiDi
       Data.Text.ICU.Break
       Data.Text.ICU.Char
       Data.Text.ICU.CharsetDetection
@@ -63,9 +66,11 @@ library
       Data.Text.ICU.Error
       Data.Text.ICU.Normalize
       Data.Text.ICU.Regex
+      Data.Text.ICU.Shape
       Data.Text.ICU.Spoof
       Data.Text.ICU.Types
   other-modules:
+      Data.Text.ICU.BiDi.Internal
       Data.Text.ICU.BitMask
       Data.Text.ICU.Break.Pure
       Data.Text.ICU.Break.Types

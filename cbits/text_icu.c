@@ -157,6 +157,56 @@ const char *__hs_u_errorName(UErrorCode code)
     return u_errorName(code);
 }
 
+
+UBiDi* __hs_ubidi_open()
+{
+    return ubidi_open();
+}
+
+UBiDi* __hs_ubidi_openSized(int32_t maxLength, int32_t maxRunCount, UErrorCode *err)
+{
+    return ubidi_openSized(maxLength, maxRunCount, err);
+}
+
+void __hs_ubidi_close(UBiDi * bidi)
+{
+    ubidi_close(bidi);
+}
+
+void 	__hs_ubidi_setPara(UBiDi *pBiDi, const UChar *text, int32_t length, UBiDiLevel paraLevel,
+                         UErrorCode *pErrorCode)
+{
+    ubidi_setPara(pBiDi, text, length, paraLevel, NULL, pErrorCode);
+}
+
+void __hs_ubidi_setLine(const UBiDi *pParaBiDi, int32_t start, int32_t limit,
+                        UBiDi *pLineBiDi, UErrorCode *pErrorCode)
+{
+    ubidi_setLine(pParaBiDi, start, limit, pLineBiDi, pErrorCode);
+}
+
+int32_t __hs_ubidi_countParagraphs(UBiDi *pBiDi)
+{
+    return ubidi_countParagraphs(pBiDi);
+}
+
+void __hs_ubidi_getParagraphByIndex(const UBiDi *pBiDi, int32_t paraIndex, int32_t *pParaStart,
+                                    int32_t *pParaLimit, UErrorCode *pErrorCode)
+{
+    ubidi_getParagraphByIndex(pBiDi, paraIndex, pParaStart, pParaLimit, NULL, pErrorCode);
+}
+
+int32_t __hs_ubidi_getProcessedLength(const UBiDi *pBiDi)
+{
+    return ubidi_getProcessedLength(pBiDi);
+}
+
+int32_t __hs_ubidi_writeReordered(UBiDi *pBiDi, UChar *dest, int32_t destSize, uint16_t options,
+                              		UErrorCode *pErrorCode)
+{
+    return ubidi_writeReordered(pBiDi, dest, destSize, options, pErrorCode);
+}
+
 const char *__hs_ucnv_getName(const UConverter *converter, UErrorCode *err)
 {
     return ucnv_getName(converter, err);
@@ -304,6 +354,15 @@ int32_t __hs_unorm_normalize(const UChar *source, int32_t sourceLength,
     return unorm_normalize(source, sourceLength, mode, options, result,
                            resultLength, status);
 }
+
+int32_t __hs_ushape_arabic(const UChar *source, int32_t sourceLength,
+			     UChar *result, int32_t resultLength,
+           int32_t options, UErrorCode *status)
+{
+    return u_shapeArabic(source, sourceLength, result,
+			   resultLength, options, status);
+}
+
 
 int32_t __hs_u_strToUpper(UChar *dest, int32_t destCapacity,
                           const UChar *src, int32_t srcLength,
