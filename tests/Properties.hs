@@ -163,6 +163,8 @@ testCases =
   ,S.shapeArabic [S.LettersShape] (nosp "ا ب ت ث") ~?= (nosp "ﺍ ﺑ ﺘ ﺚ")
   ,BiDi.reorderParagraphs [] (nosp "abc ا ب ت ث def\n123")
      ~?= ["abc" <> T.reverse (nosp "ا ب ت ث") <> "def\n", "123"]
+  ,I.formatNumber (I.numberFormatter I.NUM_CURRENCY_PLURAL "en_US")
+     (12.5 :: Double) ~?= "12.50 US dollars"
   ]
   <>
   concat
