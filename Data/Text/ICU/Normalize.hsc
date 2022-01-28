@@ -11,8 +11,11 @@
 -- Character set normalization functions for Unicode, implemented as
 -- bindings to the International Components for Unicode (ICU)
 -- libraries.
+--
+-- This module is based on the now deprecated "unorm.h" functions.
+-- Please use Data.Text.ICU.Normalize2 instead.
 
-module Data.Text.ICU.Normalize
+module Data.Text.ICU.Normalize {-# DEPRECATED "Use Data.Text.ICU.Normalize2 instead" #-}
     (
     -- * Unicode normalization API
     -- $api
@@ -200,7 +203,7 @@ toNM NFC  = #const UNORM_NFC
 toNM NFKC = #const UNORM_NFKC
 toNM FCD  = #const UNORM_FCD
 
--- | Normalize a string according the specified normalization mode.
+-- | Normalize a string according to the specified normalization mode.
 normalize :: NormalizationMode -> Text -> Text
 normalize mode t = unsafePerformIO . useAsUCharPtr t $ \sptr slen ->
   let slen' = fromIntegral slen
@@ -262,16 +265,28 @@ compare opts a b = unsafePerformIO .
                     (reduceCompareOptions opts)
 
 foreign import ccall unsafe "hs_text_icu.h __hs_unorm_compare" unorm_compare
-    :: Ptr UChar -> Int32 -> Ptr UChar -> Int32 -> Word32
-    -> Ptr UErrorCode -> IO Int32
+    :: Ptr UChar -> Int32 
+    -> Ptr UChar -> Int32 
+    -> Word32
+    -> Ptr UErrorCode 
+    -> IO Int32
 
 foreign import ccall unsafe "hs_text_icu.h __hs_unorm_quickCheck" unorm_quickCheck
-    :: Ptr UChar -> Int32 -> UNormalizationMode -> Ptr UErrorCode
+    :: Ptr UChar -> Int32 
+    -> UNormalizationMode 
+    -> Ptr UErrorCode
     -> IO UNormalizationCheckResult
 
 foreign import ccall unsafe "hs_text_icu.h __hs_unorm_isNormalized" unorm_isNormalized
-    :: Ptr UChar -> Int32 -> UNormalizationMode -> Ptr UErrorCode -> IO UBool
+    :: Ptr UChar -> Int32 
+    -> UNormalizationMode 
+    -> Ptr UErrorCode 
+    -> IO UBool
 
 foreign import ccall unsafe "hs_text_icu.h __hs_unorm_normalize" unorm_normalize
-    :: Ptr UChar -> Int32 -> UNormalizationMode -> Int32
-    -> Ptr UChar -> Int32 -> Ptr UErrorCode -> IO Int32
+    :: Ptr UChar -> Int32 
+    -> UNormalizationMode 
+    -> Int32
+    -> Ptr UChar -> Int32 
+    -> Ptr UErrorCode 
+    -> IO Int32

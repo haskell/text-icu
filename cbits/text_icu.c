@@ -1,6 +1,152 @@
 #include "hs_text_icu.h"
 #include "stdbool.h"
 
+UDateFormat *__hs_udat_open(UDateFormatStyle timeStyle, UDateFormatStyle dateStyle, const char *locale, const UChar *tzID, int32_t tzIDLength, const UChar *pattern, int32_t patternLength, UErrorCode *status)
+{
+    return udat_open(timeStyle, dateStyle, locale, tzID, tzIDLength, pattern, patternLength, status);
+}
+
+void __hs_udat_close(UDateFormat *format)
+{
+    udat_close(format);
+}
+
+UDateFormat *__hs_udat_clone(const UDateFormat *fmt, UErrorCode *status)
+{
+    return udat_clone(fmt, status);
+}
+
+int32_t __hs_udat_formatCalendar(const UDateFormat *format, UCalendar *calendar, UChar *result, int32_t capacity, UFieldPosition *position, UErrorCode *status)
+{
+    return udat_formatCalendar(format, calendar, result, capacity, position, status);
+}
+
+int32_t __hs_udat_getSymbols(const UDateFormat *fmt, UDateFormatSymbolType type, int32_t symbolIndex, UChar *result, int32_t resultLength, UErrorCode *status)
+{
+    return udat_getSymbols(fmt, type, symbolIndex, result, resultLength, status);
+}
+
+int32_t __hs_udat_countSymbols(const UDateFormat *fmt, UDateFormatSymbolType type)
+{
+    return udat_countSymbols(fmt, type);
+}
+
+UNumberFormatter *__hs_unumf_openForSkeletonAndLocale(const UChar *skeleton, int32_t skeletonLen, const char *locale, UErrorCode *ec)
+{
+    return unumf_openForSkeletonAndLocale(skeleton, skeletonLen, locale, ec);
+}
+
+void __hs_unumf_close(UNumberFormatter *uformatter)
+{
+    unumf_close(uformatter);
+}
+
+UFormattedNumber *__hs_unumf_openResult(UErrorCode *ec)
+{
+    return unumf_openResult(ec);
+}
+
+void __hs_unumf_closeResult(UFormattedNumber *uresult)
+{
+    unumf_closeResult(uresult);
+}
+
+void __hs_unumf_formatInt(const UNumberFormatter *uformatter, int64_t value, UFormattedNumber *uresult, UErrorCode *ec)
+{
+    unumf_formatInt(uformatter, value, uresult, ec);
+}
+
+void __hs_unumf_formatDouble(const UNumberFormatter *uformatter, double value, UFormattedNumber *uresult, UErrorCode *ec)
+{
+    unumf_formatDouble(uformatter, value, uresult, ec);
+}
+
+int32_t __hs_unumf_resultToString(const UFormattedNumber *uresult, UChar *buffer, int32_t bufferCapacity, UErrorCode *ec)
+{
+    return unumf_resultToString(uresult, buffer, bufferCapacity, ec);
+}
+
+const char *__hs_uloc_getAvailable(int32_t n)
+{
+    return uloc_getAvailable(n);
+}
+
+int32_t __hs_uloc_countAvailable(void)
+{
+    return uloc_countAvailable();
+}
+
+void __hs_uenum_close(UEnumeration *en)
+{
+    uenum_close(en);
+}
+
+const UChar *__hs_uenum_unext(UEnumeration *en, int32_t *resultLength, UErrorCode *status)
+{
+    return uenum_unext(en, resultLength, status);
+}
+
+UCalendar *__hs_ucal_open(const UChar *zoneID, int32_t len, const char *locale, UCalendarType type, UErrorCode *status)
+{
+    return ucal_open(zoneID, len, locale, type, status);
+}
+
+UCalendar *__hs_ucal_clone(const UCalendar *cal, UErrorCode *status)
+{
+    return ucal_clone(cal, status);
+}
+
+int32_t __hs_ucal_get(const UCalendar *cal, UCalendarDateFields field, UErrorCode *status)
+{
+    return ucal_get(cal, field, status);
+}
+
+void __hs_ucal_set(UCalendar *cal, UCalendarDateFields field, int32_t value)
+{
+    ucal_set(cal, field, value);
+}
+
+void __hs_ucal_setDate(UCalendar *cal, int32_t year, int32_t month, int32_t date, UErrorCode *status)
+{
+    __hs_ucal_setDate(cal, year, month, date, status);
+}
+
+void __hs_ucal_setDateTime(UCalendar *cal, int32_t year, int32_t month, int32_t date, int32_t hr, int32_t min, int32_t sec, UErrorCode *status)
+{
+    __hs_ucal_setDateTime(cal, year, month, date, hr, min, sec, status);
+}
+
+void __hs_ucal_add(UCalendar *cal, UCalendarDateFields field, int32_t value, UErrorCode *status)
+{
+    ucal_add(cal, field, value, status);
+}
+
+void __hs_ucal_roll(UCalendar *cal, UCalendarDateFields field, int32_t value, UErrorCode *status)
+{
+    ucal_roll(cal, field, value, status);
+}
+
+void __hs_ucal_close(UCalendar *cal)
+{
+    ucal_close(cal);
+}
+
+UEnumeration *_hs__ucal_openTimeZoneIDEnumeration(USystemTimeZoneType zoneType, UErrorCode *ec)
+{
+    return ucal_openTimeZoneIDEnumeration(zoneType, NULL, NULL, ec);
+}
+
+UEnumeration *__hs_ucal_openTimeZones(UErrorCode *ec)
+{
+    return ucal_openTimeZones(ec);
+}
+
+void __hs_ucal_setTimeZone(UCalendar *cal, const UChar *zoneID, int32_t len, UErrorCode *status)
+{
+    ucal_setTimeZone(cal, zoneID, len, status);
+}
+
+
 UBreakIterator *__hs_ubrk_open(UBreakIteratorType type, const char *locale,
                                const UChar *text, int32_t textLength,
                                UErrorCode *status)
@@ -321,6 +467,46 @@ void __hs_uiter_setString(UCharIterator *iter, const UChar *s, int32_t length)
 void __hs_uiter_setUTF8(UCharIterator *iter, const char *s, int32_t length)
 {
     uiter_setUTF8(iter, s, length);
+}
+
+const UNormalizer2 *__hs_unorm2_getNFCInstance(UErrorCode *pErrorCode)
+{
+    return unorm2_getNFCInstance(pErrorCode);
+}
+
+const UNormalizer2 *__hs_unorm2_getNFDInstance(UErrorCode *pErrorCode)
+{
+    return unorm2_getNFDInstance(pErrorCode);
+}
+
+const UNormalizer2 *__hs_unorm2_getNFKCInstance(UErrorCode *pErrorCode)
+{
+    return unorm2_getNFKCInstance(pErrorCode);
+}
+
+const UNormalizer2 *__hs_unorm2_getNFKDInstance(UErrorCode *pErrorCode)
+{
+    return unorm2_getNFKDInstance(pErrorCode);
+}
+
+const UNormalizer2 *__hs_unorm2_getNFKCCasefoldInstance(UErrorCode *pErrorCode)
+{
+    return unorm2_getNFKCCasefoldInstance(pErrorCode);
+}
+
+int32_t __hs_unorm2_normalize(const UNormalizer2 *norm2, const UChar *src, int32_t length, UChar *dest, int32_t capacity, UErrorCode *pErrorCode)
+{
+    return unorm2_normalize(norm2, src, length, dest, capacity, pErrorCode);
+}
+
+UBool __hs_unorm2_isNormalized(const UNormalizer2 *norm2, const UChar *s, int32_t length, UErrorCode *pErrorCode)
+{
+    return unorm2_isNormalized(norm2, s, length, pErrorCode);
+}
+
+UNormalizationCheckResult __hs_unorm2_quickCheck(const UNormalizer2 *norm2, const UChar *s, int32_t length, UErrorCode *pErrorCode)
+{
+    return unorm2_quickCheck(norm2, s, length, pErrorCode);
 }
 
 int32_t __hs_unorm_compare(const UChar *s1, int32_t length1,
@@ -788,12 +974,12 @@ void __hs_unum_close(UNumberFormat *fmt)
     unum_close(fmt);
 }
 
-int32_t __hs_unum_formatInt64(const UNumberFormat *fmt, int64_t value, const UChar *result, int32_t resultLength, UErrorCode *ec)
+int32_t __hs_unum_formatInt64(const UNumberFormat *fmt, int64_t value, UChar *result, int32_t resultLength, UErrorCode *ec)
 {
     return unum_formatInt64(fmt, value, result, resultLength, 0, ec);
 }
 
-int32_t __hs_unum_formatDouble(const UNumberFormat *fmt, double value, const UChar *result, int32_t resultLength, UErrorCode *ec)
+int32_t __hs_unum_formatDouble(const UNumberFormat *fmt, double value, UChar *result, int32_t resultLength, UErrorCode *ec)
 {
     return unum_formatDouble(fmt, value, result, resultLength, 0, ec);
 }

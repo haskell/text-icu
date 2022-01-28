@@ -610,7 +610,15 @@ data Bool_ =
   | ChangesWhenCasefolded
   | ChangesWhenCasemapped
   | ChangesWhenNFKCCasefolded
-    deriving (Eq, Enum, Show, Typeable)
+  | Emoji -- ^ See http://www.unicode.org/reports/tr51/#Emoji_Properties
+  | EmojiPresentation -- ^ See http://www.unicode.org/reports/tr51/#Emoji_Properties
+  | EmojiModifier -- ^ See http://www.unicode.org/reports/tr51/#Emoji_Properties
+  | EmojiModifierBase -- ^ See http://www.unicode.org/reports/tr51/#Emoji_Properties
+  | EmojiComponent -- ^ See http://www.unicode.org/reports/tr51/#Emoji_Properties
+  | RegionalIndicator
+  | PrependedConcatenationMark
+  | ExtendedPictographic
+  deriving (Eq, Enum, Show, Typeable)
 
 instance NFData Bool_ where
     rnf !_ = ()
@@ -710,7 +718,7 @@ instance NFData GeneralCategory_ where
     rnf !_ = ()
 
 data GeneralCategory =
-    GeneralOtherType
+    GeneralOtherType -- ^ U_GENERAL_OTHER_TYPES is the same as U_UNASSIGNED
   | UppercaseLetter
   | LowercaseLetter
   | TitlecaseLetter
@@ -918,6 +926,9 @@ data LineBreak =
   | ConditionalJapaneseStarter
   | LBHebrewLetter
   | LBRegionalIndicator
+  | EBase
+  | EModifier
+  | ZWJ
     deriving (Eq, Enum, Show, Typeable)
 
 instance NFData LineBreak where
@@ -1021,17 +1032,23 @@ instance NFData GraphemeClusterBreak_ where
     rnf !_ = ()
 
 data GraphemeClusterBreak =
-    Control
-  | CR
-  | Extend
-  | L
-  | LF
-  | LV
-  | LVT
-  | T
-  | V
-  | SpacingMark
-  | Prepend
+    GCBControl
+  | GCBCR
+  | GCBExtend
+  | GCBL
+  | GCBLF
+  | GCBLV
+  | GCBLVT
+  | GCBT
+  | GCBV
+  | GCBSpacingMark
+  | GCBPrepend
+  | GCBRegionalIndicator
+  | GCBEBase
+  | GCBEBaseGAZ
+  | GCBEModifier
+  | GCBGlueAfterZWJ
+  | GCBZWJ
     deriving (Eq, Enum, Show, Typeable)
 
 instance NFData GraphemeClusterBreak where
@@ -1088,10 +1105,10 @@ data WordBreak =
   | WBLF
   | WBMidNumLet
   | WBNewline
-  | RegionalIndicator
-  | HebrewLetter
-  | SingleQuote
-  | DoubleQuote
+  | WBRegionalIndicator
+  | WBHebrewLetter
+  | WBSingleQuote
+  | WBDoubleQuote
     deriving (Eq, Enum, Show, Typeable)
 
 instance NFData WordBreak where

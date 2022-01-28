@@ -1,5 +1,5 @@
 name:           text-icu
-version:        0.7.1.0
+version:        0.8.0.0
 synopsis:       Bindings to the ICU library
 homepage:       https://github.com/bos/text-icu
 bug-reports:    https://github.com/bos/text-icu/issues
@@ -33,6 +33,10 @@ description:
   * Security checks for visually confusable (spoofable) strings.
   .
   * Bidirectional Unicode algorithm
+  .
+  * Calendar objects holding dates and times.
+  .
+  * Number and calendar formatting.
 maintainer:     Bryan O'Sullivan <bos@serpentine.com>
 copyright:      2009-2015 Bryan O'Sullivan
 category:       Data, Text
@@ -52,20 +56,26 @@ library
     base >= 4 && < 5,
     bytestring,
     deepseq,
-    text >=0.9.1.0 && <1.3 || >=2.0 && <2.1
+    text >=0.9.1.0 && <1.3 || >=2.0 && <2.1,
+    time
   pkgconfig-depends: icu-uc, icu-i18n
 
   exposed-modules:
       Data.Text.ICU
       Data.Text.ICU.BiDi
+      Data.Text.ICU.Calendar
       Data.Text.ICU.Break
       Data.Text.ICU.Char
       Data.Text.ICU.CharsetDetection
       Data.Text.ICU.Collate
       Data.Text.ICU.Convert
+      Data.Text.ICU.DateFormatter
       Data.Text.ICU.Error
+      Data.Text.ICU.Locale
       Data.Text.ICU.Normalize
       Data.Text.ICU.Number
+      Data.Text.ICU.Normalize2
+      Data.Text.ICU.NumberFormatter
       Data.Text.ICU.Regex
       Data.Text.ICU.Shape
       Data.Text.ICU.Spoof
@@ -80,6 +90,7 @@ library
       Data.Text.ICU.Collate.Pure
       Data.Text.ICU.Number.Internal
       Data.Text.ICU.Convert.Internal
+      Data.Text.ICU.Enumerator
       Data.Text.ICU.Error.Internal
       Data.Text.ICU.Internal
       Data.Text.ICU.Iterator
@@ -90,6 +101,7 @@ library
       Data.Text.ICU.Spoof.Pure
       Data.Text.ICU.Text
   c-sources: cbits/text_icu.c
+  cc-options: -Wno-deprecated
   include-dirs: include
   if os(darwin)
     extra-lib-dirs:
@@ -104,7 +116,7 @@ library
   else
     extra-libraries: icui18n icudata
 
-  ghc-options: -Wall -fwarn-tabs
+  ghc-options: -Wall -fwarn-tabs -Wcompat
 
 test-suite tests
   default-language: Haskell98
