@@ -19,10 +19,9 @@ module Data.Text.ICU.Enumerator
 
 import Data.Int (Int32)
 import Data.Text (Text)
-import qualified Data.Text.Foreign as T
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
-import Data.Text.ICU.Internal (UChar)
-import Foreign.ForeignPtr (newForeignPtr, withForeignPtr, ForeignPtr)
+import Data.Text.ICU.Internal (UChar, newICUPtr, fromUCharPtr)
+import Foreign.ForeignPtr (withForeignPtr, ForeignPtr)
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Ptr (FunPtr, Ptr, nullPtr)
 import Foreign.Storable (peek)
@@ -32,25 +31,23 @@ data UEnumerator
 
 newtype Enumerator = Enumerator {enumeratorToForeignPtr :: ForeignPtr UEnumerator}
 
-createEnumerator :: Ptr UEnumerator -> IO Enumerator
-createEnumerator e = do
-  enumPtr <- newForeignPtr uenum_close e
-  pure $ Enumerator enumPtr
+createEnumerator :: IO (Ptr UEnumerator) -> IO Enumerator
+createEnumerator = newICUPtr Enumerator uenum_close
 
 next :: Enumerator -> IO (Maybe Text)
 next enum = withForeignPtr (enumeratorToForeignPtr enum) $ \enumPtr ->
   alloca $ \lenPtr -> do
     textPtr <- handleError $ uenum_unext enumPtr lenPtr
-    if textPtr == nullPtr 
-      then pure Nothing 
+    if textPtr == nullPtr
+      then pure Nothing
       else do
           n <- peek lenPtr
-          t <- T.fromPtr textPtr (fromIntegral n)
+          t <- fromUCharPtr textPtr (fromIntegral n)
           pure $ Just t
 
 toList :: Enumerator -> IO [Text]
 toList enum = reverse <$> go []
-  where 
+  where
     go l = do
       mx <- next enum
       case mx of

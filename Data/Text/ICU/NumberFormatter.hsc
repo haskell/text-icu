@@ -14,7 +14,7 @@
 module Data.Text.ICU.NumberFormatter
     (
       -- * Data
-      NumberFormatter, 
+      NumberFormatter,
       -- * Formatter
       numberFormatter,
       -- $skeleton
@@ -26,19 +26,18 @@ module Data.Text.ICU.NumberFormatter
 
 import Data.Int (Int32, Int64)
 import Data.Text (Text)
-import Data.Text.Foreign (useAsPtr, fromPtr)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError, handleOverflowError)
-import Data.Text.ICU.Internal (LocaleName(..), UChar, withLocaleName)
+import Data.Text.ICU.Internal (LocaleName(..), UChar, withLocaleName, newICUPtr, fromUCharPtr, useAsUCharPtr)
 import Foreign.C.String (CString)
 import Foreign.C.Types (CDouble(..))
-import Foreign.ForeignPtr (newForeignPtr, withForeignPtr, ForeignPtr)
-import Foreign.Ptr (FunPtr, Ptr, castPtr)
+import Foreign.ForeignPtr (withForeignPtr, ForeignPtr)
+import Foreign.Ptr (FunPtr, Ptr)
 import Prelude hiding (last)
 import System.IO.Unsafe (unsafePerformIO)
 
 -- $skeleton
 --
--- Here are some examples for number skeletons, see 
+-- Here are some examples for number skeletons, see
 -- https://unicode-org.github.io/icu/userguide/format_parse/numbers/skeletons.html#examples for more:
 --
 -- +----------------------------+-----------------+--------+--------------+-------------------------------------------------------------+
@@ -74,10 +73,9 @@ newtype NumberFormatter = NumberFormatter (ForeignPtr UNumberFormatter)
 numberFormatter :: Text -> LocaleName -> IO NumberFormatter
 numberFormatter skel loc =
   withLocaleName loc $ \locale ->
-    useAsPtr skel $ \skelPtr skelLen -> do
-      nf <- handleError $ unumf_openForSkeletonAndLocale skelPtr (fromIntegral skelLen) locale
-      nfPtr <- newForeignPtr unumf_close nf
-      pure $ NumberFormatter nfPtr
+    useAsUCharPtr skel $ \skelPtr skelLen ->
+      newICUPtr NumberFormatter unumf_close $
+        handleError $ unumf_openForSkeletonAndLocale skelPtr (fromIntegral skelLen) locale
 
 -- | Format an integral number.
 --
@@ -91,16 +89,15 @@ numberFormatter skel loc =
 -- >>> nf2 <- numberFormatter (pack "precision-integer") (Locale "fr")
 -- >>> formatIntegral nf2 12345
 -- "12\8239\&345"
-formatIntegral :: (Integral a) => NumberFormatter -> a -> Text
+formatIntegral :: Integral a => NumberFormatter -> a -> Text
 formatIntegral (NumberFormatter nf) x = unsafePerformIO do
   withForeignPtr nf $ \nfPtr -> do
-    result <- handleError $ unumf_openResult
-    resultPtr <- newForeignPtr unumf_closeResult result
+    resultPtr <- newResult
     withForeignPtr resultPtr $ \resPtr -> do
       handleError $ unumf_formatInt nfPtr (fromIntegral x) resPtr
       t <- handleOverflowError (fromIntegral (64 :: Int))
         (\dptr dlen -> unumf_resultToString resPtr dptr dlen)
-        (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
+        (\dptr dlen -> fromUCharPtr dptr (fromIntegral dlen))
       pure t
 
 -- | Create a number formatter and apply it to an integral number.
@@ -121,13 +118,12 @@ formatIntegral' skel loc x = unsafePerformIO do
 formatDouble :: NumberFormatter -> Double -> Text
 formatDouble (NumberFormatter nf) x = unsafePerformIO do
   withForeignPtr nf $ \nfPtr -> do
-    result <- handleError $ unumf_openResult
-    resultPtr <- newForeignPtr unumf_closeResult result
+    resultPtr <- newResult
     withForeignPtr resultPtr $ \resPtr -> do
       handleError $ unumf_formatDouble nfPtr (CDouble x) resPtr
       t <- handleOverflowError (fromIntegral (64 :: Int))
         (\dptr dlen -> unumf_resultToString resPtr dptr dlen)
-        (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
+        (\dptr dlen -> fromUCharPtr dptr (fromIntegral dlen))
       pure t
 
 -- | Create a number formatter and apply it to a Double.
@@ -135,6 +131,9 @@ formatDouble' :: Text -> LocaleName -> Double -> Text
 formatDouble' skel loc x = unsafePerformIO do
   nf <- numberFormatter skel loc
   pure $ formatDouble nf x
+
+newResult :: IO (ForeignPtr UFormattedNumber)
+newResult = newICUPtr id unumf_closeResult $ handleError unumf_openResult
 
 foreign import ccall unsafe "hs_text_icu.h __hs_unumf_openForSkeletonAndLocale" unumf_openForSkeletonAndLocale
     :: Ptr UChar -> Int32 -> CString -> Ptr UErrorCode -> IO (Ptr UNumberFormatter)

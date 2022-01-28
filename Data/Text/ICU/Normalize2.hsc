@@ -35,16 +35,14 @@ module Data.Text.ICU.Normalize2
 #include <unicode/unorm.h>
 
 import Data.Text (Text)
-import Data.Text.Foreign (fromPtr, useAsPtr)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError, handleOverflowError)
-import Data.Text.ICU.Internal (UBool, UChar, asBool, asOrdering)
+import Data.Text.ICU.Internal (UBool, UChar, asBool, asOrdering, fromUCharPtr, useAsUCharPtr)
 import Data.Text.ICU.Normalize.Internal (UNormalizationCheckResult, toNCR)
 import Data.Typeable (Typeable)
 import Data.Int (Int32)
 import Data.Word (Word32)
 import Foreign.C.Types (CInt(..))
-import Foreign.ForeignPtr (newForeignPtr_, withForeignPtr, ForeignPtr)
-import Foreign.Ptr (Ptr, castPtr)
+import Foreign.Ptr (Ptr)
 import System.IO.Unsafe (unsafePerformIO)
 import Prelude hiding (compare)
 import Data.List (foldl')
@@ -155,7 +153,7 @@ import Data.Bits ((.|.))
 -- Standard Annex.
 
 -- | This is an abstract data type holding a reference to the ICU `UNormalizer2` object.
-data Normalizer = Normalizer (ForeignPtr UNormalizer2)
+newtype Normalizer = Normalizer (Ptr UNormalizer2)
 
 data UNormalizer2
 
@@ -170,12 +168,9 @@ data NormalizationMode
       deriving (Eq, Show, Enum, Typeable)
 
 createNormalizerWith :: (Ptr UErrorCode -> IO (Ptr UNormalizer2)) -> IO Normalizer
-createNormalizerWith f = do
-    n <- handleError $ f
+createNormalizerWith f = Normalizer <$> handleError f
     -- from the ICU documentation: "Returns an unmodifiable singleton instance of `unorm2_getInstance()`. Do not delete it."
-    -- Thats why we use newForeignPtr_ here.
-    nPtr <- newForeignPtr_ n
-    pure $ Normalizer nPtr
+    -- Thats why we use raw pointer here.
 
 -- | Create a normalizer for a given normalization mode. This function is more similar to
 -- the interface in the 'Data.Text.ICU.Normalize' module.
@@ -210,13 +205,12 @@ nfkcCasefoldNormalizer = createNormalizerWith unorm2_getNFKCCasefoldInstance
 
 -- | Normalize a string with the given normalizer.
 normalizeWith :: Normalizer -> Text -> Text
-normalizeWith (Normalizer nf) t = unsafePerformIO $
-  withForeignPtr nf $ \nfPtr -> do
-    useAsPtr t $ \sptr slen ->
-      let slen' = fromIntegral slen
-      in handleOverflowError (fromIntegral slen)
-          (\dptr dlen -> unorm2_normalize nfPtr sptr slen' dptr (fromIntegral dlen))
-          (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
+normalizeWith (Normalizer nfPtr) t = unsafePerformIO $
+  useAsUCharPtr t $ \sptr slen ->
+    let slen' = fromIntegral slen
+    in handleOverflowError (fromIntegral slen)
+        (\dptr dlen -> unorm2_normalize nfPtr sptr slen' dptr (fromIntegral dlen))
+        (\dptr dlen -> fromUCharPtr dptr (fromIntegral dlen))
 
 -- | Normalize a string using the given normalization mode.
 normalize :: NormalizationMode -> Text -> Text
@@ -295,10 +289,9 @@ nfkcCasefold t = unsafePerformIO do
 -- A result of 'Just' 'True' or 'Just' 'False' indicates that the
 -- string definitely is, or is not, in the given normalization form.
 quickCheckWith :: Normalizer -> Text -> Maybe Bool
-quickCheckWith (Normalizer nf) t = unsafePerformIO $
-  withForeignPtr nf $ \nfPtr ->
-    useAsPtr t $ \sptr slen ->
-      fmap toNCR . handleError $ unorm2_quickCheck nfPtr sptr (fromIntegral slen)
+quickCheckWith (Normalizer nfPtr) t = unsafePerformIO $
+  useAsUCharPtr t $ \sptr slen ->
+    fmap toNCR . handleError $ unorm2_quickCheck nfPtr sptr (fromIntegral slen)
 
 quickCheck :: NormalizationMode -> Text -> Maybe Bool
 quickCheck NFD t = unsafePerformIO do
@@ -325,10 +318,9 @@ quickCheck NFKCCasefold t = unsafePerformIO do
 -- 'quickCheck' may return 'Nothing', this function will perform
 -- further tests to arrive at a definitive result.
 isNormalizedWith :: Normalizer -> Text -> Bool
-isNormalizedWith (Normalizer nf) t = unsafePerformIO $
-  withForeignPtr nf $ \nfPtr ->
-    useAsPtr t $ \sptr slen ->
-      fmap asBool . handleError $ unorm2_isNormalized nfPtr sptr (fromIntegral slen)
+isNormalizedWith (Normalizer nfPtr) t = unsafePerformIO $
+  useAsUCharPtr t $ \sptr slen ->
+    fmap asBool . handleError $ unorm2_isNormalized nfPtr sptr (fromIntegral slen)
 
 isNormalized :: NormalizationMode -> Text -> Bool
 isNormalized NFD t = unsafePerformIO do
@@ -393,8 +385,8 @@ reduceCompareOptions = foldl' orO (#const U_COMPARE_CODE_POINT_ORDER)
 -- strings and short non-'FCD' strings there is no memory allocation.
 compareUnicode :: [CompareOption] -> Text -> Text -> Ordering
 compareUnicode opts a b = unsafePerformIO do
-  useAsPtr a $ \aptr alen ->
-    useAsPtr b $ \bptr blen ->
+  useAsUCharPtr a $ \aptr alen ->
+    useAsUCharPtr b $ \bptr blen ->
       fmap asOrdering . handleError $
       unorm_compare aptr (fromIntegral alen) bptr (fromIntegral blen)
                     (reduceCompareOptions opts)

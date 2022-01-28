@@ -10,16 +10,16 @@
 --
 -- Calendar formatter implemented as bindings to
 -- the International Components for Unicode (ICU) libraries.
--- You display or print a Date by first converting it to a locale-specific string that conforms 
--- to the conventions of the end user’s Locale. For example, Germans recognize 20.4.98 as a valid 
+-- You display or print a Date by first converting it to a locale-specific string that conforms
+-- to the conventions of the end user’s Locale. For example, Germans recognize 20.4.98 as a valid
 -- date, and Americans recognize 4/20/98.
 --
--- 👉 Note: The appropriate Calendar support is required for different locales. For example, the 
--- Buddhist calendar is the official calendar in Thailand so the typical assumption of Gregorian 
--- Calendar usage should not be used. ICU will pick the appropriate Calendar based on the locale 
+-- 👉 Note: The appropriate Calendar support is required for different locales. For example, the
+-- Buddhist calendar is the official calendar in Thailand so the typical assumption of Gregorian
+-- Calendar usage should not be used. ICU will pick the appropriate Calendar based on the locale
 -- you supply when opening a Calendar or DateFormat.
 --
--- Date and time formatters are used to convert dates and times from their internal representations 
+-- Date and time formatters are used to convert dates and times from their internal representations
 -- to textual form in a language-independent manner.
 
 module Data.Text.ICU.DateFormatter
@@ -32,14 +32,13 @@ import Control.Monad (forM)
 import Data.Int (Int32)
 import Data.Text (Text)
 import Data.Text qualified as T
-import Data.Text.Foreign (useAsPtr, fromPtr)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError, handleOverflowError)
-import Data.Text.ICU.Internal (LocaleName(..), UChar, withLocaleName)
+import Data.Text.ICU.Internal (LocaleName(..), UChar, withLocaleName, newICUPtr, fromUCharPtr, useAsUCharPtr)
 import Data.Text.ICU.Calendar
 import Foreign.C.String (CString)
 import Foreign.C.Types (CInt(..))
-import Foreign.ForeignPtr (newForeignPtr, withForeignPtr, ForeignPtr)
-import Foreign.Ptr (FunPtr, Ptr, castPtr, nullPtr)
+import Foreign.ForeignPtr (withForeignPtr, ForeignPtr)
+import Foreign.Ptr (FunPtr, Ptr, nullPtr)
 import Prelude hiding (last)
 import System.IO.Unsafe (unsafePerformIO)
 
@@ -136,51 +135,49 @@ newtype DateFormatter = DateFormatter (ForeignPtr UDateFormat)
 standardDateFormatter :: FormatStyle -> FormatStyle -> LocaleName -> Text -> IO DateFormatter
 standardDateFormatter timeStyle dateStyle loc timeZoneId =
   withLocaleName loc $ \locale ->
-    useAsPtr timeZoneId $ \tzPtr tzLen -> do
-      df <- handleError $ udat_open (toUDateFormatStyle timeStyle) (toUDateFormatStyle dateStyle) locale tzPtr (fromIntegral tzLen) nullPtr (0 :: Int32)
-      dfPtr <- newForeignPtr udat_close df
-      pure $ DateFormatter dfPtr
+    useAsUCharPtr timeZoneId $ \tzPtr tzLen ->
+      newICUPtr DateFormatter udat_close $
+        handleError $ udat_open (toUDateFormatStyle timeStyle) (toUDateFormatStyle dateStyle) locale tzPtr (fromIntegral tzLen) nullPtr (0 :: Int32)
 
--- | Create a new 'DateFormatter' using a custom pattern as described at 
+-- | Create a new 'DateFormatter' using a custom pattern as described at
 -- https://unicode-org.github.io/icu/userguide/format_parse/datetime/#datetime-format-syntax. For examples
 -- the pattern "yyyy.MM.dd G 'at' HH:mm:ss zzz" produces “1996.07.10 AD at 15:08:56 PDT” in English for
 -- the PDT time zone.
 --
--- A date pattern is a string of characters, where specific strings of characters are replaced with date and 
+-- A date pattern is a string of characters, where specific strings of characters are replaced with date and
 --time data from a calendar when formatting or used to generate data for a calendar when parsing.
--- 
--- The [Date Field Symbol Table](https://www.unicode.org/reports/tr35/tr35-dates.html#Date_Field_Symbol_Table) 
--- contains the characters used in patterns to show the appropriate formats 
--- for a given locale, such as yyyy for the year. Characters may be used multiple times. For example, if y is 
--- used for the year, "yy" might produce “99”, whereas "yyyy" produces “1999”. For most numerical fields, the 
--- number of characters specifies the field width. For example, if h is the hour, "h" might produce “5”, but 
--- "hh" produces “05”. For some characters, the count specifies whether an abbreviated or full form should be 
+--
+-- The [Date Field Symbol Table](https://www.unicode.org/reports/tr35/tr35-dates.html#Date_Field_Symbol_Table)
+-- contains the characters used in patterns to show the appropriate formats
+-- for a given locale, such as yyyy for the year. Characters may be used multiple times. For example, if y is
+-- used for the year, "yy" might produce “99”, whereas "yyyy" produces “1999”. For most numerical fields, the
+-- number of characters specifies the field width. For example, if h is the hour, "h" might produce “5”, but
+-- "hh" produces “05”. For some characters, the count specifies whether an abbreviated or full form should be
 -- used, but may have other choices, as given below.
--- 
--- Two single quotes represents a literal single quote, either inside or outside single quotes. Text within 
--- single quotes is not interpreted in any way (except for two adjacent single quotes). Otherwise all ASCII 
--- letter from a to z and A to Z are reserved as syntax characters, and require quoting if they are to represent 
--- literal characters. In addition, certain ASCII punctuation characters may become variable in the future (eg 
--- ':' being interpreted as the time separator and '/' as a date separator, and replaced by respective locale-sensitive 
+--
+-- Two single quotes represents a literal single quote, either inside or outside single quotes. Text within
+-- single quotes is not interpreted in any way (except for two adjacent single quotes). Otherwise all ASCII
+-- letter from a to z and A to Z are reserved as syntax characters, and require quoting if they are to represent
+-- literal characters. In addition, certain ASCII punctuation characters may become variable in the future (eg
+-- ':' being interpreted as the time separator and '/' as a date separator, and replaced by respective locale-sensitive
 -- characters in display).
--- 
--- “Stand-alone” values refer to those designed to stand on their own independently, as opposed to being with 
--- other formatted values. “2nd quarter” would use the wide stand-alone format "qqqq", whereas “2nd quarter 2007” 
--- would use the regular format "QQQQ yyyy". For more information about format and stand-alone forms, see 
+--
+-- “Stand-alone” values refer to those designed to stand on their own independently, as opposed to being with
+-- other formatted values. “2nd quarter” would use the wide stand-alone format "qqqq", whereas “2nd quarter 2007”
+-- would use the regular format "QQQQ yyyy". For more information about format and stand-alone forms, see
 -- [CLDR Calendar Elements](https://www.unicode.org/reports/tr35/tr35-dates.html#months_days_quarters_eras).
--- 
--- The pattern characters used in the Date Field Symbol Table are defined by CLDR; for more information see 
+--
+-- The pattern characters used in the Date Field Symbol Table are defined by CLDR; for more information see
 -- [CLDR Date Field Symbol Table](https://www.unicode.org/reports/tr35/tr35-dates.html#Date_Field_Symbol_Table).
--- 
+--
 -- 👉 Note that the examples may not reflect current CLDR data.
 patternDateFormatter :: Text -> LocaleName -> Text -> IO DateFormatter
 patternDateFormatter pattern loc timeZoneId =
   withLocaleName loc $ \locale ->
-    useAsPtr timeZoneId $ \tzPtr tzLen -> do
-      useAsPtr pattern $ \patPtr patLen -> do
-        df <- handleError $ udat_open (fromIntegral ((#const UDAT_PATTERN) :: Int32)) (fromIntegral ((#const UDAT_PATTERN) :: Int32)) locale tzPtr (fromIntegral tzLen) patPtr (fromIntegral patLen)
-        dfPtr <- newForeignPtr udat_close df
-        pure $ DateFormatter dfPtr
+    useAsUCharPtr timeZoneId $ \tzPtr tzLen ->
+      useAsUCharPtr pattern $ \patPtr patLen ->
+        newICUPtr DateFormatter udat_close $
+          handleError $ udat_open (fromIntegral ((#const UDAT_PATTERN) :: Int32)) (fromIntegral ((#const UDAT_PATTERN) :: Int32)) locale tzPtr (fromIntegral tzLen) patPtr (fromIntegral patLen)
 
 -- | Get relevant date related symbols, e.g. month and weekday names.
 --
@@ -198,7 +195,7 @@ dateSymbols (DateFormatter df) symType = unsafePerformIO do
     syms <- forM [0..(n-1)] \i -> do
       handleOverflowError (fromIntegral (64 :: Int))
         (\dptr dlen -> udat_getSymbols dfPtr (toUDateFormatSymbolType symType) (fromIntegral i) dptr dlen)
-        (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
+        (\dptr dlen -> fromUCharPtr dptr (fromIntegral dlen))
     pure $ filter (not . T.null) syms
 
 -- | Format a 'Calendar' using a 'DateFormatter'.
@@ -214,23 +211,23 @@ formatCalendar (DateFormatter df) (Calendar cal) = unsafePerformIO $
     withForeignPtr cal $ \calPtr -> do
       handleOverflowError (fromIntegral (64 :: Int))
         (\dptr dlen -> udat_formatCalendar dfPtr calPtr dptr dlen nullPtr)
-        (\dptr dlen -> fromPtr (castPtr dptr) (fromIntegral dlen))
+        (\dptr dlen -> fromUCharPtr dptr (fromIntegral dlen))
 
 foreign import ccall unsafe "hs_text_icu.h __hs_udat_open" udat_open
-    :: UDateFormatStyle -> UDateFormatStyle 
-    -> CString 
-    -> Ptr UChar -> Int32 
-    -> Ptr UChar -> Int32 
-    -> Ptr UErrorCode 
+    :: UDateFormatStyle -> UDateFormatStyle
+    -> CString
+    -> Ptr UChar -> Int32
+    -> Ptr UChar -> Int32
+    -> Ptr UErrorCode
     -> IO (Ptr UDateFormat)
 foreign import ccall unsafe "hs_text_icu.h &__hs_udat_close" udat_close
     :: FunPtr (Ptr UDateFormat -> IO ())
 foreign import ccall unsafe "hs_text_icu.h __hs_udat_formatCalendar" udat_formatCalendar
-    :: Ptr UDateFormat 
-    -> Ptr UCalendar 
-    -> Ptr UChar -> Int32 
-    -> Ptr UFieldPosition 
-    -> Ptr UErrorCode 
+    :: Ptr UDateFormat
+    -> Ptr UCalendar
+    -> Ptr UChar -> Int32
+    -> Ptr UFieldPosition
+    -> Ptr UErrorCode
     -> IO Int32
 foreign import ccall unsafe "hs_text_icu.h __hs_udat_getSymbols" udat_getSymbols
     :: Ptr UDateFormat -> UDateFormatSymbolType -> Int32 -> Ptr UChar -> Int32 -> Ptr UErrorCode -> IO Int32
