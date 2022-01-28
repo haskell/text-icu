@@ -319,8 +319,8 @@ void __hs_ubidi_close(UBiDi * bidi)
     ubidi_close(bidi);
 }
 
-void 	__hs_ubidi_setPara(UBiDi *pBiDi, const UChar *text, int32_t length, UBiDiLevel paraLevel,
-                         UErrorCode *pErrorCode)
+void __hs_ubidi_setPara(UBiDi *pBiDi, const UChar *text, int32_t length, UBiDiLevel paraLevel,
+                        UErrorCode *pErrorCode)
 {
     ubidi_setPara(pBiDi, text, length, paraLevel, NULL, pErrorCode);
 }
@@ -348,7 +348,7 @@ int32_t __hs_ubidi_getProcessedLength(const UBiDi *pBiDi)
 }
 
 int32_t __hs_ubidi_writeReordered(UBiDi *pBiDi, UChar *dest, int32_t destSize, uint16_t options,
-                              		UErrorCode *pErrorCode)
+                                  UErrorCode *pErrorCode)
 {
     return ubidi_writeReordered(pBiDi, dest, destSize, options, pErrorCode);
 }
