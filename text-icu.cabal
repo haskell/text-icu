@@ -1,8 +1,8 @@
 name:           text-icu
-version:        0.8.0.0
+version:        0.8.0
 synopsis:       Bindings to the ICU library
-homepage:       https://github.com/bos/text-icu
-bug-reports:    https://github.com/bos/text-icu/issues
+homepage:       https://github.com/haskell/text-icu
+bug-reports:    https://github.com/haskell/text-icu/issues
 description:
   Haskell bindings to the International Components for Unicode (ICU)
   libraries.  These libraries provide robust and full-featured Unicode
@@ -37,7 +37,7 @@ description:
   * Calendar objects holding dates and times.
   .
   * Number and calendar formatting.
-maintainer:     Bryan O'Sullivan <bos@serpentine.com>
+maintainer:     Vladimir Shabanov <dev@vshabanov.com>
 copyright:      2009-2015 Bryan O'Sullivan
 category:       Data, Text
 license:        BSD3
@@ -55,9 +55,9 @@ library
   build-depends:
     base >= 4 && < 5,
     bytestring,
-    deepseq,
+    deepseq >= 1.4.3.0,
     text >=0.9.1.0 && <1.3 || >=2.0 && <2.1,
-    time
+    time >=1.5 && <1.13
   pkgconfig-depends: icu-uc, icu-i18n
 
   exposed-modules:
@@ -146,8 +146,4 @@ test-suite tests
 
 source-repository head
   type:     git
-  location: https://github.com/bos/text-icu
-
-source-repository head
-  type:     mercurial
-  location: https://bitbucket.org/bos/text-icu
+  location: https://github.com/haskell/text-icu
