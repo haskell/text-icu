@@ -101,7 +101,7 @@ library
       Data.Text.ICU.Spoof.Pure
       Data.Text.ICU.Text
   c-sources: cbits/text_icu.c
-  cc-options: -Wno-deprecated
+  cc-options: -Wall -Wextra -pedantic -Wno-deprecated
   include-dirs: include
   if os(darwin)
     extra-lib-dirs:

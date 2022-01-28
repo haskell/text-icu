@@ -108,12 +108,12 @@ void __hs_ucal_set(UCalendar *cal, UCalendarDateFields field, int32_t value)
 
 void __hs_ucal_setDate(UCalendar *cal, int32_t year, int32_t month, int32_t date, UErrorCode *status)
 {
-    __hs_ucal_setDate(cal, year, month, date, status);
+    ucal_setDate(cal, year, month, date, status);
 }
 
 void __hs_ucal_setDateTime(UCalendar *cal, int32_t year, int32_t month, int32_t date, int32_t hr, int32_t min, int32_t sec, UErrorCode *status)
 {
-    __hs_ucal_setDateTime(cal, year, month, date, hr, min, sec, status);
+    ucal_setDateTime(cal, year, month, date, hr, min, sec, status);
 }
 
 void __hs_ucal_add(UCalendar *cal, UCalendarDateFields field, int32_t value, UErrorCode *status)
@@ -656,18 +656,18 @@ URegularExpression *__hs_uregex_open(const UChar *pattern,
 void __hs_uregex_setTimeLimit(URegularExpression *regexp,
                               int32_t limit, UErrorCode *status)
 {
-    return uregex_setTimeLimit(regexp, limit, status);
+    uregex_setTimeLimit(regexp, limit, status);
 }
 
 void __hs_uregex_setStackLimit(URegularExpression *regexp,
                                int32_t limit, UErrorCode *status)
 {
-    return uregex_setStackLimit(regexp, limit, status);
+    uregex_setStackLimit(regexp, limit, status);
 }
 
 void __hs_uregex_close(URegularExpression *regexp)
 {
-    return uregex_close(regexp);
+    uregex_close(regexp);
 }
 
 URegularExpression *__hs_uregex_clone(const URegularExpression *regexp,
@@ -691,7 +691,7 @@ int32_t __hs_uregex_flags(const URegularExpression *regexp,
 void __hs_uregex_setUText(URegularExpression *regexp, UText *text,
                           UErrorCode *status)
 {
-    return uregex_setUText(regexp, text, status);
+    uregex_setUText(regexp, text, status);
 }
 
 const UChar *__hs_uregex_getText(URegularExpression *regexp,
@@ -958,7 +958,7 @@ void __hs_ucsdet_setDetectableCharset(UCharsetDetector *ucsd,
                                       const char *encoding, UBool enabled,
                                       UErrorCode *status)
 {
-    return ucsdet_setDetectableCharset(ucsd, encoding, enabled, status);
+    ucsdet_setDetectableCharset(ucsd, encoding, enabled, status);
 }
 
 UNumberFormat *__hs_unum_open(UNumberFormatStyle style, const UChar *pattern, int32_t patternLength, const char *loc, UParseError *parseErr, UErrorCode *status)

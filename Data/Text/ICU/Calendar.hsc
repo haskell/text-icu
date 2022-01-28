@@ -207,11 +207,11 @@ setField cal fld n = withForeignPtr (calendarForeignPtr cal) $ \calPtr ->
 
 setDate :: Calendar -> Int -> Int -> Int -> IO ()
 setDate cal y m d = withForeignPtr (calendarForeignPtr cal) $ \calPtr ->
-  ucal_setDate calPtr (fromIntegral y) (fromIntegral m) (fromIntegral d)
+  handleError $ ucal_setDate calPtr (fromIntegral y) (fromIntegral m) (fromIntegral d)
 
 setDateTime :: Calendar -> Int -> Int -> Int -> Int -> Int -> Int -> IO ()
 setDateTime cal y m d hr mn sec = withForeignPtr (calendarForeignPtr cal) $ \calPtr ->
-  ucal_setDateTime calPtr (fromIntegral y) (fromIntegral m) (fromIntegral d) (fromIntegral hr) (fromIntegral mn) (fromIntegral sec)
+  handleError $ ucal_setDateTime calPtr (fromIntegral y) (fromIntegral m) (fromIntegral d) (fromIntegral hr) (fromIntegral mn) (fromIntegral sec)
 
 -- | Add a specified signed amount to a particular field in a Calendar.
 --
@@ -561,10 +561,10 @@ foreign import ccall unsafe "hs_text_icu.h __hs_ucal_set" ucal_set
     -> IO ()
 foreign import ccall unsafe "hs_text_icu.h __hs_ucal_setDate" ucal_setDate
     :: Ptr UCalendar -> Int32 -> Int32 -> Int32
-    -> IO ()
+    -> Ptr UErrorCode -> IO ()
 foreign import ccall unsafe "hs_text_icu.h __hs_ucal_setDateTime" ucal_setDateTime
     :: Ptr UCalendar -> Int32 -> Int32 -> Int32 -> Int32 -> Int32 -> Int32
-    -> IO ()
+    -> Ptr UErrorCode -> IO ()
 foreign import ccall unsafe "hs_text_icu.h __hs_ucal_add" ucal_add
     :: Ptr UCalendar -> UCalendarDateFields -> Int32 -> Ptr UErrorCode
     -> IO ()

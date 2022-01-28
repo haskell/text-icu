@@ -20,13 +20,14 @@ import qualified Data.Text.ICU.Normalize2 as I
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.Framework.Providers.HUnit (hUnitTestToTests)
-import Test.HUnit ((~?=))
+import Test.HUnit ((~?=), (@?=))
 import qualified Test.HUnit (Test(..))
 import Test.QuickCheck.Monadic (monadicIO, run, assert)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.ICU as I
 import qualified Data.Text.ICU.BiDi as BiDi
+import qualified Data.Text.ICU.Calendar as Cal
 import qualified Data.Text.ICU.Convert as I
 import qualified Data.Text.ICU.Char as I
 import qualified Data.Text.ICU.CharsetDetection as CD
@@ -169,6 +170,43 @@ testCases =
      ~?= ["abc" <> T.reverse (nosp "ا ب ت ث") <> "def\n", "123"]
   ,N.formatNumber (N.numberFormatter N.NUM_CURRENCY_PLURAL "en_US")
      (12.5 :: Double) ~?= "12.50 US dollars"
+
+  ,do
+     dfDe <- I.standardDateFormatter I.LongFormatStyle I.LongFormatStyle
+       (Locale "de_DE") ""
+     c <- cal "CET" 2000 00 01 02 03 00
+     return $ I.formatCalendar dfDe (Cal.add c [(Cal.Hour, 25), (Cal.Second, 65)])
+   `ioEq`
+    "2. Januar 2000 um 03:04:05 GMT+1"
+
+  ,do
+     dfAt <- I.standardDateFormatter I.LongFormatStyle I.LongFormatStyle
+       (Locale "de_AT") "CET"
+     return $ I.dateSymbols dfAt I.Months
+   `ioEq`
+   ["Jänner","Februar","März","April","Mai","Juni"
+   ,"Juli","August","September","Oktober","November","Dezember"]
+
+  ,do
+     dfP <- I.patternDateFormatter
+       "MMMM dd, yyyy GGGG, hh 'o''clock' a, VVVV" (Locale "en_US") ""
+     c <- cal "America/Los_Angeles" 2000 00 02 03 04 05
+     return $ I.formatCalendar dfP c
+   `ioEq`
+    "January 02, 2000 Anno Domini, 03 o'clock AM, Los Angeles Time"
+
+  ,(flip Cal.getField Cal.Year =<< cal "UTC" 1999 01 02 03 04 05) `ioEq` 1999
+
+  ,(elem "en_US" <$> I.availableLocales) `ioEq` True
+
+  ,(flip I.formatIntegral (12345 :: Int)
+    <$> I.numberFormatter "precision-integer" (Locale "fr"))
+   `ioEq` "12\8239\&345"
+
+  ,(flip I.formatDouble 12345.6789
+    <$> I.numberFormatter "precision-currency-cash currency/EUR" (Locale "it"))
+   `ioEq` "12.345,68\160€"
+
   ]
   <>
   concat
@@ -178,3 +216,10 @@ testCases =
   where conv n f t = [I.fromUnicode c f ~?= t, I.toUnicode c t ~?= f]
             where c = converter n
         nosp = T.filter (/= ' ')
+        cal tz y m d h mn s = do
+            c <- Cal.calendar tz (Locale "en_US") Cal.TraditionalCalendarType
+            Cal.setDateTime c y m d h mn s
+            return c
+        ioEq io a = Test.HUnit.TestCase $ do
+            x <- io
+            x @?= a
