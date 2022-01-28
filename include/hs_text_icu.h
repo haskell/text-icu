@@ -6,12 +6,17 @@
 
 #include "unicode/ubidi.h"
 #include "unicode/ubrk.h"
+#include "unicode/ucal.h"
 #include "unicode/uchar.h"
-#include "unicode/ucol.h"
 #include "unicode/unum.h"
 #include "unicode/ucnv.h"
+#include "unicode/ucol.h"
+#include "unicode/udat.h"
+#include "unicode/uenum.h"
 #include "unicode/uiter.h"
+#include "unicode/uloc.h"
 #include "unicode/unorm.h"
+#include "unicode/unumberformatter.h"
 #include "unicode/uregex.h"
 #include "unicode/ushape.h"
 #include "unicode/uspoof.h"
@@ -20,6 +25,49 @@
 #include "unicode/ucsdet.h"
 
 #include <stdint.h>
+
+/* udat.h */
+
+UDateFormat *__hs_udat_open(UDateFormatStyle timeStyle, UDateFormatStyle dateStyle, const char *locale, const UChar *tzID, int32_t tzIDLength, const UChar *pattern, int32_t patternLength, UErrorCode *status);
+void __hs_udat_close(UDateFormat *format);
+UDateFormat *__hs_udat_clone(const UDateFormat *fmt, UErrorCode *status);
+int32_t __hs_udat_formatCalendar(const UDateFormat *format, UCalendar *calendar, UChar *result, int32_t capacity, UFieldPosition *position, UErrorCode *status);
+int32_t __hs_udat_getSymbols(const UDateFormat *fmt, UDateFormatSymbolType type, int32_t symbolIndex, UChar *result, int32_t resultLength, UErrorCode *status);
+int32_t __hs_udat_countSymbols(const UDateFormat *fmt, UDateFormatSymbolType type);
+
+/* unumberformatter.h */
+
+UNumberFormatter *__hs_unumf_openForSkeletonAndLocale(const UChar *skeleton, int32_t skeletonLen, const char *locale, UErrorCode *ec);
+void __hs_unumf_close(UNumberFormatter *uformatter);
+UFormattedNumber *__hs_unumf_openResult(UErrorCode *ec);
+void __hs_unumf_closeResult(UFormattedNumber *uresult);
+void __hs_unumf_formatInt(const UNumberFormatter *uformatter, int64_t value, UFormattedNumber *uresult, UErrorCode *ec);
+void __hs_unumf_formatDouble(const UNumberFormatter *uformatter, double value, UFormattedNumber *uresult, UErrorCode *ec);
+int32_t __hs_unumf_resultToString(const UFormattedNumber *uresult, UChar *buffer, int32_t bufferCapacity, UErrorCode *ec);
+
+/* uenum.h */
+
+void __hs_uenum_close(UEnumeration *en);
+const UChar *__hs_uenum_unext(UEnumeration *en, int32_t *resultLength, UErrorCode *status);
+
+/* uloc.h */
+
+const char *__hs_uloc_getAvailable(int32_t n);
+int32_t __hs_uloc_countAvailable(void);
+
+/* ucal.h */
+
+UCalendar *__hs_ucal_open(const UChar *zoneID, int32_t len, const char *locale, UCalendarType type, UErrorCode *status);
+UCalendar *__hs_ucal_clone(const UCalendar *cal, UErrorCode *status);
+int32_t __hs_ucal_get(const UCalendar *cal, UCalendarDateFields field, UErrorCode *status);
+void __hs_ucal_set(UCalendar *cal, UCalendarDateFields field, int32_t value);
+void __hs_ucal_setDate(UCalendar *cal, int32_t year, int32_t month, int32_t date, UErrorCode *status);
+void __hs_ucal_setDateTime(UCalendar *cal, int32_t year, int32_t month, int32_t date, int32_t hr, int32_t min, int32_t sec, UErrorCode *status);
+void __hs_ucal_add(UCalendar *cal, UCalendarDateFields field, int32_t value, UErrorCode *status);
+void __hs_ucal_roll(UCalendar *cal, UCalendarDateFields field, int32_t value, UErrorCode *status);
+UEnumeration *__hs_ucal_openTimeZones(UErrorCode *ec);
+UEnumeration *__hs_ucal_openTimeZoneIDEnumeration(USystemTimeZoneType zoneType, UErrorCode *ec);
+void __hs_ucal_setTimeZone(UCalendar *cal, const UChar *zoneID, int32_t len, UErrorCode *status);
 
 /* ubrk.h */
 
@@ -144,7 +192,18 @@ UBool __hs_ucnv_isAmbiguous(const UConverter *cnv);
 void __hs_uiter_setString(UCharIterator *iter, const UChar *s, int32_t length);
 void __hs_uiter_setUTF8(UCharIterator *iter, const char *s, int32_t length);
 
-/* unorm.h */
+/* unorm2.h */
+
+const UNormalizer2 *__hs_unorm2_getNFCInstance(UErrorCode *pErrorCode);
+const UNormalizer2 *__hs_unorm2_getNFDInstance(UErrorCode *pErrorCode);
+const UNormalizer2 *__hs_unorm2_getNFKCInstance(UErrorCode *pErrorCode);
+const UNormalizer2 *__hs_unorm2_getNFKDInstance(UErrorCode *pErrorCode);
+const UNormalizer2 *__hs_unorm2_getNFKCCasefoldInstance(UErrorCode *pErrorCode);
+int32_t __hs_unorm2_normalize(const UNormalizer2 *norm2, const UChar *src, int32_t length, UChar *dest, int32_t capacity, UErrorCode *pErrorCode);
+UBool __hs_unorm2_isNormalized(const UNormalizer2 *norm2, const UChar *s, int32_t length, UErrorCode *pErrorCode);
+UNormalizationCheckResult __hs_unorm2_quickCheck(const UNormalizer2 *norm2, const UChar *s, int32_t length, UErrorCode *pErrorCode);
+
+/* unorm.h DEPRECATED */
 
 int32_t __hs_unorm_compare(const UChar *s1, int32_t length1,
 						   const UChar *s2, int32_t length2,
@@ -321,7 +380,7 @@ void __hs_ucsdet_setDetectableCharset(UCharsetDetector *ucsd,
 
 /* unum.h */
 
-UNumberFormat *__hs_unumf_openForSkeletonAndLocale(const UChar *skeleton, int32_t skeletonLen, const char *loc, UErrorCode *status);
-void __hs_unumf_close(UCollator *coll);
-int32_t __hs_unumf_formatInt(const UNumberFormat *uformatter, int64_t value, const UChar *dest, int32_t dest_capacity, UErrorCode *ec);
-int32_t __hs_unumf_formatDouble(const UNumberFormat *uformatter, double value, const UChar *dest, int32_t dest_capacity, UErrorCode *ec);
+UNumberFormat *__hs_unum_open(UNumberFormatStyle style, const UChar *pattern, int32_t patternLength, const char *loc, UParseError *parseErr, UErrorCode *status);
+void __hs_unum_close(UNumberFormat *fmt);
+int32_t __hs_unum_formatInt64(const UNumberFormat *fmt, int64_t value, UChar *result, int32_t resultLength, UErrorCode *ec);
+int32_t __hs_unum_formatDouble(const UNumberFormat *fmt, double value, UChar *result, int32_t resultLength, UErrorCode *ec);

@@ -4,7 +4,8 @@
 module QuickCheckUtils (NonEmptyText(..), LatinSpoofableText(..),
                         NonSpoofableText(..), Utf8Text(..)) where
 
-import Data.Text.ICU (Collator, LocaleName(..), NormalizationMode(..))
+import Data.Text.ICU (Collator, LocaleName(..))
+import Data.Text.ICU.Normalize2
 import Data.Text.ICU.Break (available)
 import Test.QuickCheck (Arbitrary(..), Gen, elements, listOf1, suchThat, vectorOf)
 import Data.Word (Word8)
@@ -24,7 +25,7 @@ instance Arbitrary LocaleName where
     arbitrary = elements (Root:available)
 
 instance Arbitrary NormalizationMode where
-    arbitrary = elements [None ..FCD]
+    arbitrary = elements [NFD .. NFKCCasefold]
 
 instance Arbitrary Collator where
     arbitrary = I.collator <$> arbitrary
@@ -32,7 +33,7 @@ instance Arbitrary Collator where
 newtype NonEmptyText = NonEmptyText { nonEmptyText :: T.Text } deriving Show
 
 instance Arbitrary NonEmptyText where
-  arbitrary = NonEmptyText <$> T.pack <$> listOf1 arbitrary
+  arbitrary = NonEmptyText . T.pack <$> listOf1 arbitrary
 
 newtype LatinSpoofableText = LatinSpoofableText { latinSpoofableText :: T.Text }
                            deriving Show

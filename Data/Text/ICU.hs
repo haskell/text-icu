@@ -20,6 +20,8 @@ module Data.Text.ICU
 
     -- * Types
       LocaleName(..)
+    -- * Locales
+    , availableLocales
     -- * Boundary analysis
     -- $break
     , Breaker
@@ -46,14 +48,15 @@ module Data.Text.ICU
     , fromText
     , fromUtf8
     -- * Normalization
-    , NormalizationMode(..)
-    , normalize
-    , quickCheck
-    , isNormalized
+    -- $compat
+    -- ** Normalize unicode strings
+    , nfc, nfd, nfkc, nfkd, nfkcCasefold
+    -- ** Checks for normalization
+    , quickCheck, isNormalized
     -- * String comparison
     -- ** Normalization-sensitive string comparison
     , CompareOption(..)
-    , compare
+    , compareUnicode
     -- ** Locale-sensitive string collation
     -- $collate
     , Collator
@@ -107,20 +110,27 @@ module Data.Text.ICU
     , getRestrictionLevel
     -- ** Persistence
     , serialize
-    -- * Formatting numbers
-    -- $formatting
-    , numberFormatter
-    , FormattableNumber, formatNumber, formatNumber'
-    , NumberFormatStyle(..)
-    , NumberFormat
+    -- * Calendars
+    , Calendar, CalendarType(..), SystemTimeZoneType(..), CalendarField(..),
+    -- ** Construction
+    calendar,
+    -- ** Operations on calendars
+    roll, add, set1, set, get,
+    -- * Number formatting
+    NumberFormatter, numberFormatter, formatIntegral, formatIntegral', formatDouble, formatDouble',
+    -- * Date formatting
+    DateFormatter, FormatStyle(..), DateFormatSymbolType(..), standardDateFormatter, patternDateFormatter, dateSymbols, formatCalendar,
     ) where
 
 import Data.Text.ICU.Break.Pure
+import Data.Text.ICU.Calendar
 import Data.Text.ICU.Collate.Pure
+import Data.Text.ICU.DateFormatter
 import Data.Text.ICU.Internal
 import Data.Text.ICU.Iterator
-import Data.Text.ICU.Normalize
-import Data.Text.ICU.Number
+import Data.Text.ICU.Locale
+import Data.Text.ICU.Normalize2
+import Data.Text.ICU.NumberFormatter
 import Data.Text.ICU.Regex.Pure
 import qualified Data.Text.ICU.Spoof as S
 import Data.Text.ICU.Spoof.Pure
@@ -205,9 +215,12 @@ import Data.Text (Text)
 -- $formatting
 --
 -- You create a 'NumberFormat' with 'numberFormatter' according to a locale
--- and a choice of pre-defined formats. A 'NumberFormat' provides a formatting 
+-- and a choice of pre-defined formats. A 'NumberFormat' provides a formatting
 -- faclity that 'format's numbers
--- according to the chosen locale. Alternatively create and apply a 'NumberFormat' 
--- in a single step with 'formatNumber'' (it may be faster to re-use a NumberFormat though). 
--- See the section \"Patterns\" at <https://unicode-org.github.io/icu-docs/apidoc/released/icu4c/classDecimalFormat.html#Patterns> 
+-- according to the chosen locale. Alternatively create and apply a 'NumberFormat'
+-- in a single step with 'formatNumber'' (it may be faster to re-use a NumberFormat though).
+-- See the section \"Patterns\" at <https://unicode-org.github.io/icu-docs/apidoc/released/icu4c/classDecimalFormat.html#Patterns>
 -- for further details regarding pattern strings.
+
+-- $compat
+-- See module 'Data.Text.ICU.Normalization2' for the full interface which provides some compatibility with the former API.

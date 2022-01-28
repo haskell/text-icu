@@ -12,9 +12,11 @@ import Control.DeepSeq (NFData(..))
 import Data.Function (on)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
-import Data.Text.ICU (NormalizationMode(..), LocaleName(..))
+import Data.Text.ICU (LocaleName(..))
 import QuickCheckUtils (NonEmptyText(..), LatinSpoofableText(..),
                         NonSpoofableText(..), Utf8Text(..))
+import Data.Text.ICU.Normalize2 (NormalizationMode(..))
+import qualified Data.Text.ICU.Normalize2 as I
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.Framework.Providers.HUnit (hUnitTestToTests)
@@ -28,8 +30,11 @@ import qualified Data.Text.ICU.BiDi as BiDi
 import qualified Data.Text.ICU.Convert as I
 import qualified Data.Text.ICU.Char as I
 import qualified Data.Text.ICU.CharsetDetection as CD
+import qualified Data.Text.ICU.Number as N
 import qualified Data.Text.ICU.Shape as S
 import System.IO.Unsafe (unsafePerformIO)
+
+{-# ANN module ("HLint: use camelCase"::String) #-}
 
 t_rnf :: (NFData b) => (a -> b) -> a -> Bool
 t_rnf f t = rnf (f t) == ()
@@ -60,8 +65,7 @@ t_charIterator_Utf8 a b = (compare `on` I.fromUtf8) ba bb == compare ba bb
 t_normalize mode = t_nonEmpty $ I.normalize mode
 
 t_quickCheck_isNormalized mode normMode txt
-  | mode `elem` [NFD, NFKD, FCD]
-              =                        quickCheck == Just isNormalized
+  | mode `elem` [NFD, NFKD] =          quickCheck == Just isNormalized
   | otherwise = fromMaybe isNormalized quickCheck ==      isNormalized
   where quickCheck   = I.quickCheck mode normTxt
         isNormalized = I.isNormalized mode normTxt
@@ -163,7 +167,7 @@ testCases =
   ,S.shapeArabic [S.LettersShape] (nosp "ا ب ت ث") ~?= (nosp "ﺍ ﺑ ﺘ ﺚ")
   ,BiDi.reorderParagraphs [] (nosp "abc ا ب ت ث def\n123")
      ~?= ["abc" <> T.reverse (nosp "ا ب ت ث") <> "def\n", "123"]
-  ,I.formatNumber (I.numberFormatter I.NUM_CURRENCY_PLURAL "en_US")
+  ,N.formatNumber (N.numberFormatter N.NUM_CURRENCY_PLURAL "en_US")
      (12.5 :: Double) ~?= "12.50 US dollars"
   ]
   <>

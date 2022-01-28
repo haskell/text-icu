@@ -8,6 +8,9 @@ the following:
 
 * Conversion to and from many common and obscure encodings
 
+* Date and number formatting
+
+* Comparison and collation
 
 # Prerequisites
 
@@ -22,23 +25,13 @@ For Ubuntu `apt-get install libicu-dev` should suffice.
 
 Upstream ICU occasionally introduces backwards-incompatible API
 breaks.  This package tries to stay up to date with upstream, and is
-currently more or less in sync with ICU 55.
+currently more or less in sync with ICU 69.
 
 
 # Get involved!
 
 Please report bugs via the
-[github issue tracker](http://github.com/bos/text-icu/issues).
-
-Master [Mercurial repository](http://bitbucket.org/bos/text-icu):
-
-* `hg clone http://bitbucket.org/bos/text-icu`
-
-There's also a [git mirror](http://github.com/bos/text-icu):
-
-* `git clone git://github.com/bos/text-icu.git`
-
-(You can create and contribute changes using either Mercurial or git.)
+[github issue tracker](https://github.com/haskell/text-icu/issues).
 
 
 # Authors

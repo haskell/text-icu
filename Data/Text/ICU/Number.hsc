@@ -8,6 +8,10 @@
 -- Stability   : experimental
 -- Portability : GHC
 --
+-- New users with are strongly encouraged to see
+-- if Data.Text.ICU.NumberFormatter fits their use case.
+-- Although not deprecated, this header is provided for backwards
+-- compatibility only.
 
 module Data.Text.ICU.Number
     (
