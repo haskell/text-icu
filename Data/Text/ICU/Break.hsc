@@ -51,16 +51,15 @@ module Data.Text.ICU.Break
 
 import Control.DeepSeq (NFData(..))
 import Control.Monad (forM)
-import Control.Exception (mask_)
 import Data.IORef (newIORef, writeIORef)
 import Data.Int (Int32)
 import Data.Text (Text)
 import Data.Text.ICU.Break.Types (BreakIterator(..), UBreakIterator)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
-import Data.Text.ICU.Internal (LocaleName(..), UBool, UChar, asBool, withLocaleName, TextI, UText, asUTextPtr, withUTextPtr)
+import Data.Text.ICU.Internal (LocaleName(..), UBool, UChar, asBool, withLocaleName, TextI, UText, asUTextPtr, withUTextPtr, newICUPtr)
 import Foreign.C.String (CString, peekCString)
 import Foreign.C.Types (CInt(..))
-import Foreign.ForeignPtr (newForeignPtr, withForeignPtr)
+import Foreign.ForeignPtr (withForeignPtr)
 import Foreign.Marshal.Array (allocaArray, peekArray)
 import Foreign.Marshal.Utils (with)
 import Foreign.Ptr (FunPtr, Ptr, nullPtr)
@@ -154,10 +153,9 @@ breakWord = open (#const UBRK_WORD) asWord
 open :: UBreakIteratorType -> (Int32 -> a) -> LocaleName -> Text
      -> IO (BreakIterator a)
 open brk f loc t = withLocaleName loc $ \locale -> do
-  b <- mask_ $ do
-    bi <- handleError $ ubrk_open brk locale nullPtr 0
-    r <- newIORef undefined
-    BR r f `fmap` newForeignPtr ubrk_close bi
+  r <- newIORef undefined
+  b <- newICUPtr (BR r f) ubrk_close $
+    handleError $ ubrk_open brk locale nullPtr 0
   setText b t
   return b
 
@@ -172,10 +170,9 @@ setText BR{..} t = do
 -- | Thread safe cloning operation.  This is substantially faster than
 -- creating a new 'BreakIterator' from scratch.
 clone :: BreakIterator a -> IO (BreakIterator a)
-clone BR{..} = mask_ $ do
-  bi <- withForeignPtr brIter $ \p ->
-        with 1 $ handleError . ubrk_safeClone p nullPtr
-  BR brText brStatus `fmap` newForeignPtr ubrk_close bi
+clone BR{..} = newICUPtr (BR brText brStatus) ubrk_close $
+  withForeignPtr brIter $ \p ->
+    with 1 $ handleError . ubrk_safeClone p nullPtr
 
 asIndex :: (Ptr UBreakIterator -> IO Int32) -> BreakIterator a -> IO (Maybe TextI)
 asIndex act BR{..} = do

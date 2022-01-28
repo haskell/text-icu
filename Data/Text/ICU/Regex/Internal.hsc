@@ -39,18 +39,17 @@ module Data.Text.ICU.Regex.Internal
     , uregex_start
     ) where
 
-import Control.Exception (mask_)
 import Control.Monad (when)
 import Data.IORef (IORef, newIORef)
 import Data.Int (Int32)
 import Data.Text (Text)
-import Data.Text.ICU.Internal (UBool, UChar, UTextPtr, UText, useAsUCharPtr, withUTextPtr, emptyUTextPtr)
+import Data.Text.ICU.Internal (UBool, UChar, UTextPtr, UText, useAsUCharPtr, withUTextPtr, emptyUTextPtr, newICUPtr)
 import Data.Text.ICU.Error (isRegexError)
 import Data.Text.ICU.Error.Internal (UParseError, UErrorCode,
                                      handleError, handleParseError)
 import Data.Typeable (Typeable)
 import Data.Word (Word32)
-import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, touchForeignPtr, withForeignPtr)
+import Foreign.ForeignPtr (ForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr)
 
 #include <unicode/uregex.h>
@@ -139,21 +138,20 @@ data Regex = Regex {
 --
 -- The 'Regex' is initialized with empty text to search against.
 regex :: [MatchOption] -> Text -> IO Regex
-regex opts pat = useAsUCharPtr pat $ \pptr plen -> mask_ $ do
-  let (flags,workLimit,stackLimit) = toURegexpOpts opts
-      hayfp = emptyUTextPtr
-  ptr <- handleParseError isRegexError $
-         uregex_open pptr (fromIntegral plen) flags
-  refp <- newForeignPtr uregex_close ptr
-  withForeignPtr refp $ \rePtr ->
+regex opts pat = useAsUCharPtr pat $ \pptr plen ->
+  newICUPtr Regex uregex_close (do
+    ptr <- handleParseError isRegexError $
+           uregex_open pptr (fromIntegral plen) flags
     withUTextPtr hayfp $ \hayPtr -> handleError $
-      uregex_setUText rePtr hayPtr
-  when (workLimit > -1) .
-    handleError $ uregex_setTimeLimit ptr (fromIntegral workLimit)
-  when (stackLimit > -1) .
-    handleError $ uregex_setStackLimit ptr (fromIntegral stackLimit)
-  touchForeignPtr refp
-  Regex refp `fmap` newIORef hayfp
+      uregex_setUText ptr hayPtr
+    when (workLimit > -1) .
+      handleError $ uregex_setTimeLimit ptr (fromIntegral workLimit)
+    when (stackLimit > -1) .
+      handleError $ uregex_setStackLimit ptr (fromIntegral stackLimit)
+    return ptr)
+  <*> newIORef hayfp
+  where (flags,workLimit,stackLimit) = toURegexpOpts opts
+        hayfp = emptyUTextPtr
 
 data URegularExpression
 

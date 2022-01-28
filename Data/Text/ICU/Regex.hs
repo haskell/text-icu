@@ -50,14 +50,13 @@ module Data.Text.ICU.Regex
     , end_
     ) where
 
-import Control.Exception (mask_)
 import Data.Text.ICU.Regex.Internal
 import qualified Control.Exception as E
 import Data.IORef (newIORef, readIORef, writeIORef)
 import Data.Text (Text)
-import Data.Text.ICU.Internal (asBool, UTextPtr, asUTextPtr, emptyUTextPtr, TextI, withUTextPtr, fromUCharPtr)
+import Data.Text.ICU.Internal (asBool, UTextPtr, asUTextPtr, emptyUTextPtr, TextI, withUTextPtr, fromUCharPtr, newICUPtr)
 import Data.Text.ICU.Error.Internal (ParseError(..), handleError)
-import Foreign.ForeignPtr (newForeignPtr, withForeignPtr)
+import Foreign.ForeignPtr (withForeignPtr)
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Storable (peek)
 import System.IO.Unsafe (unsafePerformIO)
@@ -142,9 +141,11 @@ findNext Regex{..} =
 -- operation requires its own instance of a 'Regex'.
 clone :: Regex -> IO Regex
 {-# INLINE clone #-}
-clone Regex{..} = mask_ $ do
-  fp <- newForeignPtr uregex_close =<< withForeignPtr reRe (handleError . uregex_clone)
-  Regex fp `fmap` newIORef emptyUTextPtr
+clone Regex{..} = do
+  newICUPtr Regex uregex_close
+    (withForeignPtr reRe (handleError . uregex_clone))
+    <*>
+    newIORef emptyUTextPtr
 
 -- | Return the number of capturing groups in this regular
 -- expression's pattern.

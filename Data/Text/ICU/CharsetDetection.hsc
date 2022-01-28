@@ -73,7 +73,7 @@ detect :: ByteString -> IO CharsetMatch
 detect bs = do
     ucsd <- mkCharsetDetector
     setText bs ucsd
-    wrapUCharsetMatch $ withCharsetDetector ucsd (handleError . ucsdet_detect)
+    wrapUCharsetMatch ucsd $ withCharsetDetector ucsd (handleError . ucsdet_detect)
 
 -- | See the confidence score from 0-100 of the 'CharsetMatch' object.
 getConfidence :: CharsetMatch -> IO Int

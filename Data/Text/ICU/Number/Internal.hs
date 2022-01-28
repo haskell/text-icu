@@ -21,10 +21,10 @@ module Data.Text.ICU.Number.Internal
     )
 where
 
-import Control.Exception (mask_)
 import Data.Typeable (Typeable)
-import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, withForeignPtr)
+import Foreign.ForeignPtr (ForeignPtr, withForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr)
+import Data.Text.ICU.Internal (newICUPtr)
 
 -- $api
 --
@@ -44,7 +44,7 @@ withNumberFormat (MNumberFormat col) action = withForeignPtr col action
 {-# INLINE withNumberFormat #-}
 
 wrap :: IO (Ptr UNumberFormat) -> IO MNumberFormat
-wrap a = mask_ $ fmap MNumberFormat $ newForeignPtr unum_close =<< a
+wrap = newICUPtr MNumberFormat unum_close
 {-# INLINE wrap #-}
 
 foreign import ccall unsafe "hs_text_icu.h &__hs_unum_close" unum_close

@@ -34,7 +34,6 @@ module Data.Text.ICU.Convert
     , standardNames
     ) where
 
-import Control.Exception (mask_)
 import Data.ByteString.Internal (ByteString, createAndTrim)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.Int (Int32)
@@ -49,11 +48,10 @@ import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
 import Data.Word (Word8, Word16)
 import Foreign.C.String (CString, peekCString, withCString)
 import Foreign.C.Types (CInt(..))
-import Foreign.ForeignPtr (newForeignPtr)
 import Foreign.Marshal.Array (allocaArray)
 import Foreign.Ptr (FunPtr, Ptr)
 import System.IO.Unsafe (unsafePerformIO)
-import Data.Text.ICU.Internal (UBool, asBool, asOrdering, withName)
+import Data.Text.ICU.Internal (UBool, asBool, asOrdering, withName, newICUPtr)
 
 -- | Do a fuzzy compare of two converter/alias names.  The comparison
 -- is case-insensitive, ignores leading zeroes if they are not
@@ -100,7 +98,7 @@ open :: String                  -- ^ Name of the converter to use.
                                 -- (see 'usesFallback' for details).
      -> IO Converter
 open name mf = do
-  c <- mask_ $ fmap Converter . newForeignPtr ucnv_close =<< withName name (handleError . ucnv_open)
+  c <- newICUPtr Converter ucnv_close $ withName name (handleError . ucnv_open)
   case mf of
     Just f -> withConverter c $ \p -> ucnv_setFallback p . fromIntegral . fromEnum $ f
     _ -> return ()

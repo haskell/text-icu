@@ -22,7 +22,6 @@ module Data.Text.ICU.CaseMap
 #include <unicode/ucasemap.h>
 #include <unicode/uchar.h>
 
-import Control.Exception (mask_)
 import Data.Bits ((.|.))
 import Data.List (foldl')
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
@@ -30,7 +29,7 @@ import Data.Text.ICU.Internal (LocaleName, withLocaleName)
 import Data.Typeable (Typeable)
 import Data.Word (Word32)
 import Foreign.C.String (CString)
-import Foreign.ForeignPtr (ForeignPtr, newForeignPtr)
+import Foreign.ForeignPtr (ForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr)
 import System.IO.Unsafe (unsafePerformIO)
 
@@ -57,10 +56,9 @@ reduceCaseMapOptions = foldl' (.|.) (#const U_FOLD_CASE_DEFAULT) .
                        map fromCaseMapOption
 
 caseMap :: LocaleName -> [CaseOption] -> CaseMap
-caseMap name opts = unsafePerformIO $ mask_ $ do
-  p <- withLocaleName name $ \nptr -> handleError . ucasemap_open nptr .
-       reduceCaseMapOptions $ opts
-  CaseMap `fmap` newForeignPtr ucasemap_close p
+caseMap name opts = unsafePerformIO $ newICUPtr CaseMap ucasemap_close $
+  withLocaleName name $ \nptr -> handleError $ ucasemap_open nptr $
+    reduceCaseMapOptions $ opts
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ucasemap_open" ucasemap_open
     :: CString -> Word32 -> Ptr UErrorCode -> IO (Ptr UCaseMap)

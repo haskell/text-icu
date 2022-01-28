@@ -36,16 +36,14 @@ module Data.Text.ICU.BiDi
 
 #include <unicode/ubidi.h>
 
-import Control.Exception (mask_)
 import Data.Text.ICU.BiDi.Internal
-import Foreign.ForeignPtr (newForeignPtr)
 import Foreign.Marshal.Utils (with)
 import Foreign.Storable (peek)
 import Foreign.Ptr (FunPtr, Ptr)
 import Data.Int (Int32, Int16)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError, handleOverflowError)
 import Data.Text (Text)
-import Data.Text.ICU.Internal (UChar, useAsUCharPtr, fromUCharPtr)
+import Data.Text.ICU.Internal (UChar, useAsUCharPtr, fromUCharPtr, newICUPtr)
 import Foreign.C.Types (CInt(..))
 import Data.List (foldl')
 import Data.Bits ((.|.))
@@ -54,7 +52,7 @@ import Data.Traversable (for)
 
 -- | Allocate a BiDi structure.
 open :: IO BiDi
-open = mask_ $ fmap BiDi . newForeignPtr ubidi_close =<< ubidi_open
+open = newICUPtr BiDi ubidi_close ubidi_open
 
 -- | Allocate a BiDi structure with preallocated memory for internal structures.
 openSized ::
@@ -64,7 +62,7 @@ openSized ::
            -- An attempt to access visual runs on an object that was not preallocated for as many runs as the text was actually resolved to will fail, unless this value is 0.
   -> IO BiDi
 openSized maxlen maxruncount =
-  mask_ $ fmap BiDi . newForeignPtr ubidi_close =<< handleError (ubidi_openSized maxlen maxruncount)
+  newICUPtr BiDi ubidi_close $ handleError (ubidi_openSized maxlen maxruncount)
 
 -- | Perform the Unicode Bidi algorithm. It is defined in the Unicode Standard Annex #9, version 13,
 -- also described in The Unicode Standard, Version 4.0.

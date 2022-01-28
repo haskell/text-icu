@@ -17,6 +17,7 @@ module Data.Text.ICU.Internal
     , useAsUCharPtr, fromUCharPtr, I16, asUCharForeignPtr
     , asUTextPtr, withUTextPtr, withUTextPtrText, emptyUTextPtr, utextPtrLength
     , TextI, takeWord, dropWord, lengthWord
+    , newICUPtr
     ) where
 
 #include <unicode/uiter.h>
@@ -39,7 +40,7 @@ import Data.Text.Foreign (I16, dropWord16, takeWord16, lengthWord16)
 #endif
 import Data.Word (Word8, Word16, Word32)
 import Foreign.C.String (CString, withCString)
-import Foreign.ForeignPtr (withForeignPtr, ForeignPtr, newForeignPtr)
+import Foreign.ForeignPtr (withForeignPtr, ForeignPtr, newForeignPtr, FinalizerPtr)
 import Foreign.Marshal.Alloc (allocaBytes)
 import Foreign.Marshal.Utils (with)
 import Foreign.Ptr (Ptr, nullPtr, FunPtr)
@@ -152,15 +153,14 @@ withUTextPtrText = withForeignPtr . utextPtrText
 asUTextPtr :: Text -> IO UTextPtr
 asUTextPtr t = do
     (fp,l) <- asForeignPtr t
-    with 0 $ \ e -> withForeignPtr fp $ \ p -> mask_ $ do
-        ut <- newForeignPtr utext_close =<<
+    with 0 $ \ e -> withForeignPtr fp $ \ p ->
+      newICUPtr (\ ut -> UTextPtr ut fp l) utext_close $
 #if MIN_VERSION_text(2,0,0)
-            utext_openUTF8
+        utext_openUTF8
 #else
-            utext_openUChars
+        utext_openUChars
 #endif
-            nullPtr p (fromIntegral l) e
-        return $ UTextPtr ut fp l
+          nullPtr p (fromIntegral l) e
 
 foreign import ccall unsafe "hs_text_icu.h &__hs_utext_close" utext_close
     :: FunPtr (Ptr UText -> IO ())
@@ -238,3 +238,12 @@ foreign import ccall unsafe "hs_text_icu.h __hs_utext_openUChars" utext_openUCha
     :: Ptr UText -> Ptr UChar -> Int64 -> Ptr UErrorCode -> IO (Ptr UText)
 
 #endif
+
+-- | Allocate new ICU data structure (usually via @*_open@ call),
+-- add finalizer (@*_close@ call) and wrap resulting 'ForeignPtr'.
+--
+-- Exceptions are masked since the memory leak is possible if any
+-- asynchronous exception (such as a timeout) is raised between
+-- allocating C data and 'newForeignPtr' call.
+newICUPtr :: (ForeignPtr a -> i) -> FinalizerPtr a -> IO (Ptr a) -> IO i
+newICUPtr wrap close open = fmap wrap $ mask_ $ newForeignPtr close =<< open

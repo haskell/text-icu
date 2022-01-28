@@ -27,12 +27,12 @@ module Data.Text.ICU.CharsetDetection.Internal
     , withCharsetMatch
     ) where
 
-import Control.Exception (mask_)
 import Data.Typeable (Typeable)
-import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, newForeignPtr_, withForeignPtr)
+import Foreign.ForeignPtr (ForeignPtr, withForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr)
 
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
+import Data.Text.ICU.Internal (newICUPtr)
 
 #include <unicode/ucsdet.h>
 
@@ -59,7 +59,7 @@ withCharsetDetector (CharsetDetector ucsd) = withForeignPtr ucsd
 -- | Wraps a raw 'UCharsetDetector' in an 'CharsetDetector', closing the
 -- handle when the last reference to the object is dropped.
 wrapUCharsetDetector :: IO (Ptr UCharsetDetector) -> IO CharsetDetector
-wrapUCharsetDetector a = mask_ $ fmap CharsetDetector $ newForeignPtr ucsdet_close =<< a
+wrapUCharsetDetector = newICUPtr CharsetDetector ucsdet_close
 {-# INLINE wrapUCharsetDetector #-}
 
 -- | Opaque handle to a character set match
@@ -67,15 +67,21 @@ data UCharsetMatch
 
 -- | Opaque character set match handle. The memory backing these objects is
 -- managed entirely by the ICU C library.
-data CharsetMatch = CharsetMatch {
-    charsetMatchPtr :: {-# UNPACK #-} !(ForeignPtr UCharsetMatch)
-} deriving (Typeable)
+-- TODO: UCharsetMatch is reset after the setText call. We need to handle it.
+data CharsetMatch =
+    CharsetMatch
+    { charsetMatchPtr :: {-# UNPACK #-} !(Ptr UCharsetMatch)
+    , charsetMatchDetector :: CharsetDetector
+    -- ^ keep reference since UCharsetMatch object is owned
+    -- by the UCharsetDetector.
+    }
+    deriving (Typeable)
 
-wrapUCharsetMatch :: IO (Ptr UCharsetMatch) -> IO CharsetMatch
-wrapUCharsetMatch a = mask_ $ fmap CharsetMatch $ newForeignPtr_ =<< a
+wrapUCharsetMatch :: CharsetDetector -> IO (Ptr UCharsetMatch) -> IO CharsetMatch
+wrapUCharsetMatch cd = fmap $ flip CharsetMatch cd
 
 withCharsetMatch :: CharsetMatch -> (Ptr UCharsetMatch -> IO a) -> IO a
-withCharsetMatch (CharsetMatch ucsm) = withForeignPtr ucsm
+withCharsetMatch (CharsetMatch ucsm _) f = f ucsm
 
 foreign import ccall unsafe "hs_text_icu.h &__hs_ucsdet_close" ucsdet_close
     :: FunPtr (Ptr UCharsetDetector -> IO ())

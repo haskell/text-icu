@@ -24,11 +24,11 @@ module Data.Text.ICU.Spoof.Internal
     , wrapWithSerialized
     ) where
 
-import Control.Exception (mask_)
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
-import Foreign.ForeignPtr (ForeignPtr, newForeignPtr, withForeignPtr)
+import Foreign.ForeignPtr (ForeignPtr, withForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr)
+import Data.Text.ICU.Internal (newICUPtr)
 
 -- $api
 -- Low-level operations on spoof checkers.
@@ -56,14 +56,14 @@ withSpoof (MSpoof _ spoof) = withForeignPtr spoof
 -- | Wraps a raw 'USpoof' handle in an 'MSpoof', closing the handle when
 -- the last reference to the object is dropped.
 wrap :: IO (Ptr USpoof) -> IO MSpoof
-wrap a = mask_ $ fmap (MSpoof Nothing) $ newForeignPtr uspoof_close =<< a
+wrap = newICUPtr (MSpoof Nothing) uspoof_close
 {-# INLINE wrap #-}
 
 -- | Wraps a previously serialized spoof checker and raw 'USpoof' handle
 -- in an 'MSpoof', closing the handle and releasing the 'ForeignPtr' when
 -- the last reference to the object is dropped.
-wrapWithSerialized :: ForeignPtr Word8 -> Ptr USpoof -> IO MSpoof
-wrapWithSerialized s = fmap (MSpoof $ Just s) . newForeignPtr uspoof_close
+wrapWithSerialized :: ForeignPtr Word8 -> IO (Ptr USpoof) -> IO MSpoof
+wrapWithSerialized s = newICUPtr (MSpoof $ Just s) uspoof_close
 {-# INLINE wrapWithSerialized #-}
 
 foreign import ccall unsafe "hs_text_icu.h &__hs_uspoof_close" uspoof_close

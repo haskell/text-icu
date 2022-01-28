@@ -323,7 +323,7 @@ openFromSerialized :: ByteString -> IO MSpoof
 openFromSerialized b =
   case toForeignPtr b of
     (ptr, off, len) -> withForeignPtr ptr $ \p ->
-      wrapWithSerialized ptr =<< handleError
+      wrapWithSerialized ptr $ handleError
       (uspoof_openFromSerialized (p `plusPtr` off) (fromIntegral len) nullPtr)
 
 -- | Get the checks performed by a spoof checker.
