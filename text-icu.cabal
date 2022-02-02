@@ -126,7 +126,7 @@ test-suite tests
   other-modules:    Properties QuickCheckUtils
 
   ghc-options:
-    -Wall -threaded -O0 -rtsopts
+    -Wall -threaded -rtsopts
 
   build-depends:
     HUnit >= 1.2,
