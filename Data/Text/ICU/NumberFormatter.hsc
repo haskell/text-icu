@@ -1,4 +1,4 @@
-{-# LANGUAGE EmptyDataDecls, BlockArguments, ImportQualifiedPost, RankNTypes, BangPatterns, ForeignFunctionInterface, RecordWildCards #-}
+{-# LANGUAGE EmptyDataDecls, RankNTypes, BangPatterns, ForeignFunctionInterface, RecordWildCards #-}
 -- |
 -- Module      : Data.Text.ICU.NumberFormatter
 -- Copyright   : (c) 2021 Torsten Kemps-Benedix
@@ -90,7 +90,7 @@ numberFormatter skel loc =
 -- >>> formatIntegral nf2 12345
 -- "12\8239\&345"
 formatIntegral :: Integral a => NumberFormatter -> a -> Text
-formatIntegral (NumberFormatter nf) x = unsafePerformIO do
+formatIntegral (NumberFormatter nf) x = unsafePerformIO $ do
   withForeignPtr nf $ \nfPtr -> do
     resultPtr <- newResult
     withForeignPtr resultPtr $ \resPtr -> do
@@ -102,7 +102,7 @@ formatIntegral (NumberFormatter nf) x = unsafePerformIO do
 
 -- | Create a number formatter and apply it to an integral number.
 formatIntegral' :: (Integral a) => Text -> LocaleName -> a -> Text
-formatIntegral' skel loc x = unsafePerformIO do
+formatIntegral' skel loc x = unsafePerformIO $ do
   nf <- numberFormatter skel loc
   pure $ formatIntegral nf x
 
@@ -116,7 +116,7 @@ formatIntegral' skel loc x = unsafePerformIO do
 -- >>> formatDouble nf3 12345.6789
 -- "12.345,68"
 formatDouble :: NumberFormatter -> Double -> Text
-formatDouble (NumberFormatter nf) x = unsafePerformIO do
+formatDouble (NumberFormatter nf) x = unsafePerformIO $ do
   withForeignPtr nf $ \nfPtr -> do
     resultPtr <- newResult
     withForeignPtr resultPtr $ \resPtr -> do
@@ -128,7 +128,7 @@ formatDouble (NumberFormatter nf) x = unsafePerformIO do
 
 -- | Create a number formatter and apply it to a Double.
 formatDouble' :: Text -> LocaleName -> Double -> Text
-formatDouble' skel loc x = unsafePerformIO do
+formatDouble' skel loc x = unsafePerformIO $ do
   nf <- numberFormatter skel loc
   pure $ formatDouble nf x
 

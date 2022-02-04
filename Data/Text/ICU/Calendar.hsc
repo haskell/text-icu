@@ -1,4 +1,4 @@
-{-# LANGUAGE ImportQualifiedPost, RankNTypes, BangPatterns, ForeignFunctionInterface, RecordWildCards #-}
+{-# LANGUAGE RankNTypes, BangPatterns, ForeignFunctionInterface, RecordWildCards #-}
 -- |
 -- Module      : Data.Text.ICU.Calendar
 -- Copyright   : (c) 2021 Torsten Kemps-Benedix
@@ -47,8 +47,8 @@ import Data.Text.Foreign (withCStringLen)
 import Data.Text.ICU.Enumerator
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
 import Data.Text.ICU.Internal (LocaleName(..), UChar, withLocaleName, newICUPtr, useAsUCharPtr)
-import Data.Time.Calendar qualified as Cal
-import Data.Time.Clock qualified as Clock
+import qualified Data.Time.Calendar as Cal
+import qualified Data.Time.Clock as Clock
 import Foreign.C.String (CString)
 import Foreign.C.Types (CInt(..))
 import Foreign.ForeignPtr (withForeignPtr, ForeignPtr)

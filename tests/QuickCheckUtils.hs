@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module QuickCheckUtils (NonEmptyText(..), LatinSpoofableText(..),
@@ -12,6 +13,10 @@ import Data.Word (Word8)
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
 import qualified Data.Text.ICU as I
+
+#if !MIN_VERSION_base(4,11,0)
+import Data.Semigroup ((<>))
+#endif
 
 instance Arbitrary T.Text where
     arbitrary = T.pack `fmap` arbitrary

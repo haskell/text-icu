@@ -1,4 +1,4 @@
-{-# LANGUAGE EmptyDataDecls, BlockArguments, ImportQualifiedPost, RankNTypes, BangPatterns, ForeignFunctionInterface, RecordWildCards #-}
+{-# LANGUAGE EmptyDataDecls, RankNTypes, BangPatterns, ForeignFunctionInterface, RecordWildCards #-}
 -- |
 -- Module      : Data.Text.ICU.DateFormatter
 -- Copyright   : (c) 2021 Torsten Kemps-Benedix
@@ -31,7 +31,7 @@ module Data.Text.ICU.DateFormatter
 import Control.Monad (forM)
 import Data.Int (Int32)
 import Data.Text (Text)
-import Data.Text qualified as T
+import qualified Data.Text as T
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError, handleOverflowError)
 import Data.Text.ICU.Internal (LocaleName(..), UChar, withLocaleName, newICUPtr, fromUCharPtr, useAsUCharPtr)
 import Data.Text.ICU.Calendar
@@ -189,10 +189,10 @@ patternDateFormatter pattern loc timeZoneId =
 -- >>> dateSymbols dfAt Months
 -- ["J\228nner","Februar","M\228rz","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"]
 dateSymbols :: DateFormatter -> DateFormatSymbolType -> [Text]
-dateSymbols (DateFormatter df) symType = unsafePerformIO do
+dateSymbols (DateFormatter df) symType = unsafePerformIO $ do
   withForeignPtr df $ \dfPtr -> do
     n <- udat_countSymbols dfPtr (toUDateFormatSymbolType symType)
-    syms <- forM [0..(n-1)] \i -> do
+    syms <- forM [0..(n-1)] $ \i -> do
       handleOverflowError (fromIntegral (64 :: Int))
         (\dptr dlen -> udat_getSymbols dfPtr (toUDateFormatSymbolType symType) (fromIntegral i) dptr dlen)
         (\dptr dlen -> fromUCharPtr dptr (fromIntegral dlen))

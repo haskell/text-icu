@@ -1,4 +1,4 @@
-{-# LANGUAGE BlockArguments, ImportQualifiedPost, RankNTypes, BangPatterns, ForeignFunctionInterface, RecordWildCards #-}
+{-# LANGUAGE RankNTypes, BangPatterns, ForeignFunctionInterface, RecordWildCards #-}
 -- |
 -- Module      : Data.Text.ICU.Locale
 -- Copyright   : (c) 2021 Torsten Kemps-Benedix
@@ -27,7 +27,7 @@ import Prelude hiding (last)
 availableLocales :: IO [String]
 availableLocales = do
   n <- uloc_countAvailable
-  forM [0..n-1] \i -> uloc_getAvailable i >>= peekCString
+  forM [0..n-1] $ \i -> uloc_getAvailable i >>= peekCString
 
 foreign import ccall unsafe "hs_text_icu.h __hs_uloc_getAvailable" uloc_getAvailable
     :: Int32 -> IO CString
