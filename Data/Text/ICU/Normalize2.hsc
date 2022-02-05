@@ -1,4 +1,4 @@
-{-# LANGUAGE EmptyDataDecls, BlockArguments, ImportQualifiedPost, CPP, DeriveDataTypeable, ForeignFunctionInterface #-}
+{-# LANGUAGE EmptyDataDecls, CPP, DeriveDataTypeable, ForeignFunctionInterface #-}
 -- |
 -- Module      : Data.Text.ICU.Normalize
 -- Copyright   : (c) 2009, 2010 Bryan O'Sullivan
@@ -248,31 +248,31 @@ normalize NFKCCasefold = nfkcCasefold
 --
 -- >>> pack "a\x301" `compareUnicode'` pack "á"
 nfc :: Text -> Text
-nfc t = unsafePerformIO do
+nfc t = unsafePerformIO $ do
   nf <- nfcNormalizer
   pure $ normalizeWith nf t
 
 -- | Create an NFKC normalizer and apply this to the given text.
 nfkc :: Text -> Text
-nfkc t = unsafePerformIO do
+nfkc t = unsafePerformIO $ do
   nf <- nfkcNormalizer
   pure $ normalizeWith nf t
 
 -- | Create an NFD normalizer and apply this to the given text.
 nfd :: Text -> Text
-nfd t = unsafePerformIO do
+nfd t = unsafePerformIO $ do
   nf <- nfdNormalizer
   pure $ normalizeWith nf t
 
 -- | Create an NFC normalizer and apply this to the given text.
 nfkd :: Text -> Text
-nfkd t = unsafePerformIO do
+nfkd t = unsafePerformIO $ do
   nf <- nfkdNormalizer
   pure $ normalizeWith nf t
 
 -- | Create an NFKCCasefold normalizer and apply this to the given text.
 nfkcCasefold :: Text -> Text
-nfkcCasefold t = unsafePerformIO do
+nfkcCasefold t = unsafePerformIO $ do
   nf <- nfkcCasefoldNormalizer
   pure $ normalizeWith nf t
 
@@ -294,19 +294,19 @@ quickCheckWith (Normalizer nfPtr) t = unsafePerformIO $
     fmap toNCR . handleError $ unorm2_quickCheck nfPtr sptr (fromIntegral slen)
 
 quickCheck :: NormalizationMode -> Text -> Maybe Bool
-quickCheck NFD t = unsafePerformIO do
+quickCheck NFD t = unsafePerformIO $ do
   nf <- nfdNormalizer
   pure $ quickCheckWith nf t
-quickCheck NFC t = unsafePerformIO do
+quickCheck NFC t = unsafePerformIO $ do
   nf <- nfcNormalizer
   pure $ quickCheckWith nf t
-quickCheck NFKD t = unsafePerformIO do
+quickCheck NFKD t = unsafePerformIO $ do
   nf <- nfkdNormalizer
   pure $ quickCheckWith nf t
-quickCheck NFKC t = unsafePerformIO do
+quickCheck NFKC t = unsafePerformIO $ do
   nf <- nfkcNormalizer
   pure $ quickCheckWith nf t
-quickCheck NFKCCasefold t = unsafePerformIO do
+quickCheck NFKCCasefold t = unsafePerformIO $ do
   nf <- nfkcCasefoldNormalizer
   pure $ quickCheckWith nf t
 
@@ -323,19 +323,19 @@ isNormalizedWith (Normalizer nfPtr) t = unsafePerformIO $
     fmap asBool . handleError $ unorm2_isNormalized nfPtr sptr (fromIntegral slen)
 
 isNormalized :: NormalizationMode -> Text -> Bool
-isNormalized NFD t = unsafePerformIO do
+isNormalized NFD t = unsafePerformIO $ do
   nf <- nfdNormalizer
   pure $ isNormalizedWith nf t
-isNormalized NFC t = unsafePerformIO do
+isNormalized NFC t = unsafePerformIO $ do
   nf <- nfcNormalizer
   pure $ isNormalizedWith nf t
-isNormalized NFKD t = unsafePerformIO do
+isNormalized NFKD t = unsafePerformIO $ do
   nf <- nfkdNormalizer
   pure $ isNormalizedWith nf t
-isNormalized NFKC t = unsafePerformIO do
+isNormalized NFKC t = unsafePerformIO $ do
   nf <- nfkcNormalizer
   pure $ isNormalizedWith nf t
-isNormalized NFKCCasefold t = unsafePerformIO do
+isNormalized NFKCCasefold t = unsafePerformIO $ do
   nf <- nfkcCasefoldNormalizer
   pure $ isNormalizedWith nf t
 
@@ -384,7 +384,7 @@ reduceCompareOptions = foldl' orO (#const U_COMPARE_CODE_POINT_ORDER)
 -- are relatively long, is memory allocated temporarily.  For 'FCD'
 -- strings and short non-'FCD' strings there is no memory allocation.
 compareUnicode :: [CompareOption] -> Text -> Text -> Ordering
-compareUnicode opts a b = unsafePerformIO do
+compareUnicode opts a b = unsafePerformIO $ do
   useAsUCharPtr a $ \aptr alen ->
     useAsUCharPtr b $ \bptr blen ->
       fmap asOrdering . handleError $

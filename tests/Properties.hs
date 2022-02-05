@@ -4,6 +4,7 @@
 -- return results, without checking whether the results are correct.
 -- Weak tests are described as such.
 
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings, LambdaCase #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 module Properties (propertyTests, testCases) where
@@ -34,6 +35,10 @@ import qualified Data.Text.ICU.CharsetDetection as CD
 import qualified Data.Text.ICU.Number as N
 import qualified Data.Text.ICU.Shape as S
 import System.IO.Unsafe (unsafePerformIO)
+
+#if !MIN_VERSION_base(4,11,0)
+import Data.Semigroup ((<>))
+#endif
 
 {-# ANN module ("HLint: use camelCase"::String) #-}
 

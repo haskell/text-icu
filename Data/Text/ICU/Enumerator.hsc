@@ -1,4 +1,4 @@
-{-# LANGUAGE ImportQualifiedPost, EmptyDataDecls, BangPatterns, ForeignFunctionInterface, RecordWildCards #-}
+{-# LANGUAGE EmptyDataDecls, BangPatterns, ForeignFunctionInterface, RecordWildCards #-}
 -- |
 -- Module      : Data.Text.ICU.Calendar
 -- Copyright   : (c) 2021 Torsten Kemps-Benedix
