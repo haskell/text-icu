@@ -3,4 +3,4 @@
 -- text-icu-0.8 requires a newer ICU lib (shipped not with Ubuntu 18.04, but with 20.04)
 distribution: focal
 
-installed: +all -binary -containers -deepseq -directory -time -unix
+installed: +all -binary -bytestring -containers -deepseq -directory -time -unix
