@@ -1,2 +1,4 @@
-installed: +all -containers
+-- Recreate .github/workflows/haskell-ci.yml with command `haskell-ci regenerate`.
+
+installed: +all -containers -time
 distribution: focal
