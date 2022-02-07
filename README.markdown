@@ -24,6 +24,14 @@ For macOS homebrew-installed `icu4c` you might need:
 
     export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig"
 
+With `stack` on Windows, which comes with its own bundled MSYS2, the
+following commands give up-to-date system dependencies for
+`text-icu-0.8.0` (tested 2022-02-07):
+
+        stack exec -- pacman --noconfirm -Sy msys2-keyring
+        stack exec -- pacman --noconfirm -S mingw-w64-x86_64-icu
+        stack exec -- pacman --noconfirm -S mingw-w64-x86_64-pkg-config
+
 
 # Compatibility
 
