@@ -1,0 +1,63 @@
+name: CI for macOS building with cabal
+on:
+  push:
+    branches:
+    - master
+    - ci-*
+    - release*
+  pull_request:
+
+jobs:
+
+  cabal:
+    name: cabal-mac
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macOS-latest]
+        ghc:
+          - 8.10.7
+          - 9.0.2
+          - 9.2.1
+      fail-fast: false
+
+    steps:
+
+    # Installing ICU is not necessary, macOS-latest already has v69.1
+    # - name: Install the ICU library
+    #   shell: bash
+    #   run: |
+    #     brew install icu4c
+
+    - name: Set up pkg-config for the ICU library
+      shell: bash
+      run: |
+        echo "PKG_CONFIG_PATH=/usr/local/opt/icu4c/lib/pkgconfig" >> ${GITHUB_ENV}
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup Haskell
+      uses: haskell/actions/setup@v1
+      id: setup-haskell-cabal
+      with:
+        ghc-version: ${{ matrix.ghc }}
+
+    - name: Freeze
+      run: |
+        cabal freeze
+
+    - name: Cache ~/.cabal/store
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
+        key: ${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('cabal.project.freeze') }}
+
+    - name: Build
+      run: |
+        cabal configure --enable-tests --enable-benchmarks --test-show-details=direct
+        cabal build all
+
+    - name: Test
+      run: |
+        cabal test all
