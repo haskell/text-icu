@@ -69,7 +69,7 @@ library
     deepseq >= 1.4.3.0,
     text >=0.9.1.0 && <1.3 || >=2.0 && <2.1,
     time >=1.5 && <1.13
-  pkgconfig-depends: icu-uc, icu-i18n
+  pkgconfig-depends: icu-i18n >= 62.1
 
   exposed-modules:
       Data.Text.ICU
