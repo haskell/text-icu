@@ -18,14 +18,20 @@ This library is implemented as bindings to the well-respected [ICU
 library](http://www.icu-project.org/) (which is not bundled, and must
 be installed separately).
 
-For Ubuntu `apt-get install libicu-dev` should suffice.
+For Debian/Ubuntu `apt-get install libicu-dev` should suffice.
+
+For macOS homebrew-installed `icu4c` you might need:
+
+    export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig"
 
 
 # Compatibility
 
 Upstream ICU occasionally introduces backwards-incompatible API
-breaks.  This package tries to stay up to date with upstream, and is
-currently more or less in sync with ICU 69.
+breaks. This package tries to stay up to date with upstream, and is
+currently more or less in sync with ICU 70.
+
+Minimum required version is ICU 62.
 
 
 # Get involved!
