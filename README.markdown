@@ -27,7 +27,7 @@ You might need:
 
     export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig"
 
-### Debian/Ubuntu 
+### Debian/Ubuntu
 
     sudo apt-get update
     sudo apt-get install libicu-dev
@@ -40,9 +40,22 @@ You might need:
 
     nix-shell --packages icu
 
+### Windows/MSYS2
+
+Under MSYS2, `ICU` can be installed via `pacman`.
+
+    pacman --noconfirm -S mingw-w64-x86_64-icu
+
+Depending on the age of the MSYS2 installation, the keyring might need
+to be updated to avoid certification issues, and `pkg-config` might
+need to be added.  In this case, do this first:
+
+    pacman --noconfirm -Sy msys2-keyring
+    pacman --noconfirm -S mingw-w64-x86_64-pkg-config
+
 ### Windows/stack
 
-With `stack` on Windows, which comes with its own bundled MSYS2, the
+With `stack` on Windows, which comes with its _own_ bundled MSYS2, the
 following commands give up-to-date system dependencies for
 `text-icu-0.8.0` (tested 2022-02-07):
 
