@@ -67,5 +67,6 @@ jobs:
         cabal build all
 
     - name: Test
+      if: ${{ runner.os == 'macOS' }}
       run: |
         cabal test all --enable-tests --test-show-details=direct
