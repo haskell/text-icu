@@ -1,4 +1,4 @@
-name: CI for macOS building with cabal
+name: CI for macOS and Windows building with cabal
 on:
   push:
     branches:
@@ -10,11 +10,11 @@ on:
 jobs:
 
   cabal:
-    name: cabal-mac
+    name: Cabal
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macOS-latest]
+        os: [macOS-latest, windows-latest]
         ghc:
           - 8.10.7
           - 9.0.2
@@ -23,13 +23,21 @@ jobs:
 
     steps:
 
+    - name: Install the ICU library (Windows)
+      if: ${{ runner.os == 'Windows' }}
+      shell: pwsh
+      run: |
+        $env:PATH = "C:\msys64\mingw64\bin;C:\msys64\usr\bin;$origPath;$env:PATH"
+        pacman --noconfirm -Sy msys2-keyring mingw-w64-x86_64-pkg-config mingw-w64-x86_64-icu
+
     # Installing ICU is not necessary, macOS-latest already has v69.1
     # - name: Install the ICU library
     #   shell: bash
     #   run: |
     #     brew install icu4c
 
-    - name: Set up pkg-config for the ICU library
+    - name: Set up pkg-config for the ICU library (macOS)
+      if: ${{ runner.os == 'macOS' }}
       shell: bash
       run: |
         echo "PKG_CONFIG_PATH=/usr/local/opt/icu4c/lib/pkgconfig" >> ${GITHUB_ENV}
