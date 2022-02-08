@@ -28,7 +28,7 @@ jobs:
       shell: pwsh
       run: |
         $env:PATH = "C:\msys64\mingw64\bin;C:\msys64\usr\bin;$origPath;$env:PATH"
-        pacman --noconfirm -Sy msys2-keyring mingw-w64-x86_64-pkg-config mingw-w64-x86_64-icu
+        pacman --noconfirm -S mingw-w64-x86_64-icu
 
     # Installing ICU is not necessary, macOS-latest already has v69.1
     # - name: Install the ICU library
