@@ -68,8 +68,6 @@ t_charIterator_Utf8 a b = (compare `on` I.fromUtf8) ba bb == compare ba bb
 
 -- Normalization
 
-t_normalize mode = t_nonEmpty $ I.normalize mode
-
 t_quickCheck_isNormalized mode normMode txt
   | mode `elem` [NFD, NFKD] =          quickCheck == Just isNormalized
   | otherwise = fromMaybe isNormalized quickCheck ==      isNormalized
@@ -135,7 +133,6 @@ propertyTests =
   , testProperty "t_charIterator_String" t_charIterator_String
   , testProperty "t_charIterator_Text" t_charIterator_Text
   , testProperty "t_charIterator_Utf8" t_charIterator_Utf8
-  , testProperty "t_normalize" t_normalize
   , testProperty "t_quickCheck_isNormalized" t_quickCheck_isNormalized
   , testProperty "t_collate" t_collate
   , testProperty "t_convert" t_convert
