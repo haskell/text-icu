@@ -68,9 +68,10 @@ jobs:
         cabal build all
 
     - name: Test
-      shell: bash
+      if: ${{ runner.os == 'Windows' }}
+      shell: pwsh
       run: |
-        export PATH="C:\msys64\mingw64\bin;C:\msys64\usr\bin;$PATH"
+        $env:PATH = "C:\msys64\mingw64\bin;C:\msys64\usr\bin;$origPath;$env:PATH"
         pkg-config --libs icu-i18n
-        ldd `cabal list-bin text-icu:test:tests`
+        ldd (cabal list-bin text-icu:test:tests)
         cabal test all -v --enable-tests --test-show-details=direct
