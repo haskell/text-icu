@@ -70,6 +70,7 @@ jobs:
     - name: Test
       shell: bash
       run: |
+        export PATH="C:\msys64\mingw64\bin;C:\msys64\usr\bin;$PATH"
         pkg-config --libs icu-i18n
         ldd `cabal list-bin text-icu:test:tests`
         cabal test all -v --enable-tests --test-show-details=direct
