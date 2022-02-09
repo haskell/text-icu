@@ -14,10 +14,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macOS-latest, windows-2022]
+        os: [windows-2022]
+#        os: [macOS-latest, windows-2022]
         ghc:
-          - 8.10.7
-          - 9.0.2
+#           - 8.10.7
+#           - 9.0.2
           - 9.2.1
       fail-fast: false
 
@@ -68,4 +69,5 @@ jobs:
 
     - name: Test
       run: |
+        ldd `cabal list-bin text-icu:test:tests`
         cabal test all -v --enable-tests --test-show-details=direct
