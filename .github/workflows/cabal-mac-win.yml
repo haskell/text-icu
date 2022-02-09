@@ -68,6 +68,8 @@ jobs:
         cabal build all
 
     - name: Test
+      shell: bash
       run: |
+        pkg-config --libs icu-i18n
         ldd `cabal list-bin text-icu:test:tests`
         cabal test all -v --enable-tests --test-show-details=direct
