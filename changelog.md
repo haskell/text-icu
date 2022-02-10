@@ -1,3 +1,8 @@
+0.8.0.1
+
+* Restore build with GHC 7.10 - 8.8 (#61)
+* New CI for Linux, macOS and Windows (#63, #64, #66, #69)
+
 0.8.0
 
 * Support for text-2.0 (#57)
