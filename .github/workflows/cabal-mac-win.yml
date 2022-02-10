@@ -16,8 +16,8 @@ jobs:
       matrix:
         os: [macOS-latest, windows-2022]
         ghc:
-#           - 8.10.7
-#           - 9.0.2
+          - 8.10.7
+          - 9.0.2
           - 9.2.1
       fail-fast: false
 
