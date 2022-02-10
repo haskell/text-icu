@@ -71,6 +71,7 @@ jobs:
       if: ${{ runner.os == 'Windows' }}
       shell: pwsh
       run: |
+        ldd (cabal list-bin text-icu:test:tests)
         $env:PATH = "C:\msys64\mingw64\bin;C:\msys64\usr\bin;$origPath;$env:PATH"
         pkg-config --libs icu-i18n
         ldd (cabal list-bin text-icu:test:tests)
