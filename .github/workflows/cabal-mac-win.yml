@@ -27,16 +27,16 @@ jobs:
 
     steps:
 
-#     - name: Install MSYS2 shell
-#       if: ${{ runner.os == 'Windows' }}
-#       uses: msys2/setup-msys2@v2
-#       with:
-#         update: false
-#         release: false
+    - name: Install MSYS2 shell
+      if: ${{ runner.os == 'Windows' }}
+      uses: msys2/setup-msys2@v2
+      with:
+        update: false
+        release: false
 
     - name: Install the ICU library (Windows)
       if: ${{ runner.os == 'Windows' }}
-      shell: bash
+      shell: msys2 {0}
       run: |
         pacman --noconfirm -S mingw-w64-x86_64-pkg-config mingw-w64-x86_64-icu
 
@@ -82,7 +82,5 @@ jobs:
 
     - name: Test
       if: ${{ runner.os == 'Windows' }}
-      shell: bash
-      run: |
-        env
-        cabal test all -v $CONFIG
+      shell: msys2 {0}
+      run: cabal test all $CONFIG
