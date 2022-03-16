@@ -228,7 +228,7 @@ getStatuses BR{..} =
       _ <- handleError $ ubrk_getRuleStatusVec brk ptr n
       map brStatus `fmap` peekArray (fromIntegral n) ptr
 
--- | Determine whether the specfied position is a boundary position.
+-- | Determine whether the specified position is a boundary position.
 -- As a side effect, leaves the iterator pointing to the first
 -- boundary position at or after the given offset.
 isBoundary :: BreakIterator a -> Int -> IO Bool
