@@ -51,7 +51,7 @@ import Data.Text.ICU.Number.Internal
 -- can be completely independent of the locale conventions for decimal points,
 -- thousands-separators, or even the particular decimal digits used, or whether
 -- the number format is even decimal. There are different number format styles
--- like decimal, currency, percent and spellout.
+-- like decimal, currency, percent and spelled-out.
 --
 -- Use 'formatter' to create a formatter and 'format' to format numbers.
 
@@ -103,7 +103,7 @@ toNFS NUM_FORMAT_STYLE_COUNT = #const UNUM_FORMAT_STYLE_COUNT
 toNFS NUM_DEFAULT = #const UNUM_DEFAULT
 toNFS NUM_IGNORE = #const UNUM_IGNORE
 
--- | Create and return a new MumberFormat for formatting and parsing numbers.
+-- | Create and return a new NumberFormat for formatting and parsing numbers.
 --
 -- A NumberFormat may be used to format numbers by calling unum_format, and
 -- to parse numbers by calling unum_parse. The caller must call unum_close when
