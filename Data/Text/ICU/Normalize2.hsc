@@ -223,7 +223,7 @@ normalize NFKCCasefold = nfkcCasefold
 -- | Create an NFC normalizer and apply this to the given text.
 --
 -- Let's have a look at a concrete example that contains the letter a with an acute accent twice.
--- First as a comination of two codepoints and second as a canonical composite or precomposed
+-- First as a combination of two codepoints and second as a canonical composite or precomposed
 -- character. Both look exactly the same but one character consists of two and one of only one
 -- codepoint. A bytewise comparison does not give equality of these.
 --

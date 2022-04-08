@@ -104,7 +104,7 @@ open name mf = do
     _ -> return ()
   return c
 
--- | Encode a Unicode string into a codepage string using the given converter.
+-- | Encode a Unicode string into a code page string using the given converter.
 fromUnicode :: Converter -> Text -> ByteString
 fromUnicode cnv t =
   unsafePerformIO . useAsPtr t $ \tptr tlen ->

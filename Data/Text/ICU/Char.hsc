@@ -1167,7 +1167,7 @@ isMirrored = asBool . u_isMirrored . fromIntegral . ord
 -- sometimes need a "poor man's" mapping to another Unicode (code point)
 -- such that the default glyph may serve as the mirror image of the default
 -- glyph of the specified character. This is useful for text conversion to
--- and from codepages with visual order, and for displays without glyph
+-- and from code pages with visual order, and for displays without glyph
 -- selection capabilities.
 --
 -- The return value is another Unicode code point that may serve as a

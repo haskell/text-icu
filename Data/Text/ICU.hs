@@ -216,7 +216,7 @@ import Data.Text (Text)
 --
 -- You create a 'NumberFormat' with 'numberFormatter' according to a locale
 -- and a choice of pre-defined formats. A 'NumberFormat' provides a formatting
--- faclity that 'format's numbers
+-- facility that 'format's numbers
 -- according to the chosen locale. Alternatively create and apply a 'NumberFormat'
 -- in a single step with 'formatNumber'' (it may be faster to re-use a NumberFormat though).
 -- See the section \"Patterns\" at <https://unicode-org.github.io/icu-docs/apidoc/released/icu4c/classDecimalFormat.html#Patterns>

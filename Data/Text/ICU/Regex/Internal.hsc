@@ -107,7 +107,7 @@ data MatchOption
     --
     -- By default, the matching time is not limited.
     | StackLimit Int
-    -- ^ Set the amount of heap storage avaliable for use by the match
+    -- ^ Set the amount of heap storage available for use by the match
     -- backtracking stack.
     --
     -- ICU uses a backtracking regular expression engine, with the

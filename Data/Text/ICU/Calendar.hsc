@@ -58,7 +58,7 @@ import System.IO.Unsafe (unsafePerformIO)
 
 type UCalendar = CInt
 
--- A 'Calendar' is an absttract data type that contains a foreign pointer to the ICU internal data structure.
+-- A 'Calendar' is an abstract data type that contains a foreign pointer to the ICU internal data structure.
 data Calendar = Calendar {calendarForeignPtr :: ForeignPtr UCalendar}
 
 -- | All the fields that comprise a 'Calendar'.
