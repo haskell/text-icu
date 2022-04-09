@@ -370,7 +370,7 @@ reduceCompareOptions = foldl' orO (#const U_COMPARE_CODE_POINT_ORDER)
     where a `orO` b = a .|. fromCompareOption b
 
 -- | Compare two strings for canonical equivalence. Further options
--- include case-insensitive comparison and code point order (as
+-- include case-insensitive comparison and codepoint order (as
 -- opposed to code unit order).
 --
 -- Canonical equivalence between two strings is defined as their

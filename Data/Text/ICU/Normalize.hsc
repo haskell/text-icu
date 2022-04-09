@@ -243,7 +243,7 @@ isNormalized mode t =
                                 (toNM mode)
 
 -- | Compare two strings for canonical equivalence.  Further options
--- include case-insensitive comparison and code point order (as
+-- include case-insensitive comparison and codepoint order (as
 -- opposed to code unit order).
 --
 -- Canonical equivalence between two strings is defined as their

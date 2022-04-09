@@ -13,7 +13,7 @@
 -- Access to the Unicode Character Database, implemented as bindings
 -- to the International Components for Unicode (ICU) libraries.
 --
--- Unicode assigns each code point (not just assigned character) values for
+-- Unicode assigns each codepoint (not just assigned character) values for
 -- many properties.  Most are simple boolean flags, or constants from a
 -- small enumerated list.  For some, values are relatively more complex
 -- types.
@@ -1147,14 +1147,14 @@ blockCode :: Char -> BlockCode
 blockCode = toEnum . fromIntegral . ublock_getCode . fromIntegral . ord
 {-# INLINE blockCode #-}
 
--- | Return the bidirectional category value for the code point,
+-- | Return the bidirectional category value for the codepoint,
 -- which is used in the Unicode bidirectional algorithm (UAX #9
 -- <http://www.unicode.org/reports/tr9/>).
 direction :: Char -> Direction
 direction = toEnum . fromIntegral . u_charDirection . fromIntegral . ord
 {-# INLINE direction #-}
 
--- | Determine whether the code point has the 'BidiMirrored' property.  This
+-- | Determine whether the codepoint has the 'BidiMirrored' property.  This
 -- property is set for characters that are commonly used in Right-To-Left
 -- contexts and need to be displayed with a "mirrored" glyph.
 isMirrored :: Char -> Bool
@@ -1164,13 +1164,13 @@ isMirrored = asBool . u_isMirrored . fromIntegral . ord
 -- Map the specified character to a "mirror-image" character.
 --
 -- For characters with the 'BidiMirrored' property, implementations
--- sometimes need a "poor man's" mapping to another Unicode (code point)
+-- sometimes need a "poor man's" mapping to another Unicode (codepoint)
 -- such that the default glyph may serve as the mirror image of the default
 -- glyph of the specified character. This is useful for text conversion to
 -- and from code pages with visual order, and for displays without glyph
 -- selection capabilities.
 --
--- The return value is another Unicode code point that may serve as a
+-- The return value is another Unicode codepoint that may serve as a
 -- mirror-image substitute, or the original character itself if there
 -- is no such mapping or the character lacks the 'BidiMirrored'
 -- property.
@@ -1198,7 +1198,7 @@ digitToInt c
     | otherwise = Just $! fromIntegral i
   where i = u_charDigitValue . fromIntegral . ord $ c
 
--- | Return the numeric value for a Unicode code point as defined in the
+-- | Return the numeric value for a Unicode codepoint as defined in the
 -- Unicode Character Database.
 --
 -- A 'Double' return type is necessary because some numeric values are
@@ -1220,7 +1220,7 @@ charName = charName' (#const U_UNICODE_CHAR_NAME)
 
 -- | Return the full name of a Unicode character.
 --
--- Compared to 'charName', this function gives each Unicode code point
+-- Compared to 'charName', this function gives each Unicode codepoint
 -- a unique extended name. Extended names are lowercase followed by an
 -- uppercase hexadecimal number, within angle brackets.
 charFullName :: Char -> String
@@ -1237,7 +1237,7 @@ charFromName :: String -> Maybe Char
 charFromName = charFromName' (#const U_UNICODE_CHAR_NAME)
 
 -- | Find a Unicode character by its full or extended name, and return
--- its code point value.
+-- its codepoint value.
 --
 -- The name is matched exactly and completely.
 --
