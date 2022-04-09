@@ -90,7 +90,7 @@ instance NFData CaseFirst where
 -- collation, when it is used to distinguish between Katakana and Hiragana
 -- (this is achieved by setting 'HiraganaQuaternaryMode' mode to
 -- 'True'). Otherwise, quaternary level is affected only by the number of
--- non ignorable code points in the string. Identical strength is rarely
+-- non ignorable codepoints in the string. Identical strength is rarely
 -- useful, as it amounts to codepoints of the 'NFD' form of the string.
 data Strength = Primary
               | Secondary

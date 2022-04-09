@@ -104,7 +104,7 @@ open name mf = do
     _ -> return ()
   return c
 
--- | Encode a Unicode string into a codepage string using the given converter.
+-- | Encode a Unicode string into a code page string using the given converter.
 fromUnicode :: Converter -> Text -> ByteString
 fromUnicode cnv t =
   unsafePerformIO . useAsPtr t $ \tptr tlen ->
@@ -138,7 +138,7 @@ toUnicode cnv bs =
 
 -- | Determines whether the converter uses fallback mappings or not.
 -- This flag has restrictions.  Regardless of this flag, the converter
--- will always use fallbacks from Unicode Private Use code points, as
+-- will always use fallbacks from Unicode Private Use codepoints, as
 -- well as reverse fallbacks (to Unicode).  For details see \".ucm
 -- File Format\" in the Conversion Data chapter of the ICU User Guide:
 -- <http://www.icu-project.org/userguide/conversion-data.html#ucmformat>

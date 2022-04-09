@@ -56,7 +56,7 @@ data ShapeOption =
   | LettersUnshape
   -- ^ Letter shaping option: replace "shaped" letter characters by abstract ones.
   | LettersShapeTashkeelIsolated
-  -- ^ The only difference with LettersShape is that Tashkeel letters are always "shaped" into the isolated form instead of the medial form (selecting code points from the Arabic Presentation Forms-B block).
+  -- ^ The only difference with LettersShape is that Tashkeel letters are always "shaped" into the isolated form instead of the medial form (selecting codepoints from the Arabic Presentation Forms-B block).
   | PreservePresentation
   -- ^ Presentation form option: Don't replace Arabic Presentation Forms-A and Arabic Presentation Forms-B characters with 0+06xx characters, before shaping.
   | TextDirectionVisualLTR
@@ -85,7 +85,7 @@ fromShapeOption TextDirectionVisualLTR = #const U_SHAPE_TEXT_DIRECTION_VISUAL_LT
 
 -- | Shape Arabic text on a character basis.
 --
--- Text-based shaping means that some character code points in the text are replaced by
+-- Text-based shaping means that some character codepoints in the text are replaced by
 -- others depending on the context. It transforms one kind of text into another.
 -- In comparison, modern displays for Arabic text select appropriate, context-dependent font
 -- glyphs for each text element, which means that they transform text into a glyph vector.

@@ -8,8 +8,8 @@
 -- Stability   : experimental
 -- Portability : GHC
 --
--- Implementation of Unicode Bidirection algorithm. See documentation of the libicu
--- library for additional details.
+-- Implementation of the Unicode Bidirectional Algorithm. See the documentation
+-- of the libicu library for additional details.
 --
 -- -- /Note/: this module is not thread safe. /Do not/ call the
 -- functions on one BiDi object from more than one thread!

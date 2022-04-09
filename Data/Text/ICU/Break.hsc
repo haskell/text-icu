@@ -70,7 +70,7 @@ import System.IO.Unsafe (unsafePerformIO)
 --
 -- /Important note/: All of the indices accepted and returned by
 -- functions in this module are offsets into the raw UTF-16 text
--- array, /not/ a count of code points.
+-- array, /not/ a count of codepoints.
 
 -- | Line break status.
 data Line = Soft                -- ^ A soft line break is a position at
