@@ -114,6 +114,9 @@ double __hs_u_getNumericValue(UChar32 c);
 /* ucol.h */
 
 UCollator *__hs_ucol_open(const char *loc, UErrorCode *status);
+UCollator* __hs_ucol_openRules(const UChar *rules, int32_t rulesLength,
+                               UColAttributeValue normalizationMode, UCollationStrength strength,
+                               UParseError *parseError, UErrorCode *status);
 void __hs_ucol_close(UCollator *coll);
 void __hs_ucol_setAttribute(UCollator *coll, UColAttribute attr,
                             UColAttributeValue value, UErrorCode *status);

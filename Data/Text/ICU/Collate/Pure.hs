@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, ForeignFunctionInterface #-}
+{-# LANGUAGE DeriveDataTypeable, ForeignFunctionInterface, ScopedTypeVariables  #-}
 -- |
 -- Module      : Data.Text.ICU.Collate.Pure
 -- Copyright   : (c) 2010 Bryan O'Sullivan
@@ -22,15 +22,18 @@ module Data.Text.ICU.Collate.Pure
       Collator
     , collator
     , collatorWith
+    , collatorFrom
     , collate
     , collateIter
     , sortKey
     , uca
     ) where
 
+import qualified Control.Exception as E
 import Control.Monad (forM_)
 import Data.ByteString (ByteString)
 import Data.Text (Text)
+import Data.Text.ICU.Error.Internal (ParseError(..))
 import Data.Text.ICU.Collate.Internal (Collator(..))
 import Data.Text.ICU.Internal (CharIterator, LocaleName(..))
 import System.IO.Unsafe (unsafePerformIO)
@@ -52,6 +55,19 @@ collatorWith loc atts = unsafePerformIO $ do
   mc <- IO.open loc
   forM_ atts $ IO.setAttribute mc
   return (C mc)
+
+-- | Create an immutable 'Collator' from the given collation rules.
+collatorFrom :: Text
+                -- ^ A string describing the collation rules.
+             -> Maybe Bool
+             -- ^ The normalization mode: One of 'Just False' ()expect the text to not need normalization)
+             -- 'Just True' (normalize), or 'Nothing' (set the mode according to the rules)
+             -> Maybe IO.Strength
+             -- ^ The default collation strength; one of 'Just Primary', 'Just Secondary', 'Just Tertiary', 'Just Identical', 'Nothing' (default strength) - can be also set in the rules.
+             -> Either ParseError Collator
+collatorFrom rules norm strength = unsafePerformIO $
+  ((Right . C) `fmap` IO.openRules rules norm strength) `E.catch`
+  \(err::ParseError) -> return (Left err)
 
 -- | Compare two strings.
 collate :: Collator -> Text -> Text -> Ordering

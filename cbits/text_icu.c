@@ -238,6 +238,13 @@ UCollator *__hs_ucol_open(const char *loc, UErrorCode *status)
     return ucol_open(loc, status);
 }
 
+UCollator* __hs_ucol_openRules(const UChar *rules, int32_t rulesLength,
+                               UColAttributeValue normalizationMode, UCollationStrength strength,
+                               UParseError *parseError, UErrorCode *status)
+{
+  return ucol_openRules(rules, rulesLength, normalizationMode, strength, parseError, status);
+}
+
 void __hs_ucol_close(UCollator *coll)
 {
     ucol_close(coll);

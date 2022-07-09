@@ -23,6 +23,7 @@ module Data.Text.ICU.Collate
     , Strength(..)
     -- * Functions
     , open
+    , openRules
     , collate
     , collateIter
     -- ** Utility functions
@@ -45,7 +46,8 @@ import qualified Data.Text as T
 import Data.Text.Foreign (useAsPtr)
 import Data.Text.ICU.Collate.Internal (Collator(..), MCollator, UCollator,
                                        withCollator, wrap)
-import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
+import Data.Text.ICU.Error (u_INVALID_FORMAT_ERROR)
+import Data.Text.ICU.Error.Internal (UErrorCode, UParseError, handleError, handleParseError)
 import Data.Text.ICU.Internal
     (LocaleName, UChar, CharIterator, UCharIterator,
      asOrdering, withCharIterator, withLocaleName, useAsUCharPtr)
@@ -156,6 +158,7 @@ instance NFData Attribute where
 
 type UColAttribute = CInt
 type UColAttributeValue = CInt
+type UCollationStrength = UColAttributeValue
 
 toUAttribute :: Attribute -> (UColAttribute, UColAttributeValue)
 toUAttribute (French v)
@@ -179,6 +182,11 @@ toOO :: Bool -> UColAttributeValue
 toOO False = #const UCOL_OFF
 toOO True  = #const UCOL_ON
 
+toDefaultOO :: (Maybe Bool) -> UColAttributeValue
+toDefaultOO (Just False) = #const UCOL_OFF
+toDefaultOO (Just True)  = #const UCOL_ON
+toDefaultOO Nothing  = #const UCOL_DEFAULT
+
 toAH :: AlternateHandling -> UColAttributeValue
 toAH NonIgnorable = #const UCOL_NON_IGNORABLE
 toAH Shifted      = #const UCOL_SHIFTED
@@ -194,6 +202,14 @@ toS Secondary  = #const UCOL_SECONDARY
 toS Tertiary   = #const UCOL_TERTIARY
 toS Quaternary = #const UCOL_QUATERNARY
 toS Identical  = #const UCOL_IDENTICAL
+
+toDefaultS :: Maybe Strength -> UColAttributeValue
+toDefaultS (Just Primary)    = #const UCOL_PRIMARY
+toDefaultS (Just Secondary)  = #const UCOL_SECONDARY
+toDefaultS (Just Tertiary)   = #const UCOL_TERTIARY
+toDefaultS bad@(Just Quaternary) = valueError "toDefaultS" bad
+toDefaultS (Just Identical)  = #const UCOL_IDENTICAL
+toDefaultS Nothing  = #const UCOL_DEFAULT_STRENGTH
 
 fromOO :: UColAttributeValue -> Bool
 fromOO (#const UCOL_OFF) = False
@@ -243,6 +259,19 @@ open :: LocaleName
      -- ^ The locale containing the required collation rules.
      -> IO MCollator
 open loc = wrap $ withLocaleName loc (handleError . ucol_open)
+
+-- | Produce a 'Collator' instance according to the rules supplied.
+openRules :: Text
+          -- ^ A string describing the collation rules.
+          -> Maybe Bool
+          -- ^ The normalization mode: One of 'Just False' (expect the text to not need normalization)
+          -- 'Just True' (normalize), or 'Nothing' (set the mode according to the rules)
+          -> Maybe Strength
+          -- ^ The default collation strength; one of 'Just Primary', 'Just Secondary', 'Just Tertiary', 'Just Identical', 'Nothing' (default strength) - can be also set in the rules.
+          -> IO MCollator
+openRules r n s = wrap $ useAsUCharPtr r $ \rptr rlen -> do
+  let len = fromIntegral rlen
+  handleParseError (== u_INVALID_FORMAT_ERROR) $ ucol_openRules rptr len (toDefaultOO n) (toDefaultS s)
 
 -- | Set the value of an 'MCollator' attribute.
 setAttribute :: MCollator -> Attribute -> IO ()
@@ -327,6 +356,9 @@ clone c =
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ucol_open" ucol_open
     :: CString -> Ptr UErrorCode -> IO (Ptr UCollator)
+
+foreign import ccall unsafe "hs_text_icu.h __hs_ucol_openRules" ucol_openRules
+    :: Ptr UChar -> Int32 -> UColAttributeValue -> UCollationStrength -> Ptr UParseError -> Ptr UErrorCode -> IO (Ptr UCollator)
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ucol_getAttribute" ucol_getAttribute
     :: Ptr UCollator -> UColAttribute -> Ptr UErrorCode -> IO UColAttributeValue
