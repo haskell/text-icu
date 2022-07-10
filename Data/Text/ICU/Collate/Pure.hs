@@ -22,7 +22,8 @@ module Data.Text.ICU.Collate.Pure
       Collator
     , collator
     , collatorWith
-    , collatorFrom
+    , collatorFromRules
+    , collatorFromRulesWith
     , collate
     , collateIter
     , sortKey
@@ -57,17 +58,19 @@ collatorWith loc atts = unsafePerformIO $ do
   return (C mc)
 
 -- | Create an immutable 'Collator' from the given collation rules.
-collatorFrom :: Text
-                -- ^ A string describing the collation rules.
-             -> Maybe Bool
-             -- ^ The normalization mode: One of 'Just False' ()expect the text to not need normalization)
-             -- 'Just True' (normalize), or 'Nothing' (set the mode according to the rules)
-             -> Maybe IO.Strength
-             -- ^ The default collation strength; one of 'Just Primary', 'Just Secondary', 'Just Tertiary', 'Just Identical', 'Nothing' (default strength) - can be also set in the rules.
-             -> Either ParseError Collator
-collatorFrom rules norm strength = unsafePerformIO $
-  ((Right . C) `fmap` IO.openRules rules norm strength) `E.catch`
-  \(err::ParseError) -> return (Left err)
+collatorFromRules :: Text -> Either ParseError Collator
+collatorFromRules rul = collatorFromRulesWith rul []
+
+-- | Create an immutable 'Collator' from the given collation rules with the given 'Attribute's.
+collatorFromRulesWith :: Text -> [IO.Attribute] -> Either ParseError Collator
+collatorFromRulesWith rul atts = unsafePerformIO $
+  (Right `fmap` openAndSetAtts)
+  `E.catch` \(err::ParseError) -> return (Left err)
+  where
+    openAndSetAtts = do
+      mc <- IO.openRules rul Nothing Nothing
+      forM_ atts $ IO.setAttribute mc
+      return (C mc)
 
 -- | Compare two strings.
 collate :: Collator -> Text -> Text -> Ordering
