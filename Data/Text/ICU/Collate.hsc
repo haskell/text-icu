@@ -265,9 +265,9 @@ openRules :: Text
           -> Maybe Strength
           -- ^ The default collation strength; one of 'Just Primary', 'Just Secondary', 'Just Tertiary', 'Just Identical', 'Nothing' (default strength) - can be also set in the rules.
           -> IO MCollator
-openRules r n s = wrap $ useAsUCharPtr r $ \rptr rlen -> do
-  let len = fromIntegral rlen
-  handleParseError (== u_INVALID_FORMAT_ERROR) $ ucol_openRules rptr len (toDefaultOO n) (toDefaultS s)
+openRules r n s = wrap $ useAsUCharPtr r $ \rPtr rLen -> do
+  let len = fromIntegral rLen
+  handleParseError (== u_INVALID_FORMAT_ERROR) $ ucol_openRules rPtr len (toDefaultOO n) (toDefaultS s)
 
 -- | Set the value of an 'MCollator' attribute.
 setAttribute :: MCollator -> Attribute -> IO ()
