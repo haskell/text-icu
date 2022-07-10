@@ -27,6 +27,7 @@ module Data.Text.ICU.Collate
     , collate
     , collateIter
     -- ** Utility functions
+    , getRules
     , getAttribute
     , setAttribute
     , sortKey
@@ -50,14 +51,16 @@ import Data.Text.ICU.Error (u_INVALID_FORMAT_ERROR)
 import Data.Text.ICU.Error.Internal (UErrorCode, UParseError, handleError, handleParseError)
 import Data.Text.ICU.Internal
     (LocaleName, UChar, CharIterator, UCharIterator,
-     asOrdering, withCharIterator, withLocaleName, useAsUCharPtr)
+     asOrdering, fromUCharPtr, withCharIterator, withLocaleName, useAsUCharPtr)
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Foreign.C.String (CString)
 import Foreign.C.Types (CInt(..))
 import Foreign.ForeignPtr (withForeignPtr)
+import Foreign.Marshal.Alloc (alloca)
 import Foreign.Marshal.Utils (with)
 import Foreign.Ptr (Ptr, nullPtr)
+import Foreign.Storable (peek)
 
 -- $api
 --
@@ -269,6 +272,14 @@ openRules r n s = wrap $ useAsUCharPtr r $ \rPtr rLen -> do
   let len = fromIntegral rLen
   handleParseError (== u_INVALID_FORMAT_ERROR) $ ucol_openRules rPtr len (toDefaultOO n) (toDefaultS s)
 
+-- | Get the rules of an 'MCollator' attribute.
+getRules :: MCollator -> IO Text
+getRules c =
+  withCollator c $ \cPtr ->
+    alloca $ \lenPtr -> do
+      textPtr <- ucol_getRules cPtr lenPtr
+      (fromUCharPtr textPtr . fromIntegral) =<< peek lenPtr
+
 -- | Set the value of an 'MCollator' attribute.
 setAttribute :: MCollator -> Attribute -> IO ()
 setAttribute c a =
@@ -358,6 +369,9 @@ foreign import ccall unsafe "hs_text_icu.h __hs_ucol_openRules" ucol_openRules
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ucol_getAttribute" ucol_getAttribute
     :: Ptr UCollator -> UColAttribute -> Ptr UErrorCode -> IO UColAttributeValue
+
+foreign import ccall unsafe "hs_text_icu.h __hs_ucol_getRules" ucol_getRules
+    :: Ptr UCollator -> Ptr Int32 -> IO (Ptr UChar)
 
 foreign import ccall unsafe "hs_text_icu.h __hs_ucol_setAttribute" ucol_setAttribute
     :: Ptr UCollator -> UColAttribute -> UColAttributeValue -> Ptr UErrorCode -> IO ()

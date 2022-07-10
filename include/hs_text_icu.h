@@ -118,6 +118,7 @@ UCollator* __hs_ucol_openRules(const UChar *rules, int32_t rulesLength,
                                UColAttributeValue normalizationMode, UCollationStrength strength,
                                UParseError *parseError, UErrorCode *status);
 void __hs_ucol_close(UCollator *coll);
+const UChar *__hs_ucol_getRules(const UCollator *coll, int32_t *length);
 void __hs_ucol_setAttribute(UCollator *coll, UColAttribute attr,
                             UColAttributeValue value, UErrorCode *status);
 UColAttributeValue __hs_ucol_getAttribute(const UCollator *coll,

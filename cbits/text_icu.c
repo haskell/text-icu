@@ -250,6 +250,11 @@ void __hs_ucol_close(UCollator *coll)
     ucol_close(coll);
 }
 
+const UChar *__hs_ucol_getRules(const UCollator *coll, int32_t *length)
+{
+  return ucol_getRules(coll, length);
+}
+
 void __hs_ucol_setAttribute(UCollator *coll, UColAttribute attr,
                             UColAttributeValue value, UErrorCode *status)
 {

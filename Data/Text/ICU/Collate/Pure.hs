@@ -26,6 +26,7 @@ module Data.Text.ICU.Collate.Pure
     , collatorFromRulesWith
     , collate
     , collateIter
+    , rules
     , sortKey
     , uca
     ) where
@@ -71,6 +72,10 @@ collatorFromRulesWith rul atts = unsafePerformIO $
       mc <- IO.openRules rul Nothing Nothing
       forM_ atts $ IO.setAttribute mc
       return (C mc)
+
+-- | Get rules for the given 'Collator'.
+rules :: Collator -> Text
+rules (C c) = unsafePerformIO $ IO.getRules c
 
 -- | Compare two strings.
 collate :: Collator -> Text -> Text -> Ordering
