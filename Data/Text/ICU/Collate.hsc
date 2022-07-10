@@ -204,11 +204,7 @@ toS Quaternary = #const UCOL_QUATERNARY
 toS Identical  = #const UCOL_IDENTICAL
 
 toDefaultS :: Maybe Strength -> UColAttributeValue
-toDefaultS (Just Primary)    = #const UCOL_PRIMARY
-toDefaultS (Just Secondary)  = #const UCOL_SECONDARY
-toDefaultS (Just Tertiary)   = #const UCOL_TERTIARY
-toDefaultS bad@(Just Quaternary) = valueError "toDefaultS" bad
-toDefaultS (Just Identical)  = #const UCOL_IDENTICAL
+toDefaultS (Just s)    = toS s
 toDefaultS Nothing  = #const UCOL_DEFAULT_STRENGTH
 
 fromOO :: UColAttributeValue -> Bool
