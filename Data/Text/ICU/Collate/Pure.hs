@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, ForeignFunctionInterface #-}
+{-# LANGUAGE DeriveDataTypeable, ForeignFunctionInterface, ScopedTypeVariables  #-}
 -- |
 -- Module      : Data.Text.ICU.Collate.Pure
 -- Copyright   : (c) 2010 Bryan O'Sullivan
@@ -22,15 +22,20 @@ module Data.Text.ICU.Collate.Pure
       Collator
     , collator
     , collatorWith
+    , collatorFromRules
+    , collatorFromRulesWith
     , collate
     , collateIter
+    , rules
     , sortKey
     , uca
     ) where
 
+import qualified Control.Exception as E
 import Control.Monad (forM_)
 import Data.ByteString (ByteString)
 import Data.Text (Text)
+import Data.Text.ICU.Error.Internal (ParseError(..))
 import Data.Text.ICU.Collate.Internal (Collator(..))
 import Data.Text.ICU.Internal (CharIterator, LocaleName(..))
 import System.IO.Unsafe (unsafePerformIO)
@@ -52,6 +57,25 @@ collatorWith loc atts = unsafePerformIO $ do
   mc <- IO.open loc
   forM_ atts $ IO.setAttribute mc
   return (C mc)
+
+-- | Create an immutable 'Collator' from the given collation rules.
+collatorFromRules :: Text -> Either ParseError Collator
+collatorFromRules rul = collatorFromRulesWith rul []
+
+-- | Create an immutable 'Collator' from the given collation rules with the given 'Attribute's.
+collatorFromRulesWith :: Text -> [IO.Attribute] -> Either ParseError Collator
+collatorFromRulesWith rul atts = unsafePerformIO $
+  (Right `fmap` openAndSetAtts)
+  `E.catch` \(err::ParseError) -> return (Left err)
+  where
+    openAndSetAtts = do
+      mc <- IO.openRules rul Nothing Nothing
+      forM_ atts $ IO.setAttribute mc
+      return (C mc)
+
+-- | Get rules for the given 'Collator'.
+rules :: Collator -> Text
+rules (C c) = unsafePerformIO $ IO.getRules c
 
 -- | Compare two strings.
 collate :: Collator -> Text -> Text -> Ordering

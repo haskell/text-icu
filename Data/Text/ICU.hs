@@ -62,6 +62,8 @@ module Data.Text.ICU
     , Collator
     , collator
     , collatorWith
+    , collatorFromRules
+    , collatorFromRulesWith
     , collate
     , collateIter
     , sortKey

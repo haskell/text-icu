@@ -238,9 +238,21 @@ UCollator *__hs_ucol_open(const char *loc, UErrorCode *status)
     return ucol_open(loc, status);
 }
 
+UCollator* __hs_ucol_openRules(const UChar *rules, int32_t rulesLength,
+                               UColAttributeValue normalizationMode, UCollationStrength strength,
+                               UParseError *parseError, UErrorCode *status)
+{
+  return ucol_openRules(rules, rulesLength, normalizationMode, strength, parseError, status);
+}
+
 void __hs_ucol_close(UCollator *coll)
 {
     ucol_close(coll);
+}
+
+const UChar *__hs_ucol_getRules(const UCollator *coll, int32_t *length)
+{
+  return ucol_getRules(coll, length);
 }
 
 void __hs_ucol_setAttribute(UCollator *coll, UColAttribute attr,

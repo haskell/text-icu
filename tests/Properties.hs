@@ -13,7 +13,7 @@ import Control.DeepSeq (NFData(..))
 import Data.Function (on)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
-import Data.Text.ICU (LocaleName(..))
+import Data.Text.ICU (LocaleName(..), ParseError(..))
 import QuickCheckUtils (NonEmptyText(..), LatinSpoofableText(..),
                         NonSpoofableText(..), Utf8Text(..))
 import Data.Text.ICU.Normalize2 (NormalizationMode(..))
@@ -21,8 +21,8 @@ import qualified Data.Text.ICU.Normalize2 as I
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.Framework.Providers.HUnit (hUnitTestToTests)
-import Test.HUnit ((~?=), (@?=))
-import qualified Test.HUnit (Test(..))
+import Test.HUnit ((~?=), (@?=), (~:))
+import qualified Test.HUnit (Test(..), assertFailure)
 import Test.QuickCheck.Monadic (monadicIO, run, assert)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -32,6 +32,7 @@ import qualified Data.Text.ICU.Calendar as Cal
 import qualified Data.Text.ICU.Convert as I
 import qualified Data.Text.ICU.Char as I
 import qualified Data.Text.ICU.CharsetDetection as CD
+import qualified Data.Text.ICU.Error as Err
 import qualified Data.Text.ICU.Number as N
 import qualified Data.Text.ICU.Shape as S
 import System.IO.Unsafe (unsafePerformIO)
@@ -79,6 +80,11 @@ t_quickCheck_isNormalized mode normMode txt
 
 t_collate a b = c a b == flipOrdering (c b a)
     where c = I.collate I.uca
+
+t_collate_emptyRule a b = I.collate cUca a b == I.collate cEmpty a b
+  where
+    cUca = I.uca
+    Right cEmpty = I.collatorFromRules ""
 
 flipOrdering :: Ordering -> Ordering
 flipOrdering = \ case
@@ -135,6 +141,7 @@ propertyTests =
   , testProperty "t_charIterator_Utf8" t_charIterator_Utf8
   , testProperty "t_quickCheck_isNormalized" t_quickCheck_isNormalized
   , testProperty "t_collate" t_collate
+  , testProperty "t_collate_emptyRule" t_collate_emptyRule
   , testProperty "t_convert" t_convert
   , testProperty "t_blockCode" t_blockCode
   , testProperty "t_charFullName" t_charFullName
@@ -209,6 +216,8 @@ testCases =
     <$> I.numberFormatter "precision-currency-cash currency/EUR" (Locale "it"))
    `ioEq` "12.345,68\160€"
 
+  , Test.HUnit.TestLabel "collate" testCases_collate
+
   ]
   <>
   concat
@@ -225,3 +234,20 @@ testCases =
         ioEq io a = Test.HUnit.TestCase $ do
             x <- io
             x @?= a
+
+
+testCases_collate :: Test.HUnit.Test
+testCases_collate = Test.HUnit.TestList $
+  [ Test.HUnit.TestLabel "invalid format" $
+    assertParseError (I.collatorFromRules "& a < <") Err.u_INVALID_FORMAT_ERROR (Just 0) (Just 4)
+  , Test.HUnit.TestLabel "custom collator" $ Test.HUnit.TestCase $ do
+      let Right c = I.collatorFromRules "& b < a"
+      I.collate c "a" "b" @?= GT
+  ]
+  where
+    assertParseError (Left e) err line offset = Test.HUnit.TestList
+      [ "errError" ~: errError e ~?= err
+      , "errLine" ~: errLine e ~?= line
+      , "errOffset" ~: errOffset e ~?= offset
+      ]
+    assertParseError (Right _) _ _ _ = Test.HUnit.TestCase $ Test.HUnit.assertFailure "Expects a Left"
