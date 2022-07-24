@@ -1,3 +1,7 @@
+0.8.0.2
+
+* Support for creating a collator from custom rules (#76)
+
 0.8.0.1
 
 * Restore build with GHC 7.10 - 8.8 (#61)

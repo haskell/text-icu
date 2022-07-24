@@ -84,7 +84,8 @@ t_collate a b = c a b == flipOrdering (c b a)
 t_collate_emptyRule a b = I.collate cUca a b == I.collate cEmpty a b
   where
     cUca = I.uca
-    Right cEmpty = I.collatorFromRules ""
+    cEmpty = either (error "Can’t create empty collator") id
+      $ I.collatorFromRules ""
 
 flipOrdering :: Ordering -> Ordering
 flipOrdering = \ case
@@ -241,7 +242,8 @@ testCases_collate = Test.HUnit.TestList $
   [ Test.HUnit.TestLabel "invalid format" $
     assertParseError (I.collatorFromRules "& a < <") Err.u_INVALID_FORMAT_ERROR (Just 0) (Just 4)
   , Test.HUnit.TestLabel "custom collator" $ Test.HUnit.TestCase $ do
-      let Right c = I.collatorFromRules "& b < a"
+      let c = either (error "Can’t create b<a collator") id
+              $ I.collatorFromRules "& b < a"
       I.collate c "a" "b" @?= GT
   ]
   where
