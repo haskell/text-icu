@@ -16,12 +16,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macOS-latest, windows-latest]
+        os: [macOS-latest]
         ghc:
-          - 8.10.7
-          - 9.0.2
           - 9.2.4
-          - 9.4.2
+        # os: [macOS-latest, windows-latest]
+        # ghc:
+        #   - 8.10.7
+        #   - 9.0.2
+        #   - 9.2.4
+        #   - 9.4.2
             # As of 2022-10-06, haskell/actions/setup does not support 9.4.2 yet.
             # Waiting for https://github.com/haskell/actions/pull/115.
       fail-fast: false
@@ -52,10 +55,15 @@ jobs:
       run: |
         export PKG_CONFIG_PATH=/usr/local/opt/icu4c/lib/pkgconfig
         echo "PKG_CONFIG_PATH=${PKG_CONFIG_PATH}" >> ${GITHUB_ENV}
-        echo "$ ls -l ${PKG_CONFIG_PATH}"
-        ls -l ${PKG_CONFIG_PATH}
+        echo "$ ls -l ${PKG_CONFIG_PATH}/"
+        ls -l ${PKG_CONFIG_PATH}/
         echo "$ pkg-config --modversion icu-i18n"
         pkg-config --modversion icu-i18n
+
+    - name: Check integry of pkg-config database
+      if: ${{ runner.os == 'macOS' }}
+      run: |
+        pkg-config --list-all | cut -f 1 -d ' ' | xargs pkg-config --modversion
 
     - name: Checkout
       uses: actions/checkout@v3
