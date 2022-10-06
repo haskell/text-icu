@@ -4,8 +4,10 @@ on:
     branches:
     - master
     - ci-*
-    - release*
   pull_request:
+    branches:
+    - master
+    - ci-*
 
 jobs:
 
@@ -14,11 +16,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macOS-latest, windows-2022]
+        os: [macOS-latest, windows-latest]
         ghc:
           - 8.10.7
           - 9.0.2
-          - 9.2.1
+          - 9.2.4
+          - 9.4.1
+            # As of 2022-10-06, haskell/actions/setup does not support 9.4.2 yet.
+            # Waiting for https://github.com/haskell/actions/pull/115.
       fail-fast: false
 
     env:
@@ -48,7 +53,7 @@ jobs:
         echo "PKG_CONFIG_PATH=/usr/local/opt/icu4c/lib/pkgconfig" >> ${GITHUB_ENV}
 
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Setup Haskell
       uses: haskell/actions/setup@v1
@@ -61,7 +66,7 @@ jobs:
         cabal freeze
 
     - name: Cache ~/.cabal/store
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
           ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
