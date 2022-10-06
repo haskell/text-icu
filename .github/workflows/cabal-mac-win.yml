@@ -50,7 +50,12 @@ jobs:
     - name: Set up pkg-config for the ICU library (macOS)
       if: ${{ runner.os == 'macOS' }}
       run: |
-        echo "PKG_CONFIG_PATH=/usr/local/opt/icu4c/lib/pkgconfig" >> ${GITHUB_ENV}
+        export PKG_CONFIG_PATH=/usr/local/opt/icu4c/lib/pkgconfig
+        echo "PKG_CONFIG_PATH=${PKG_CONFIG_PATH}" >> ${GITHUB_ENV}
+        echo "$ ls -l ${PKG_CONFIG_PATH}"
+        ls -l ${PKG_CONFIG_PATH}
+        echo "$ pkg-config --modversion icu-i18n"
+        pkg-config --modversion icu-i18n
 
     - name: Checkout
       uses: actions/checkout@v3
