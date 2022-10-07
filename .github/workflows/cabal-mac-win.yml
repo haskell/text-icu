@@ -63,6 +63,13 @@ jobs:
     - name: Check integry of pkg-config database
       if: ${{ runner.os == 'macOS' }}
       run: |
+        echo "$ pkg-config --list-all"
+        pkg-config --list-all
+        echo "========================================================================"
+        echo "$ pkg-config --list-all | cut -f 1 -d ' '"
+        pkg-config --list-all | cut -f 1 -d ' '
+        echo "========================================================================"
+        echo "$ pkg-config --list-all | cut -f 1 -d ' ' | xargs pkg-config --modversion"
         pkg-config --list-all | cut -f 1 -d ' ' | xargs pkg-config --modversion
 
     - name: Checkout
