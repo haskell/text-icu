@@ -59,6 +59,8 @@ jobs:
         ls -l ${PKG_CONFIG_PATH}/
         echo "$ pkg-config --modversion icu-i18n"
         pkg-config --modversion icu-i18n
+        echo "$ pkg-config --libs --static icu-i18n"
+        pkg-config --libs --static icu-i18n
 
     - name: Check integry of pkg-config database
       if: ${{ runner.os == 'macOS' }}
