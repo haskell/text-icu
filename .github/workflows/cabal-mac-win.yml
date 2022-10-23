@@ -21,9 +21,7 @@ jobs:
           - 8.10.7
           - 9.0.2
           - 9.2.4
-          - 9.4.1
-            # As of 2022-10-06, haskell/actions/setup does not support 9.4.2 yet.
-            # Waiting for https://github.com/haskell/actions/pull/115.
+          - 9.4.2
       fail-fast: false
 
     env:
@@ -47,16 +45,40 @@ jobs:
     #   run: |
     #     brew install icu4c
 
+    # Let `pkg-config` find the ICU libs.
+    # Also test whether it actually works, and print some debug information.
     - name: Set up pkg-config for the ICU library (macOS)
       if: ${{ runner.os == 'macOS' }}
       run: |
-        echo "PKG_CONFIG_PATH=/usr/local/opt/icu4c/lib/pkgconfig" >> ${GITHUB_ENV}
+        export PKG_CONFIG_PATH=/usr/local/opt/icu4c/lib/pkgconfig
+        echo "PKG_CONFIG_PATH=${PKG_CONFIG_PATH}" >> ${GITHUB_ENV}
+        echo "$ ls -l ${PKG_CONFIG_PATH}/"
+        ls -l ${PKG_CONFIG_PATH}/
+        echo "$ pkg-config --modversion icu-i18n"
+        pkg-config --modversion icu-i18n
+        echo "$ pkg-config --libs --static icu-i18n"
+        pkg-config --libs --static icu-i18n
+
+    # # Test of `pkg-config --list-all` in connection with macOS-11/12 env bug:
+    # # https://github.com/actions/runner-images/issues/6364
+    # # This was fixed upstream 2022-10-10.
+    # - name: Check integrity of pkg-config database
+    #   if: ${{ runner.os == 'macOS' }}
+    #   run: |
+    #     echo "$ pkg-config --list-all"
+    #     pkg-config --list-all
+    #     echo "========================================================================"
+    #     echo "$ pkg-config --list-all | cut -f 1 -d ' '"
+    #     pkg-config --list-all | cut -f 1 -d ' '
+    #     echo "========================================================================"
+    #     echo "$ pkg-config --list-all | cut -f 1 -d ' ' | xargs pkg-config --modversion"
+    #     pkg-config --list-all | cut -f 1 -d ' ' | xargs pkg-config --modversion
 
     - name: Checkout
       uses: actions/checkout@v3
 
     - name: Setup Haskell
-      uses: haskell/actions/setup@v1
+      uses: haskell/actions/setup@v2
       id: setup-haskell-cabal
       with:
         ghc-version: ${{ matrix.ghc }}
