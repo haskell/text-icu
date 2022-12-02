@@ -25,7 +25,7 @@ be installed separately).
 
 You might need:
 
-    export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig"
+    export PKG_CONFIG_PATH="$(brew --prefix)/opt/icu4c/lib/pkgconfig"
 
 ### Debian/Ubuntu
 
