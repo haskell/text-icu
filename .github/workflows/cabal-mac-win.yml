@@ -22,6 +22,13 @@ jobs:
           - 9.0.2
           - 9.2.5
           - 9.4.4
+        include:
+        - os: macOS-12
+          ghc: 9.6.0.20230210
+          ghcup-release-channel: https://raw.githubusercontent.com/haskell/ghcup-metadata/master/ghcup-prereleases-0.0.7.yaml
+        - os: windows-2022
+          ghc: 9.6.0.20230210
+          ghcup-release-channel: https://raw.githubusercontent.com/haskell/ghcup-metadata/master/ghcup-prereleases-0.0.7.yaml
       fail-fast: false
 
     steps:
@@ -51,13 +58,15 @@ jobs:
     #     brew install icu4c
 
     # Let `pkg-config` find the ICU libs.
-    # Also test whether it actually works, and print some debug information.
     - name: Set up pkg-config for the ICU library (macOS)
       if: ${{ runner.os == 'macOS' }}
       run: |
         PKG_CONFIG_PATH=$(brew --prefix)/opt/icu4c/lib/pkgconfig
         echo "PKG_CONFIG_PATH=${PKG_CONFIG_PATH}" >> "${GITHUB_ENV}"
-        ## The rest is debug info:
+
+    - name: Extra info for pkg-config (macOS, debug mode only)
+      if: ${{ runner.os == 'macOS' && runner.debug }}
+      run: |
         echo "$ ls -l ${PKG_CONFIG_PATH}/"
         ls -l "${PKG_CONFIG_PATH}/"
         export PKG_CONFIG_PATH
@@ -96,6 +105,7 @@ jobs:
       id: setup-haskell-cabal
       with:
         ghc-version: ${{ matrix.ghc }}
+        ghcup-release-channel: ${{ matrix.ghcup-release-channel }}
 
     - name: Configure
       run: |
