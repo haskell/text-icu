@@ -16,12 +16,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macOS-latest, windows-latest]
-        ghc:
-          - 8.10.7
-          - 9.0.2
-          - 9.2.5
-          - 9.4.4
+        # os: [macOS-latest, windows-latest]
+        # ghc:
+        #   - 8.10.7
+        #   - 9.0.2
+        #   - 9.2.5
+        #   - 9.4.4
         include:
         - os: macOS-12
           ghc: 9.6.0.20230210
