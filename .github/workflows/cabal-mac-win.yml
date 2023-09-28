@@ -18,10 +18,10 @@ jobs:
       matrix:
         os: [macOS-latest, windows-latest]
         ghc:
-          - 8.10.7
           - 9.0.2
-          - 9.2.5
-          - 9.4.4
+          - 9.2.8
+          - 9.4.7
+          - 9.6.2
       fail-fast: false
 
     steps:
@@ -89,10 +89,10 @@ jobs:
         echo "ICU_VER=${ICU_VER}" >> "${GITHUB_ENV}"
 
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Setup Haskell
-      uses: haskell/actions/setup@v2
+      uses: haskell-actions/setup@v2
       id: setup-haskell-cabal
       with:
         ghc-version: ${{ matrix.ghc }}
