@@ -1,0 +1,126 @@
+name: Stack build
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  stack:
+    name: ${{ matrix.os }} Stack ${{ matrix.plan.resolver }} / ${{ matrix.plan.ghc }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        plan:
+          - resolver: 'nightly'
+          - resolver: 'lts'
+          # - ghc: '9.6.2'
+          #   resolver: 'nightly-2023-09-27'
+          # - ghc: '9.4.7'
+          #   resolver: 'lts-21.13'
+          # - ghc: '9.2.8'
+          #   resolver: 'lts-20.26'
+          # - ghc: '9.0.2'
+          #   resolver: 'lts-19.33'
+          # - ghc: '8.10.7'
+          #   resolver: 'lts-18.28'
+          # - ghc: '8.8.4'
+          #   resolver: 'lts-16.31'
+          # - ghc: '8.6.5'
+          #   resolver: 'lts-14.27'
+          # - ghc: '8.4.4'
+          #   resolver: 'lts-12.26'
+          # - ghc: '8.2.2'
+          #   resolver: 'lts-11.22'
+
+
+        include:
+          - os: windows-latest
+            plan:
+              resolver: 'nightly'
+          - os: windows-latest
+            plan:
+              resolver: 'lts'
+
+          - os: macos-latest
+            plan:
+              resolver: 'nightly'
+          - os: macos-latest
+            plan:
+              resolver: 'lts'
+
+    runs-on: ${{ matrix.os }}
+    env:
+      STACK: stack --no-terminal --resolver ${{ matrix.plan.resolver }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure
+      run: $STACK init
+
+    - name: Install GHC via stack
+      run: $STACK ghc -- --version
+
+    - name: Haskell versions
+      run: |
+        STACK_VERSION=$(${STACK} --numeric-version)
+        echo "STACK_VERSION=${STACK_VERSION}" >> "${GITHUB_ENV}"
+        GHC_VERSION=$(${STACK} ghc -- --numeric-version)
+        echo "GHC_VERSION=${GHC_VERSION}" >> "${GITHUB_ENV}"
+
+      ## This causes troubles on Windows (spaces in env variable)?
+      # STACK_ROOT=$(${STACK} path --stack-root)
+      # echo "STACK_ROOT=${STACK_ROOT}" >> "${GITHUB_ENV}"
+
+    - name: Try pkg-config
+      run: |
+        $STACK exec -- pkg-config --version
+        $STACK exec -- pkg-config --list-all
+
+    - name: Set up for the ICU library (macOS)
+      if: ${{ runner.os == 'macOS' }}
+      run: |
+        ICU4C=$(brew --prefix)/opt/icu4c
+        echo "PKG_CONFIG_PATH=${ICU4C}/lib/pkgconfig" >> "${GITHUB_ENV}"
+
+    - name: Install the ICU library (Windows)
+      if: ${{ runner.os == 'Windows' }}
+      env:
+        ICU_URL: "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-icu-71.1-1-any.pkg.tar.zst"
+      run: |
+        $STACK exec -- bash -c "curl -LO ${ICU_URL} && pacman --noconfirm -U *.pkg.tar.zst"
+
+    - name: Determine the ICU version
+      run: |
+        $STACK exec -- pkg-config --modversion icu-i18n
+
+    ## Caching ~/.stack without --system-ghc is probably not a good idea:
+    ## - too fat
+    ## - should be sensibly restored before installing GHC via stack,
+    ##   but then we don't know the GHC version; so at least 'lts' and 'nightly' would be brittle
+    ##
+    # - uses: actions/cache@v3
+    #   with:
+    #     path: ${{ env.STACK_ROOT }}
+    #     key: ${{ runner.os }}-stack-${{ env.STACK_VERSION }}-ghc-${{ env.GHC_VERSION }}-resolver-${{ matrix.plan.resolver }}
+
+    - name: Install dependencies
+      run: |
+        $STACK test --only-dependencies
+
+    - name: Build
+      run: |
+        $STACK build --haddock --no-haddock-deps
+
+    - name: Test
+      run: |
+        $STACK -j 1 test --haddock --no-haddock-deps
