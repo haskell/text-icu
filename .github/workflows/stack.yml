@@ -83,7 +83,7 @@ jobs:
       run: |
         $STACK exec -- pacman --noconfirm -S msys2-keyring
         $STACK exec -- bash -c "curl -LO ${ICU_URL} && pacman --noconfirm -U *.pkg.tar.zst"
-        $STACK exec -- pacman --noconfirm -S mingw-w64-x86_64-pkg-config
+        $STACK exec -- pacman --noconfirm -S mingw-w64-x86_64-pkgconf
 
     - name: Try pkg-config
       run: |
