@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [windows-latest]
         plan:
           - resolver: 'nightly'
           - resolver: 'lts'
@@ -40,22 +40,6 @@ jobs:
           #   resolver: 'lts-12.26'
           # - ghc: '8.2.2'
           #   resolver: 'lts-11.22'
-
-
-        include:
-          - os: windows-latest
-            plan:
-              resolver: 'nightly'
-          - os: windows-latest
-            plan:
-              resolver: 'lts'
-
-          - os: macos-latest
-            plan:
-              resolver: 'nightly'
-          - os: macos-latest
-            plan:
-              resolver: 'lts'
 
     runs-on: ${{ matrix.os }}
     env:
