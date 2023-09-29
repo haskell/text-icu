@@ -81,6 +81,7 @@ jobs:
       env:
         ICU_URL: "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-icu-71.1-1-any.pkg.tar.zst"
       run: |
+        $STACK exec -- pacman --noconfirm -Sy msys2-keyring
         $STACK exec -- bash -c "curl -LO ${ICU_URL} && pacman --noconfirm -U *.pkg.tar.zst"
         $STACK exec -- pacman --noconfirm -S mingw-w64-x86_64-pkg-config
 
