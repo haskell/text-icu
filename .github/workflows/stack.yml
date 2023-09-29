@@ -83,8 +83,8 @@ jobs:
 
     - name: Try pkg-config
       run: |
-        $STACK exec -- pkg-config --version
-        $STACK exec -- pkg-config --list-all
+        $STACK exec -- pkg-config --version || true
+        $STACK exec -- pkg-config --list-all || true
 
     - name: Set up for the ICU library (macOS)
       if: ${{ runner.os == 'macOS' }}
@@ -98,6 +98,12 @@ jobs:
         ICU_URL: "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-icu-71.1-1-any.pkg.tar.zst"
       run: |
         $STACK exec -- bash -c "curl -LO ${ICU_URL} && pacman --noconfirm -U *.pkg.tar.zst"
+        $STACK exec -- pacman --noconfirm -S mingw-w64-x86_64-pkg-config
+
+    - name: Try pkg-config
+      run: |
+        $STACK exec -- pkg-config --version || true
+        $STACK exec -- pkg-config --list-all || true
 
     - name: Determine the ICU version
       run: |
