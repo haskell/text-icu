@@ -1,3 +1,6 @@
+# This workflow uses 'stack' as installed on the github runner.
+# GHC is installed via stack.
+
 name: Stack build
 
 on:
@@ -18,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest]
+        os: [macOS-latest,ubuntu-latest,windows-latest]
         plan:
           - resolver: 'nightly'
           - resolver: 'lts'
@@ -31,10 +34,12 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Configure
-      run: $STACK init
+      run: |
+        $STACK init
 
     - name: Install GHC via stack
-      run: $STACK ghc -- --version
+      run: |
+        $STACK ghc -- --version
 
     - name: Haskell versions
       run: |
@@ -54,14 +59,16 @@ jobs:
         echo "PKG_CONFIG_PATH=${ICU4C}/lib/pkgconfig" >> "${GITHUB_ENV}"
 
     - name: Install the ICU library (Windows)
+      # We also install pkgconf, which superseds pkg-config.
       if: ${{ runner.os == 'Windows' }}
-      env:
-        ICU_URL: "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-icu-71.1-1-any.pkg.tar.zst"
       run: |
         $STACK exec -- pacman --noconfirm -S msys2-keyring
         $STACK exec -- pacman --noconfirm -S mingw-w64-x86_64-pkgconf
         $STACK exec -- pacman --noconfirm -S mingw-w64-x86_64-icu
+      ## Alternatively, in the last line, install a specific version of ICU, like 71:
       # $STACK exec -- bash -c "curl -LO ${ICU_URL} && pacman --noconfirm -U *.pkg.tar.zst"
+      # env:
+      #   ICU_URL: "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-icu-71.1-1-any.pkg.tar.zst"
 
     - name: Determine the ICU version
       run: |
