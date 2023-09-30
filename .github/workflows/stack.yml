@@ -22,24 +22,6 @@ jobs:
         plan:
           - resolver: 'nightly'
           - resolver: 'lts'
-          # - ghc: '9.6.2'
-          #   resolver: 'nightly-2023-09-27'
-          # - ghc: '9.4.7'
-          #   resolver: 'lts-21.13'
-          # - ghc: '9.2.8'
-          #   resolver: 'lts-20.26'
-          # - ghc: '9.0.2'
-          #   resolver: 'lts-19.33'
-          # - ghc: '8.10.7'
-          #   resolver: 'lts-18.28'
-          # - ghc: '8.8.4'
-          #   resolver: 'lts-16.31'
-          # - ghc: '8.6.5'
-          #   resolver: 'lts-14.27'
-          # - ghc: '8.4.4'
-          #   resolver: 'lts-12.26'
-          # - ghc: '8.2.2'
-          #   resolver: 'lts-11.22'
 
     runs-on: ${{ matrix.os }}
     env:
@@ -65,11 +47,6 @@ jobs:
       # STACK_ROOT=$(${STACK} path --stack-root)
       # echo "STACK_ROOT=${STACK_ROOT}" >> "${GITHUB_ENV}"
 
-    - name: Try pkg-config
-      run: |
-        $STACK exec -- pkg-config --version || true
-        $STACK exec -- pkg-config --list-all || true
-
     - name: Set up for the ICU library (macOS)
       if: ${{ runner.os == 'macOS' }}
       run: |
@@ -84,11 +61,6 @@ jobs:
         $STACK exec -- pacman --noconfirm -S msys2-keyring
         $STACK exec -- bash -c "curl -LO ${ICU_URL} && pacman --noconfirm -U *.pkg.tar.zst"
         $STACK exec -- pacman --noconfirm -S mingw-w64-x86_64-pkgconf
-
-    - name: Try pkg-config
-      run: |
-        $STACK exec -- pkg-config --version || true
-        $STACK exec -- pkg-config --list-all || true
 
     - name: Determine the ICU version
       run: |
