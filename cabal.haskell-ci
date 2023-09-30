@@ -1,9 +1,6 @@
 -- Recreate .github/workflows/haskell-ci.yml with command `haskell-ci regenerate`.
 
--- To avoid duplicate runs of this CI on PRs,
--- restrict CI to pushes and PRs on "master" and any branch starting with "ci-".
--- Use "ci-" branches if you want CI to run but do not want to open a PR yet.
-branches: master ci-*
+branches: master
 
 -- text-icu-0.8 requires a newer ICU lib (shipped not with Ubuntu 18.04, but with 20.04)
 distribution: focal
