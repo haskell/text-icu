@@ -51,17 +51,17 @@ to be updated to avoid certification issues, and `pkg-config` might
 need to be added.  In this case, do this first:
 
     pacman --noconfirm -Sy msys2-keyring
-    pacman --noconfirm -S mingw-w64-x86_64-pkg-config
+    pacman --noconfirm -S mingw-w64-x86_64-pkgconf
 
 ### Windows/stack
 
 With `stack` on Windows, which comes with its _own_ bundled MSYS2, the
 following commands give up-to-date system dependencies for
-`text-icu-0.8.0` (tested 2022-02-07):
+`text-icu-0.8.0` (tested 2023-09-30):
 
     stack exec -- pacman --noconfirm -Sy msys2-keyring
+    stack exec -- pacman --noconfirm -S mingw-w64-x86_64-pkgconf
     stack exec -- pacman --noconfirm -S mingw-w64-x86_64-icu
-    stack exec -- pacman --noconfirm -S mingw-w64-x86_64-pkg-config
 
 
 ## Compatibility
