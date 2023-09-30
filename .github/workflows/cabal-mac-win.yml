@@ -1,0 +1,121 @@
+name: CI for macOS and Windows building with cabal
+on:
+  push:
+    branches:
+    - master
+    - ci-*
+  pull_request:
+    branches:
+    - master
+    - ci-*
+
+jobs:
+
+  cabal:
+    name: Cabal
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macOS-latest, windows-latest]
+        ghc:
+          - 8.10.7
+          - 9.0.2
+          - 9.2.5
+          - 9.4.4
+      fail-fast: false
+
+    steps:
+
+    # Andreas, 2023-02-12:
+    # Putting the MSYS2 /usr/bin (and thus 'tar') into the PATH destroys the Cache action v3.
+    # See: https://github.com/actions/cache/issues/1073
+    # However the /mingw64/bin PATH for the MSYS2-installed 'pkg-config' is fine.
+    #
+    - name: Setup MSYS path for pkg-config
+      if: ${{ runner.os == 'Windows' }}
+      run: |
+        echo "C:\msys64\mingw64\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
+
+    - name: Install the ICU library (Windows)
+      if: ${{ runner.os == 'Windows' }}
+      shell: pwsh
+        ## Even though pwsh is default for windows, keep this for sake of actionlint/shellcheck!
+      run: |
+        $env:PATH = "C:\msys64\usr\bin;$env:PATH"
+        pacman --noconfirm -S mingw-w64-x86_64-pkg-config mingw-w64-x86_64-icu
+
+    # Installing ICU is not necessary, macOS-latest already has v69.1
+    # - name: Install the ICU library (macOS)
+    #   shell: bash
+    #   run: |
+    #     brew install icu4c
+
+    # Let `pkg-config` find the ICU libs.
+    # Also test whether it actually works, and print some debug information.
+    - name: Set up pkg-config for the ICU library (macOS)
+      if: ${{ runner.os == 'macOS' }}
+      run: |
+        PKG_CONFIG_PATH=$(brew --prefix)/opt/icu4c/lib/pkgconfig
+        echo "PKG_CONFIG_PATH=${PKG_CONFIG_PATH}" >> "${GITHUB_ENV}"
+        ## The rest is debug info:
+        echo "$ ls -l ${PKG_CONFIG_PATH}/"
+        ls -l "${PKG_CONFIG_PATH}/"
+        export PKG_CONFIG_PATH
+        echo "$ pkg-config --modversion icu-i18n"
+        pkg-config --modversion icu-i18n
+        echo "$ pkg-config --libs --static icu-i18n"
+        pkg-config --libs --static icu-i18n
+
+    # # Test of `pkg-config --list-all` in connection with macOS-11/12 env bug:
+    # # https://github.com/actions/runner-images/issues/6364
+    # # This was fixed upstream 2022-10-10.
+    # - name: Check integrity of pkg-config database
+    #   if: ${{ runner.os == 'macOS' }}
+    #   run: |
+    #     echo "$ pkg-config --list-all"
+    #     pkg-config --list-all
+    #     echo "========================================================================"
+    #     echo "$ pkg-config --list-all | cut -f 1 -d ' '"
+    #     pkg-config --list-all | cut -f 1 -d ' '
+    #     echo "========================================================================"
+    #     echo "$ pkg-config --list-all | cut -f 1 -d ' ' | xargs pkg-config --modversion"
+    #     pkg-config --list-all | cut -f 1 -d ' ' | xargs pkg-config --modversion
+
+    - name: Determine the ICU version
+      shell: bash
+      run: |
+        ICU_VER=$(pkg-config --modversion icu-i18n)
+        echo "ICU_VER=${ICU_VER}"
+        echo "ICU_VER=${ICU_VER}" >> "${GITHUB_ENV}"
+
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup Haskell
+      uses: haskell/actions/setup@v2
+      id: setup-haskell-cabal
+      with:
+        ghc-version: ${{ matrix.ghc }}
+
+    - name: Configure
+      run: |
+        cabal configure --enable-tests
+        cabal build --dry-run
+      # cabal build --dry-run creates dist-newstyle/cache/plan.json
+
+    - name: Cache ~/.cabal/store
+      uses: actions/cache@v3
+      with:
+        path: |
+          ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
+          dist-newstyle
+        key:          ${{ runner.os }}-ghc-${{ matrix.ghc }}-icu-${{ env.ICU_VER }}-plan-${{ hashFiles('dist-newstyle/cache/plan.json') }}
+        restore-keys: ${{ runner.os }}-ghc-${{ matrix.ghc }}-icu-${{ env.ICU_VER }}-
+
+    - name: Build
+      run: |
+        cabal build all
+
+    - name: Test
+      run: |
+        cabal test all --test-show-details=direct
