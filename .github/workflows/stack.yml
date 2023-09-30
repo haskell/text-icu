@@ -72,7 +72,9 @@ jobs:
 
     - name: Determine the ICU version
       run: |
-        $STACK exec -- pkg-config --modversion icu-i18n
+        ICU_VERSION=$($STACK exec -- pkg-config --modversion icu-i18n)
+        echo "ICU version ${ICU_VERSION}"
+        echo "ICU_VERSION=${ICU_VERSION}" >> "${GITHUB_ENV}"
 
     ## Caching ~/.stack without --system-ghc is probably not a good idea:
     ## - too fat
@@ -82,7 +84,8 @@ jobs:
     # - uses: actions/cache@v3
     #   with:
     #     path: ${{ env.STACK_ROOT }}
-    #     key: ${{ runner.os }}-stack-${{ env.STACK_VERSION }}-ghc-${{ env.GHC_VERSION }}-resolver-${{ matrix.plan.resolver }}
+    #     key: ${{ runner.os }}-stack-${{ env.STACK_VERSION }}-ghc-${{ env.GHC_VERSION }}-icu-${{ env.ICU_VER }}-resolver-${{ matrix.plan.resolver }}-sha-${{ github.sha }}
+    #     restore-keys: ${{ runner.os }}-stack-${{ env.STACK_VERSION }}-ghc-${{ env.GHC_VERSION }}-icu-${{ env.ICU_VER }}-resolver-${{ matrix.plan.resolver }}-
 
     - name: Install dependencies
       run: |
