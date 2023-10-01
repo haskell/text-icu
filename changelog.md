@@ -1,3 +1,7 @@
+0.8.0.3
+
+* Support for ICU 72 (#94)
+
 0.8.0.2
 
 * Support for creating a collator from custom rules (#76)

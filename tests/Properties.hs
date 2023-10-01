@@ -172,7 +172,8 @@ testCases =
   ,(I.unfold I.group <$> I.findAll "[abc]+" "xx b yy ac") ~?= [["b"],["ac"]]
   ,I.toUpper (Locale "de-DE") "ß" ~?= "SS"
   ,I.toCaseFold False "ﬂag" ~?= "flag"
-  ,I.blockCode '\x1FA50' ~?= I.ChessSymbols
+  ,map I.blockCode ['\x1FA50', '\203257', '\73494'] ~?=
+     [I.ChessSymbols, I.CjkUnifiedIdeographsExtensionH, I.Kawi]
   ,I.direction '\x2068' ~?= I.FirstStrongIsolate
   ,I.getSkeleton I.spoof Nothing "\1089\1072t" ~?= "cat"
   ,S.shapeArabic [S.LettersShape] (nosp "ا ب ت ث") ~?= (nosp "ﺍ ﺑ ﺘ ﺚ")

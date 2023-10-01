@@ -26,6 +26,7 @@ module Data.Text.ICU.DateFormatter
     (DateFormatter, FormatStyle(..), DateFormatSymbolType(..), standardDateFormatter, patternDateFormatter, dateSymbols, formatCalendar
     ) where
 
+#include <unicode/uvernum.h>
 #include <unicode/udat.h>
 
 import Control.Monad (forM)
@@ -89,6 +90,10 @@ data DateFormatSymbolType =
         | ZodiacNamesWide           -- ^ Calendar zodiac names (only supported for some calendars, and only for FORMAT usage; udat_setSymbols not supported for UDAT_ZODIAC_NAMES_WIDE)
         | ZodiacNamesAbbreviated    -- ^ Calendar zodiac names (only supported for some calendars, and only for FORMAT usage)
         | ZodiacNamesNarrow         -- ^ Calendar zodiac names (only supported for some calendars, and only for FORMAT usage; udat_setSymbols not supported for UDAT_ZODIAC_NAMES_NARROW)
+#if U_ICU_VERSION_MAJOR_NUM >= 70
+        | NarrowQuarters -- ^ The narrow quarter names, for example 1.
+        | StandaloneNarrowQuarters -- ^ The narrow standalone quarter names, for example 1.
+#endif
 
 toUDateFormatSymbolType :: DateFormatSymbolType -> CInt
 toUDateFormatSymbolType Eras = #const UDAT_ERAS
@@ -116,6 +121,10 @@ toUDateFormatSymbolType CyclicYearsNarrow = #const UDAT_CYCLIC_YEARS_NARROW
 toUDateFormatSymbolType ZodiacNamesWide = #const UDAT_ZODIAC_NAMES_WIDE
 toUDateFormatSymbolType ZodiacNamesAbbreviated = #const UDAT_ZODIAC_NAMES_ABBREVIATED
 toUDateFormatSymbolType ZodiacNamesNarrow = #const UDAT_ZODIAC_NAMES_NARROW
+#if U_ICU_VERSION_MAJOR_NUM >= 70
+toUDateFormatSymbolType NarrowQuarters = #const UDAT_NARROW_QUARTERS
+toUDateFormatSymbolType StandaloneNarrowQuarters = #const UDAT_STANDALONE_NARROW_QUARTERS
+#endif
 
 type UDateFormatStyle = CInt
 type UFieldPosition = CInt

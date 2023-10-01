@@ -482,6 +482,16 @@ data BlockCode =
   | Vithkuqi
   | ZnamennyMusicalNotation
 
+    -- New blocks in Unicode 15.0 (ICU 72)
+
+  | ArabicExtendedC
+  | CjkUnifiedIdeographsExtensionH
+  | CyrillicExtendedD
+  | DevanagariExtendedA
+  | KaktovikNumerals
+  | Kawi
+  | NagMundari
+
   deriving (Eq, Enum, Bounded, Show, Typeable)
 
 instance NFData BlockCode where
@@ -618,6 +628,14 @@ data Bool_ =
   | RegionalIndicator
   | PrependedConcatenationMark
   | ExtendedPictographic
+    -- ICU 70
+  | BasicEmoji -- ^ See https://www.unicode.org/reports/tr51/#Emoji_Sets
+  | EmojiKeycapSequence -- ^ See https://www.unicode.org/reports/tr51/#Emoji_Sets
+  | RgiEmojiModifierSequence -- ^ See https://www.unicode.org/reports/tr51/#Emoji_Sets
+  | RgiEmojiFlagSequence -- ^ See https://www.unicode.org/reports/tr51/#Emoji_Sets
+  | RgiEmojiTagSequence -- ^ See https://www.unicode.org/reports/tr51/#Emoji_Sets
+  | RgiEmojiZwjSequence -- ^ See https://www.unicode.org/reports/tr51/#Emoji_Sets
+  | RgiEmoji -- ^ See https://www.unicode.org/reports/tr51/#Emoji_Sets
   deriving (Eq, Enum, Show, Typeable)
 
 instance NFData Bool_ where

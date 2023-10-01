@@ -68,7 +68,7 @@ following commands give up-to-date system dependencies for
 
 Upstream ICU occasionally introduces backwards-incompatible API
 breaks. This package tries to stay up to date with upstream, and is
-currently more or less in sync with ICU 70.
+currently more or less in sync with ICU 72.
 
 Minimum required version is ICU 62.
 

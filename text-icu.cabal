@@ -1,7 +1,7 @@
 cabal-version:  1.18
   -- 1.18 introduced extra-doc-files
 name:           text-icu
-version:        0.8.0.2
+version:        0.8.0.3
 synopsis:       Bindings to the ICU library
 homepage:       https://github.com/haskell/text-icu
 bug-reports:    https://github.com/haskell/text-icu/issues
