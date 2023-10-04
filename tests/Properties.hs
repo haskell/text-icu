@@ -9,6 +9,8 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 module Properties (propertyTests, testCases) where
 
+import Control.Monad (unless)
+import qualified Control.Exception as E
 import Control.DeepSeq (NFData(..))
 import Data.Function (on)
 import Data.Maybe (fromMaybe)
@@ -23,6 +25,7 @@ import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.Framework.Providers.HUnit (hUnitTestToTests)
 import Test.HUnit ((~?=), (@?=), (~:))
 import qualified Test.HUnit (Test(..), assertFailure)
+import Test.HUnit.Lang (HUnitFailure (..), FailureReason (..))
 import Test.QuickCheck.Monadic (monadicIO, run, assert)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -172,8 +175,12 @@ testCases =
   ,(I.unfold I.group <$> I.findAll "[abc]+" "xx b yy ac") ~?= [["b"],["ac"]]
   ,I.toUpper (Locale "de-DE") "ß" ~?= "SS"
   ,I.toCaseFold False "ﬂag" ~?= "flag"
-  ,map I.blockCode ['\x1FA50', '\203257', '\73494'] ~?=
-     [I.ChessSymbols, I.CjkUnifiedIdeographsExtensionH, I.Kawi]
+  ,map I.blockCode ['\x1FA50', '\203257', '\73494']
+     `oneOf`
+     [[I.ChessSymbols, I.CjkUnifiedIdeographsExtensionH, I.Kawi]
+     ,[I.ChessSymbols, I.NoBlock, I.NoBlock]
+      -- ICU < 72 does not have last two codes
+     ]
   ,I.direction '\x2068' ~?= I.FirstStrongIsolate
   ,I.getSkeleton I.spoof Nothing "\1089\1072t" ~?= "cat"
   ,S.shapeArabic [S.LettersShape] (nosp "ا ب ت ث") ~?= (nosp "ﺍ ﺑ ﺘ ﺚ")
@@ -236,7 +243,10 @@ testCases =
         ioEq io a = Test.HUnit.TestCase $ do
             x <- io
             x @?= a
-
+        oneOf actual expected = Test.HUnit.TestCase $
+          unless (actual `elem` expected) $
+            E.throwIO $ HUnitFailure Nothing $ ExpectedButGot Nothing
+              (unlines $ "one of:" : map show expected) (show actual)
 
 testCases_collate :: Test.HUnit.Test
 testCases_collate = Test.HUnit.TestList $

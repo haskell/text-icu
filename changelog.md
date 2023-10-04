@@ -1,3 +1,7 @@
+0.8.0.4
+
+* Fixed tests to work with ICU < 72 (#94)
+
 0.8.0.3
 
 * Support for ICU 72 (#94)
