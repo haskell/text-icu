@@ -104,7 +104,7 @@ jobs:
       # cabal build --dry-run creates dist-newstyle/cache/plan.json
 
     - name: Cache ~/.cabal/store
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
