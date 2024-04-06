@@ -1,3 +1,7 @@
+0.8.0.5
+
+*  Make homebrew optional #(99)
+
 0.8.0.4
 
 * Fixed tests to work with ICU < 72 (#94)
