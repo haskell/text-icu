@@ -46,11 +46,6 @@ license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
 
-flag homebrew
-  Description: Assume homebrew on macOS. Automatically add /usr/local/opt/ and /usr/homebrew/opt/ paths to extra-lib-dirs and include-dirs.
-  Default:     True
-  Manual:      True
-
 extra-doc-files:
   README.markdown
   changelog.md
@@ -72,6 +67,11 @@ tested-with:
   GHC == 8.2.2
   GHC == 8.0.2
   GHC == 7.10.3
+
+flag homebrew
+  Description: Assume homebrew on macOS. Automatically add /usr/local/opt/ and /usr/homebrew/opt/ paths to extra-lib-dirs and include-dirs.
+  Default:     True
+  Manual:      True
 
 library
   default-language:  Haskell98
