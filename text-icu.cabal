@@ -46,6 +46,11 @@ license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
 
+flag homebrew
+  Description: Assume homebrew on macOS. Automatically add /usr/local/opt/ and /usr/homebrew/opt/ paths to extra-lib-dirs and include-dirs.
+  Default:     True
+  Manual:      True
+
 extra-doc-files:
   README.markdown
   changelog.md
@@ -122,7 +127,7 @@ library
   c-sources: cbits/text_icu.c
   cc-options: -Wall -Wextra -pedantic -Wno-deprecated
   include-dirs: include
-  if os(darwin)
+  if os(darwin) && flag(homebrew)
     extra-lib-dirs:
       /usr/local/opt/icu4c/lib
       /opt/homebrew/opt/icu4c/lib
