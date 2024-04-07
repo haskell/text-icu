@@ -5,15 +5,15 @@ branches: master
 -- text-icu-0.8 requires a newer ICU lib (shipped not with Ubuntu 18.04, but with 20.04)
 distribution: focal
 
-installed: +all -binary -bytestring -containers -deepseq -directory -time -unix
+-- installed: +all -binary -bytestring -containers -deepseq -directory -time -unix
 
-constraint-set text-2.1
-  -- Somehow GHCs 8.4 - 9.2 pick up the wrong version of text
-  -- See https://github.com/haskell/text-icu/actions/runs/6341389618/job/17224925091?pr=93
-  ghc: >=8.2 && < 8.3 || >= 9.4
-  constraints: text ^>= 2.1
-  tests: True
-  run-tests: True
-
-raw-project
-  allow-newer: text
+-- constraint-set text-2.1
+--   -- Somehow GHCs 8.4 - 9.2 pick up the wrong version of text
+--   -- See https://github.com/haskell/text-icu/actions/runs/6341389618/job/17224925091?pr=93
+--   ghc: >=8.2 && < 8.3 || >= 9.4
+--   constraints: text ^>= 2.1
+--   tests: True
+--   run-tests: True
+--
+-- raw-project
+--   allow-newer: text
