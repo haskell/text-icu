@@ -69,7 +69,7 @@ tested-with:
   GHC == 8.0.2
 
 flag homebrew
-  Description: Assume homebrew on macOS. Automatically add /usr/local/opt/ and /usr/homebrew/opt/ paths to extra-lib-dirs and include-dirs.
+  Description: Assume homebrew on macOS. Automatically add /usr/local/opt/ and /opt/homebrew/opt/ paths to extra-lib-dirs and include-dirs.
   Default:     True
   Manual:      True
 
