@@ -1,3 +1,7 @@
+Unreleased
+
+* Drop support for GHC 7.10
+
 0.8.0.5
 
 *  Make homebrew optional #(99)
