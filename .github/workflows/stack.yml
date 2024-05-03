@@ -17,7 +17,7 @@ defaults:
 
 jobs:
   stack:
-    name: ${{ matrix.os }} Stack ${{ matrix.plan.resolver }} / ${{ matrix.plan.ghc }}
+    name: ${{ matrix.os }} Stack ${{ matrix.plan.resolver }}
     strategy:
       fail-fast: false
       matrix:
@@ -32,6 +32,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - uses: haskell-actions/setup@v2
+      with:
+        enable-stack: true
+        stack-no-global: true
 
     - name: Configure
       run: |
@@ -53,7 +58,7 @@ jobs:
       # echo "STACK_ROOT=${STACK_ROOT}" >> "${GITHUB_ENV}"
 
     - name: Set up for the ICU library (macOS)
-      if: ${{ runner.os == 'macOS' }}
+      if: runner.os == 'macOS'
       run: |
         ICU4C=$(brew --prefix)/opt/icu4c
         echo "PKG_CONFIG_PATH=${ICU4C}/lib/pkgconfig" >> "${GITHUB_ENV}"
