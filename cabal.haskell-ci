@@ -3,7 +3,7 @@
 branches: master
 
 -- text-icu-0.8 requires a newer ICU lib (shipped not with Ubuntu 18.04, but with 20.04)
-distribution: focal
+-- distribution: focal
 
 -- installed: +all -binary -bytestring -containers -deepseq -directory -time -unix
 
