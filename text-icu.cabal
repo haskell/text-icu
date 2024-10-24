@@ -69,10 +69,16 @@ tested-with:
   GHC == 8.0.2
 
 flag homebrew
-  Description: Assume homebrew on macOS. Automatically add /usr/local/opt/ and /opt/homebrew/opt/ paths to extra-lib-dirs and include-dirs.
+  Description: Homebrew on macOS. Add /usr/local/opt/ and /opt/homebrew/opt/ paths to extra-lib-dirs and include-dirs.
   Default:     True
   Manual:      True
 
+flag macports
+  Description: MacPorts on macOS. (port install icu)
+  Default:     False
+  Manual:      True
+
+  
 library
   default-language:  Haskell98
   build-depends:
@@ -134,6 +140,13 @@ library
     include-dirs:
       /usr/local/opt/icu4c/include
       /opt/homebrew/opt/icu4c/include
+  if os(darwin) && flag(macports)
+    extra-lib-dirs:
+      /opt/local/lib
+    include-dirs:
+      /opt/local/include
+
+
   extra-libraries: icuuc
   if os(mingw32)
     extra-libraries: icuin icudt icuio

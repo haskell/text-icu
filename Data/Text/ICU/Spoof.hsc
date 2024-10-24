@@ -52,7 +52,7 @@ import Control.DeepSeq (NFData(..))
 import Control.Exception (Exception, throwIO, catchJust)
 import Data.Bits ((.&.))
 import Data.ByteString (ByteString)
-import Data.ByteString.Internal (create, memcpy, toForeignPtr)
+import Data.ByteString.Internal (create, toForeignPtr)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.Int (Int32)
 import Data.List (intercalate)
@@ -75,7 +75,7 @@ import Data.Text.ICU.Internal (fromUCharPtr)
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Foreign.C.String (CString, peekCString, withCString)
-import Foreign.Marshal.Utils (with)
+import Foreign.Marshal.Utils (with, copyBytes)
 import Foreign.Ptr (Ptr, nullPtr, plusPtr)
 import Foreign.Storable (peek)
 import Foreign.ForeignPtr (withForeignPtr)
@@ -430,7 +430,7 @@ serialize s = withSpoof s $ \sptr ->
   handleOverflowError 0
     (\dptr dlen -> (uspoof_serialize sptr dptr (fromIntegral dlen)))
     (\dptr dlen -> create (fromIntegral dlen) $ \bptr ->
-      memcpy dptr bptr (fromIntegral dlen))
+      copyBytes dptr bptr (fromIntegral dlen))
 
 foreign import ccall unsafe "hs_text_icu.h __hs_uspoof_open" uspoof_open
     :: Ptr UErrorCode -> IO (Ptr USpoof)

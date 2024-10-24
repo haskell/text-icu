@@ -316,7 +316,7 @@ const char *__hs_u_errorName(UErrorCode code)
 }
 
 
-UBiDi* __hs_ubidi_open()
+UBiDi* __hs_ubidi_open(void)
 {
     return ubidi_open();
 }

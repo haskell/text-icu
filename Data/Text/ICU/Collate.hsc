@@ -39,8 +39,7 @@ module Data.Text.ICU.Collate
 
 import Control.DeepSeq (NFData(..))
 import Data.ByteString (empty)
-import Data.ByteString.Internal (ByteString(..), create, mallocByteString,
-                                 memcpy)
+import Data.ByteString.Internal (ByteString(..), create, mallocByteString)
 import Data.Int (Int32)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -58,7 +57,7 @@ import Foreign.C.String (CString)
 import Foreign.C.Types (CInt(..))
 import Foreign.ForeignPtr (withForeignPtr)
 import Foreign.Marshal.Alloc (alloca)
-import Foreign.Marshal.Utils (with)
+import Foreign.Marshal.Utils (with, copyBytes)
 import Foreign.Ptr (Ptr, nullPtr)
 import Foreign.Storable (peek)
 
@@ -342,7 +341,7 @@ sortKey c t
               _ | i == 0         -> error "Data.Text.ICU.Collate.sortKey: internal error"
                 | i > n          -> loop i
                 | i <= n `div` 2 -> create j $ \p -> withForeignPtr fp $ \op ->
-                                    memcpy p op (fromIntegral i)
+                                      copyBytes p op (fromIntegral i)
                 | otherwise      -> return $! PS fp 0 j
       loop (min (len * 4) 8)
 
