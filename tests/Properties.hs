@@ -190,12 +190,12 @@ testCases =
      (12.5 :: Double) ~?= "12.50 US dollars"
 
   ,do
-     dfDe <- I.standardDateFormatter I.LongFormatStyle I.LongFormatStyle
+     dfDe <- I.standardDateFormatter I.MediumFormatStyle I.LongFormatStyle
        (Locale "de_DE") ""
      c <- cal "CET" 2000 00 01 02 03 00
      return $ I.formatCalendar dfDe (Cal.add c [(Cal.Hour, 25), (Cal.Second, 65)])
    `ioEq`
-    "2. Januar 2000 um 03:04:05 GMT+1"
+    "2. Januar 2000 um 03:04:05"
 
   ,do
      dfAt <- I.standardDateFormatter I.LongFormatStyle I.LongFormatStyle
