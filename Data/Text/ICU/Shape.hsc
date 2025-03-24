@@ -21,7 +21,6 @@ module Data.Text.ICU.Shape
 
 #include <unicode/ushape.h>
 
-import Data.List (foldl')
 import Data.Text.ICU.Error.Internal (UErrorCode, handleOverflowError)
 import Data.Bits ((.|.))
 import Data.Int (Int32)

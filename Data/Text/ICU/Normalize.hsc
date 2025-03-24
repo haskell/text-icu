@@ -48,7 +48,6 @@ import Foreign.C.Types (CInt(..))
 import Foreign.Ptr (Ptr)
 import System.IO.Unsafe (unsafePerformIO)
 import Prelude hiding (compare)
-import Data.List (foldl')
 import Data.Bits ((.|.))
 
 -- $api

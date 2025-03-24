@@ -143,7 +143,7 @@ int32_t __hs_ucol_getSortKey(const UCollator *coll,
                              uint8_t *result, int32_t resultLength);
 
 /* ubidi.h */
-UBiDi* __hs_ubidi_open();
+UBiDi* __hs_ubidi_open(void);
 UBiDi* __hs_ubidi_openSized(int32_t maxLength, int32_t maxRunCount, UErrorCode *err);
 void    __hs_ubidi_setPara(UBiDi *pBiDi, const UChar *text, int32_t length, UBiDiLevel paraLevel,
                          UErrorCode *pErrorCode);

@@ -45,7 +45,6 @@ import Data.Text.ICU.Error.Internal (UErrorCode, handleError, handleOverflowErro
 import Data.Text (Text)
 import Data.Text.ICU.Internal (UChar, useAsUCharPtr, fromUCharPtr, newICUPtr)
 import Foreign.C.Types (CInt(..))
-import Data.List (foldl')
 import Data.Bits ((.|.))
 import System.IO.Unsafe (unsafePerformIO)
 import Data.Traversable (for)
