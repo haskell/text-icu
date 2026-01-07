@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, EmptyDataDecls, ForeignFunctionInterface #-}
+{-# LANGUAGE EmptyDataDecls, ForeignFunctionInterface #-}
 -- |
 -- Module      : Data.Text.ICU.Spoof.Internal
 -- Copyright   : (c) 2015 Ben Hamilton
@@ -24,7 +24,6 @@ module Data.Text.ICU.Spoof.Internal
     , wrapWithSerialized
     ) where
 
-import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Foreign.ForeignPtr (ForeignPtr, withForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr)
@@ -41,11 +40,10 @@ data USpoof
 data MSpoof = MSpoof {
     serializedBuf :: Maybe (ForeignPtr Word8)
   , spoofPtr :: {-# UNPACK #-} !(ForeignPtr USpoof)
-} deriving (Typeable)
+}
 
 -- | Spoof checker type.
 newtype Spoof = S MSpoof
-    deriving (Typeable)
 
 -- | Temporarily unwraps an 'MSpoof' to perform operations on its raw 'USpoof'
 -- handle.

@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, EmptyDataDecls, ForeignFunctionInterface #-}
+{-# LANGUAGE EmptyDataDecls, ForeignFunctionInterface #-}
 -- |
 -- Module      : Data.Text.ICU.Collate.Internal
 -- Copyright   : (c) 2010 Bryan O'Sullivan
@@ -20,7 +20,6 @@ module Data.Text.ICU.Collate.Internal
     , wrap
     ) where
 
-import Data.Typeable (Typeable)
 import Foreign.ForeignPtr (ForeignPtr, withForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr)
 import Data.Text.ICU.Internal (newICUPtr)
@@ -32,11 +31,9 @@ data UCollator
 
 -- | String collator type.
 data MCollator = MCollator {-# UNPACK #-} !(ForeignPtr UCollator)
-                 deriving (Typeable)
 
 -- | String collator type.
 newtype Collator = C MCollator
-    deriving (Typeable)
 
 withCollator :: MCollator -> (Ptr UCollator -> IO a) -> IO a
 withCollator (MCollator col) action = withForeignPtr col action

@@ -16,12 +16,12 @@ jobs:
       matrix:
         os: [macOS-latest, windows-latest]
         ghc:
-          # - 9.2.8
           - 9.4.8
-          - 9.6.6
+          - 9.6.7
           - 9.8.4
-          - 9.10.1
-          - 9.12.1
+          - 9.10.3
+          - 9.12.2
+          - 9.14.1
       fail-fast: false
 
     steps:
@@ -105,7 +105,7 @@ jobs:
       # cabal build --dry-run creates dist-newstyle/cache/plan.json
 
     - name: Restore cached build products
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       id: cache
       with:
         path: |
@@ -127,7 +127,7 @@ jobs:
         cabal test all --test-show-details=direct
 
     - name: Cache build products
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v5
       if:   always() && steps.cache.outputs.cache-hit != 'true'
       with:
         path: |

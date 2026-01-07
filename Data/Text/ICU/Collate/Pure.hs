@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, ForeignFunctionInterface, ScopedTypeVariables  #-}
+{-# LANGUAGE ForeignFunctionInterface, ScopedTypeVariables  #-}
 -- |
 -- Module      : Data.Text.ICU.Collate.Pure
 -- Copyright   : (c) 2010 Bryan O'Sullivan
