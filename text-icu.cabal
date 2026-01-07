@@ -142,9 +142,9 @@ library
   else
     extra-libraries: icui18n icudata
 
-  ghc-options: -Wall
-  if impl(ghc >= 8.0)
-    ghc-options:  -Wcompat
+  ghc-options:
+    -Wall
+    -Wcompat
 
 test-suite tests
   default-language: Haskell98
@@ -159,20 +159,14 @@ test-suite tests
   build-depends:
     HUnit >= 1.2,
     QuickCheck >= 2.4,
-    array,
     base,
     bytestring,
     deepseq,
-    directory,
-    ghc-prim,
-    random,
     test-framework >= 0.4,
     test-framework-hunit >= 0.2,
     test-framework-quickcheck2 >= 0.2,
     text,
     text-icu
-  if impl(ghc <= 8.2)
-    build-depends: semigroups
 
 source-repository head
   type:     git
