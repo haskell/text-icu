@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, EmptyDataDecls, ForeignFunctionInterface #-}
+{-# LANGUAGE EmptyDataDecls, ForeignFunctionInterface #-}
 -- |
 -- Module      : Data.Text.ICU.Collate.Internal
 -- Copyright   : (c) 2010 Bryan O'Sullivan
@@ -21,7 +21,6 @@ module Data.Text.ICU.Number.Internal
     )
 where
 
-import Data.Typeable (Typeable)
 import Foreign.ForeignPtr (ForeignPtr, withForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr)
 import Data.Text.ICU.Internal (newICUPtr)
@@ -33,11 +32,9 @@ data UNumberFormat
 
 -- | This is the number formatter. It can be created with 'formatter'. Use it to format numbers with the 'format' function.
 data MNumberFormat = MNumberFormat {-# UNPACK #-} !(ForeignPtr UNumberFormat)
-                 deriving (Typeable)
 
 -- | This is the number formatter. It can be created with 'formatter'. Use it to format numbers with the 'format' function.
 newtype NumberFormat = C MNumberFormat
-    deriving (Typeable)
 
 withNumberFormat :: MNumberFormat -> (Ptr UNumberFormat -> IO a) -> IO a
 withNumberFormat (MNumberFormat col) action = withForeignPtr col action

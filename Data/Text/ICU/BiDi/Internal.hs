@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, EmptyDataDecls #-}
+{-# LANGUAGE EmptyDataDecls #-}
 -- |
 -- Module      : Data.Text.ICU.Bidi.Internal
 -- Copyright   : (c) Ondrej Palkovsky 2018
@@ -17,7 +17,6 @@ module Data.Text.ICU.BiDi.Internal
     , withBiDi
     ) where
 
-import Data.Typeable (Typeable)
 import Foreign.ForeignPtr (ForeignPtr, withForeignPtr)
 import Foreign.Ptr (Ptr)
 
@@ -27,7 +26,7 @@ data UBiDi
 -- thread safe. It is /not/ safe to use value of this type
 -- simultaneously from multiple threads.
 newtype BiDi = BiDi (ForeignPtr UBiDi)
-                 deriving (Eq, Typeable)
+                 deriving (Eq)
 
 instance Show BiDi where
     show _ = "BiDi"

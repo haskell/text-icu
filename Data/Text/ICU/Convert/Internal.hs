@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, EmptyDataDecls, ForeignFunctionInterface #-}
+{-# LANGUAGE EmptyDataDecls, ForeignFunctionInterface #-}
 -- |
 -- Module      : Data.Text.ICU.Convert.Internal
 -- Copyright   : (c) Bryan O'Sullivan 2009
@@ -19,7 +19,6 @@ module Data.Text.ICU.Convert.Internal
     ) where
 
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
-import Data.Typeable (Typeable)
 import Foreign.C.String (CString, peekCString)
 import Foreign.ForeignPtr (ForeignPtr, withForeignPtr)
 import Foreign.Ptr (Ptr)
@@ -31,7 +30,7 @@ data UConverter
 -- thread safe. It is /not/ safe to use value of this type
 -- simultaneously from multiple threads.
 data Converter = Converter {-# UNPACK #-} !(ForeignPtr UConverter)
-                 deriving (Eq, Typeable)
+                 deriving (Eq)
 
 instance Show Converter where
     show c = "Converter " ++ show (getName c)
