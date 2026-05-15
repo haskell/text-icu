@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns, CPP, DeriveDataTypeable, ForeignFunctionInterface #-}
+{-# LANGUAGE BangPatterns, CPP, ForeignFunctionInterface #-}
 -- |
 -- Module      : Data.Text.ICU.Collate
 -- Copyright   : (c) 2010 Bryan O'Sullivan
@@ -52,7 +52,6 @@ import Data.Text.ICU.Error.Internal (UErrorCode, UParseError, handleError, handl
 import Data.Text.ICU.Internal
     (LocaleName, UChar, CharIterator, UCharIterator,
      asOrdering, fromUCharPtr, withCharIterator, withLocaleName, useAsUCharPtr)
-import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Foreign.C.String (CString)
 import Foreign.C.Types (CInt(..))
@@ -74,7 +73,7 @@ data AlternateHandling = NonIgnorable
                          -- equal to or below the variable top value to be
                          -- ignored on primary level and moved to the
                          -- quaternary level.
-                         deriving (Eq, Bounded, Enum, Show, Typeable)
+                         deriving (Eq, Bounded, Enum, Show)
 
 instance NFData AlternateHandling where
     rnf !_ = ()
@@ -84,7 +83,7 @@ data CaseFirst = UpperFirst     -- ^ Force upper case letters to sort before
                                 -- lower case.
                | LowerFirst     -- ^ Force lower case letters to sort before
                                 -- upper case.
-                deriving (Eq, Bounded, Enum, Show, Typeable)
+                deriving (Eq, Bounded, Enum, Show)
 
 instance NFData CaseFirst where
     rnf !_ = ()
@@ -102,7 +101,7 @@ data Strength = Primary
               | Tertiary
               | Quaternary
               | Identical
-                deriving (Eq, Bounded, Enum, Show, Typeable)
+                deriving (Eq, Bounded, Enum, Show)
 
 instance NFData Strength where
     rnf !_ = ()
@@ -147,7 +146,7 @@ data Attribute = French Bool
                  -- ^ When enabled, this attribute generates a collation key
                  -- for the numeric value of substrings of digits.  This is
                  -- a way to get '100' to sort /after/ '2'.
-                 deriving (Eq, Show, Typeable)
+                 deriving (Eq, Show)
 
 instance NFData Attribute where
     rnf (French !_)                 = ()

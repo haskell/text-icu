@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, EmptyDataDecls, ForeignFunctionInterface #-}
+{-# LANGUAGE EmptyDataDecls, ForeignFunctionInterface #-}
 -- |
 -- Module      : Data.Text.ICU.CaseMap
 -- Copyright   : (c) 2010 Bryan O'Sullivan
@@ -26,7 +26,6 @@ import Data.Bits ((.|.))
 import Data.List (foldl')
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError)
 import Data.Text.ICU.Internal (LocaleName, withLocaleName)
-import Data.Typeable (Typeable)
 import Data.Word (Word32)
 import Foreign.C.String (CString)
 import Foreign.ForeignPtr (ForeignPtr)
@@ -36,7 +35,7 @@ import System.IO.Unsafe (unsafePerformIO)
 data UCaseMap
 
 data CaseMap = CaseMap {-# UNPACK #-} !(ForeignPtr UCaseMap)
-               deriving (Eq, Typeable)
+               deriving (Eq)
 
 data CaseOption = FoldCaseExcludeSpecialI
                 | TitleCaseNoLowerCase

@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, ForeignFunctionInterface, EmptyDataDecls #-}
+{-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls #-}
 -- |
 -- Module      : Data.Text.ICU.CharsetDetection.Internal
 -- Copyright   : (c) 2017 Zac Slade
@@ -27,7 +27,6 @@ module Data.Text.ICU.CharsetDetection.Internal
     , withCharsetMatch
     ) where
 
-import Data.Typeable (Typeable)
 import Foreign.ForeignPtr (ForeignPtr, withForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr)
 
@@ -45,7 +44,7 @@ data UCharsetDetector
 -- management of the pointers.
 data CharsetDetector = CharsetDetector {
     charsetDetectorPtr :: {-# UNPACK #-} !(ForeignPtr UCharsetDetector)
-} deriving (Typeable)
+}
 
 mkCharsetDetector :: IO CharsetDetector
 mkCharsetDetector = wrapUCharsetDetector $ handleError ucsdet_open
@@ -75,7 +74,6 @@ data CharsetMatch =
     -- ^ keep reference since UCharsetMatch object is owned
     -- by the UCharsetDetector.
     }
-    deriving (Typeable)
 
 wrapUCharsetMatch :: CharsetDetector -> IO (Ptr UCharsetMatch) -> IO CharsetMatch
 wrapUCharsetMatch cd = fmap $ flip CharsetMatch cd

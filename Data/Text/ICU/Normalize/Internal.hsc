@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, DeriveDataTypeable, ForeignFunctionInterface #-}
+{-# LANGUAGE CPP, ForeignFunctionInterface #-}
 -- |
 -- Module      : Data.Text.ICU.Normalize.Internal
 -- Copyright   : (c) 2010 Bryan O'Sullivan

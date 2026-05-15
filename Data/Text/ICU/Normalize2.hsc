@@ -1,4 +1,4 @@
-{-# LANGUAGE EmptyDataDecls, CPP, DeriveDataTypeable, ForeignFunctionInterface #-}
+{-# LANGUAGE EmptyDataDecls, CPP, ForeignFunctionInterface #-}
 -- |
 -- Module      : Data.Text.ICU.Normalize
 -- Copyright   : (c) 2009, 2010 Bryan O'Sullivan
@@ -38,7 +38,6 @@ import Data.Text (Text)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError, handleOverflowError)
 import Data.Text.ICU.Internal (UBool, UChar, asBool, asOrdering, fromUCharPtr, useAsUCharPtr)
 import Data.Text.ICU.Normalize.Internal (UNormalizationCheckResult, toNCR)
-import Data.Typeable (Typeable)
 import Data.Int (Int32)
 import Data.Word (Word32)
 import Foreign.C.Types (CInt(..))
@@ -165,7 +164,7 @@ data NormalizationMode
     | NFC            -- ^ Canonical decomposition followed by canonical composition.
     | NFKC           -- ^ Compatibility decomposition followed by canonical composition.
     | NFKCCasefold   -- ^ NFKC with Casefold.
-      deriving (Eq, Show, Enum, Typeable)
+      deriving (Eq, Show, Enum)
 
 createNormalizerWith :: (Ptr UErrorCode -> IO (Ptr UNormalizer2)) -> IO Normalizer
 createNormalizerWith f = Normalizer <$> handleError f
@@ -358,7 +357,7 @@ data CompareOption = InputIsFCD
                    -- ^ When case folding, exclude the special I
                    -- character.  For use with Turkic
                    -- (Turkish/Azerbaijani) text data.
-                     deriving (Eq, Show, Enum, Typeable)
+                     deriving (Eq, Show, Enum)
 
 fromCompareOption :: CompareOption -> UCompareOption
 fromCompareOption InputIsFCD              = #const UNORM_INPUT_IS_FCD

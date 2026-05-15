@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns, DeriveDataTypeable, ForeignFunctionInterface,
+{-# LANGUAGE BangPatterns, ForeignFunctionInterface,
     RecordWildCards, ScopedTypeVariables #-}
 
 module Data.Text.ICU.Error.Internal
@@ -28,7 +28,6 @@ import Foreign.Marshal.Alloc (alloca, allocaBytes)
 import Foreign.Marshal.Utils (with)
 import Foreign.Marshal.Array (allocaArray)
 import Data.Int (Int32)
-import Data.Typeable (Typeable)
 import Foreign.C.String (CString, peekCString)
 import Foreign.C.Types (CInt(..))
 import Foreign.Storable (Storable(..))
@@ -44,7 +43,7 @@ type UErrorCode = CInt
 -- ICU functions.
 newtype ICUError = ICUError {
       fromErrorCode :: UErrorCode
-    } deriving (Eq, Typeable)
+    } deriving (Eq)
 
 instance Show ICUError where
     show code = "ICUError " ++ errorName code
@@ -73,7 +72,7 @@ data ParseError = ParseError {
     -- represents the offset from the start of the text.  If the
     -- parser does not support this field, it will have a value of
     -- 'Nothing'.
-    } deriving (Show, Typeable)
+    } deriving (Show)
 
 instance NFData ParseError where
     rnf ParseError{..} = rnf errError `seq` rnf errLine `seq` rnf errOffset
