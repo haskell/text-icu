@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, DeriveDataTypeable, ForeignFunctionInterface #-}
+{-# LANGUAGE CPP, ForeignFunctionInterface #-}
 -- |
 -- Module      : Data.Text.ICU.Normalize
 -- Copyright   : (c) 2009, 2010 Bryan O'Sullivan
@@ -41,7 +41,6 @@ import Data.Text (Text)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleError, handleOverflowError)
 import Data.Text.ICU.Internal (UBool, UChar, asBool, asOrdering, useAsUCharPtr, fromUCharPtr)
 import Data.Text.ICU.Normalize.Internal (UNormalizationCheckResult, toNCR)
-import Data.Typeable (Typeable)
 import Data.Int (Int32)
 import Data.Word (Word32)
 import Foreign.C.Types (CInt(..))
@@ -172,7 +171,7 @@ data CompareOption = InputIsFCD
                    -- ^ When case folding, exclude the special I
                    -- character.  For use with Turkic
                    -- (Turkish/Azerbaijani) text data.
-                     deriving (Eq, Show, Enum, Typeable)
+                     deriving (Eq, Show, Enum)
 
 fromCompareOption :: CompareOption -> UCompareOption
 fromCompareOption InputIsFCD              = #const UNORM_INPUT_IS_FCD
@@ -193,7 +192,7 @@ data NormalizationMode
     | NFC    -- ^ Canonical decomposition followed by canonical composition.
     | NFKC   -- ^ Compatibility decomposition followed by canonical composition.
     | FCD    -- ^ \"Fast C or D\" form.
-      deriving (Eq, Show, Enum, Typeable)
+      deriving (Eq, Show, Enum)
 
 toNM :: NormalizationMode -> UNormalizationMode
 toNM None = #const UNORM_NONE
@@ -265,28 +264,28 @@ compare opts a b = unsafePerformIO .
                     (reduceCompareOptions opts)
 
 foreign import ccall unsafe "hs_text_icu.h __hs_unorm_compare" unorm_compare
-    :: Ptr UChar -> Int32 
-    -> Ptr UChar -> Int32 
+    :: Ptr UChar -> Int32
+    -> Ptr UChar -> Int32
     -> Word32
-    -> Ptr UErrorCode 
+    -> Ptr UErrorCode
     -> IO Int32
 
 foreign import ccall unsafe "hs_text_icu.h __hs_unorm_quickCheck" unorm_quickCheck
-    :: Ptr UChar -> Int32 
-    -> UNormalizationMode 
+    :: Ptr UChar -> Int32
+    -> UNormalizationMode
     -> Ptr UErrorCode
     -> IO UNormalizationCheckResult
 
 foreign import ccall unsafe "hs_text_icu.h __hs_unorm_isNormalized" unorm_isNormalized
-    :: Ptr UChar -> Int32 
-    -> UNormalizationMode 
-    -> Ptr UErrorCode 
+    :: Ptr UChar -> Int32
+    -> UNormalizationMode
+    -> Ptr UErrorCode
     -> IO UBool
 
 foreign import ccall unsafe "hs_text_icu.h __hs_unorm_normalize" unorm_normalize
-    :: Ptr UChar -> Int32 
-    -> UNormalizationMode 
+    :: Ptr UChar -> Int32
+    -> UNormalizationMode
     -> Int32
-    -> Ptr UChar -> Int32 
-    -> Ptr UErrorCode 
+    -> Ptr UChar -> Int32
+    -> Ptr UErrorCode
     -> IO Int32

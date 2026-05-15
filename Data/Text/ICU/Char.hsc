@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns, DeriveDataTypeable, FlexibleInstances,
+{-# LANGUAGE BangPatterns, FlexibleInstances,
     ForeignFunctionInterface, FunctionalDependencies, MultiParamTypeClasses #-}
 
 -- |
@@ -93,7 +93,6 @@ import Data.Text.ICU.Error (u_INVALID_CHAR_FOUND)
 import Data.Text.ICU.Error.Internal (UErrorCode, handleOverflowError, withError)
 import Data.Text.ICU.Internal (UBool, UChar32, asBool)
 import Data.Text.ICU.Normalize.Internal (toNCR)
-import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Foreign.C.String (CString, peekCStringLen, withCString)
 import Foreign.C.Types (CInt(..))
@@ -135,7 +134,7 @@ data Direction =
   | LeftToRightIsolate
   | RightToLeftIsolate
   | PopDirectionalIsolate
-  deriving (Eq, Enum, Show, Typeable)
+  deriving (Eq, Enum, Show)
 
 instance NFData Direction where
     rnf !_ = ()
@@ -492,7 +491,7 @@ data BlockCode =
   | Kawi
   | NagMundari
 
-  deriving (Eq, Enum, Bounded, Show, Typeable)
+  deriving (Eq, Enum, Bounded, Show)
 
 instance NFData BlockCode where
     rnf !_ = ()
@@ -636,7 +635,7 @@ data Bool_ =
   | RgiEmojiTagSequence -- ^ See https://www.unicode.org/reports/tr51/#Emoji_Sets
   | RgiEmojiZwjSequence -- ^ See https://www.unicode.org/reports/tr51/#Emoji_Sets
   | RgiEmoji -- ^ See https://www.unicode.org/reports/tr51/#Emoji_Sets
-  deriving (Eq, Enum, Show, Typeable)
+  deriving (Eq, Enum, Show)
 
 instance NFData Bool_ where
     rnf !_ = ()
@@ -645,7 +644,7 @@ class Property p v | p -> v where
     fromNative :: p -> Int32 -> v
     toUProperty :: p -> UProperty
 
-data BidiClass_ = BidiClass deriving (Show, Typeable)
+data BidiClass_ = BidiClass deriving (Show)
 
 instance NFData BidiClass_ where
     rnf !_ = ()
@@ -663,7 +662,7 @@ instance Property Block_ BlockCode where
     fromNative _  = toEnum . fromIntegral
     toUProperty _ = (#const UCHAR_BLOCK)
 
-data CanonicalCombiningClass_ = CanonicalCombiningClass deriving (Show,Typeable)
+data CanonicalCombiningClass_ = CanonicalCombiningClass deriving (Show)
 
 instance NFData CanonicalCombiningClass_ where
     rnf !_ = ()
@@ -672,7 +671,7 @@ instance Property CanonicalCombiningClass_ Int where
     fromNative _  = fromIntegral
     toUProperty _ = (#const UCHAR_CANONICAL_COMBINING_CLASS)
 
-data Decomposition_ = Decomposition deriving (Show, Typeable)
+data Decomposition_ = Decomposition deriving (Show)
 
 instance NFData Decomposition_ where
     rnf !_ = ()
@@ -696,7 +695,7 @@ data Decomposition =
   | Vertical
   | Wide
   | Count
-    deriving (Eq, Enum, Show, Typeable)
+    deriving (Eq, Enum, Show)
 
 instance NFData Decomposition where
     rnf !_ = ()
@@ -705,7 +704,7 @@ instance Property Decomposition_ (Maybe Decomposition) where
     fromNative _  = maybeEnum
     toUProperty _ = (#const UCHAR_DECOMPOSITION_TYPE)
 
-data EastAsianWidth_ = EastAsianWidth deriving (Show, Typeable)
+data EastAsianWidth_ = EastAsianWidth deriving (Show)
 
 instance NFData EastAsianWidth_ where
     rnf !_ = ()
@@ -717,7 +716,7 @@ data EastAsianWidth = EANeutral
                     | EANarrow
                     | EAWide
                     | EACount
-                    deriving (Eq, Enum, Show, Typeable)
+                    deriving (Eq, Enum, Show)
 
 instance NFData EastAsianWidth where
     rnf !_ = ()
@@ -730,7 +729,7 @@ instance Property Bool_ Bool where
     fromNative _ = (/=0)
     toUProperty  = fromIntegral . fromEnum
 
-data GeneralCategory_ = GeneralCategory deriving (Show, Typeable)
+data GeneralCategory_ = GeneralCategory deriving (Show)
 
 instance NFData GeneralCategory_ where
     rnf !_ = ()
@@ -766,7 +765,7 @@ data GeneralCategory =
   | OtherSymbol
   | InitialPunctuation
   | FinalPunctuation
-    deriving (Eq, Enum, Show, Typeable)
+    deriving (Eq, Enum, Show)
 
 instance NFData GeneralCategory where
     rnf !_ = ()
@@ -775,7 +774,7 @@ instance Property GeneralCategory_ GeneralCategory where
     fromNative _  = toEnum . fromIntegral
     toUProperty _ = (#const UCHAR_GENERAL_CATEGORY)
 
-data JoiningGroup_ = JoiningGroup deriving (Show, Typeable)
+data JoiningGroup_ = JoiningGroup deriving (Show)
 
 instance NFData JoiningGroup_ where
     rnf !_ = ()
@@ -870,7 +869,7 @@ data JoiningGroup =
   | ManichaeanYodh
   | ManichaeanZayin
   | StraightWaw
-    deriving (Eq, Enum, Show, Typeable)
+    deriving (Eq, Enum, Show)
 
 instance NFData JoiningGroup where
     rnf !_ = ()
@@ -879,7 +878,7 @@ instance Property JoiningGroup_ (Maybe JoiningGroup) where
     fromNative _  = maybeEnum
     toUProperty _ = (#const UCHAR_JOINING_GROUP)
 
-data JoiningType_ = JoiningType deriving (Show, Typeable)
+data JoiningType_ = JoiningType deriving (Show)
 
 instance NFData JoiningType_ where
     rnf !_ = ()
@@ -890,7 +889,7 @@ data JoiningType =
   | LeftJoining
   | RightJoining
   | Transparent
-    deriving (Eq, Enum, Show, Typeable)
+    deriving (Eq, Enum, Show)
 
 instance NFData JoiningType where
     rnf !_ = ()
@@ -899,7 +898,7 @@ instance Property JoiningType_ (Maybe JoiningType) where
     fromNative _  = maybeEnum
     toUProperty _ = (#const UCHAR_JOINING_TYPE)
 
-data LineBreak_ = LineBreak deriving (Show, Typeable)
+data LineBreak_ = LineBreak deriving (Show)
 
 instance NFData LineBreak_ where
     rnf !_ = ()
@@ -947,7 +946,7 @@ data LineBreak =
   | EBase
   | EModifier
   | ZWJ
-    deriving (Eq, Enum, Show, Typeable)
+    deriving (Eq, Enum, Show)
 
 instance NFData LineBreak where
     rnf !_ = ()
@@ -956,13 +955,13 @@ instance Property LineBreak_ (Maybe LineBreak) where
     fromNative _  = maybeEnum
     toUProperty _ = (#const UCHAR_LINE_BREAK)
 
-data NumericType_ = NumericType deriving (Show, Typeable)
+data NumericType_ = NumericType deriving (Show)
 
 instance NFData NumericType_ where
     rnf !_ = ()
 
 data NumericType = NTDecimal | NTDigit | NTNumeric
-                   deriving (Eq, Enum, Show, Typeable)
+                   deriving (Eq, Enum, Show)
 
 instance NFData NumericType where
     rnf !_ = ()
@@ -971,7 +970,7 @@ instance Property NumericType_ (Maybe NumericType) where
     fromNative _  = maybeEnum
     toUProperty _ = (#const UCHAR_NUMERIC_TYPE)
 
-data HangulSyllableType_ = HangulSyllableType deriving (Show, Typeable)
+data HangulSyllableType_ = HangulSyllableType deriving (Show)
 
 instance NFData HangulSyllableType_ where
     rnf !_ = ()
@@ -982,7 +981,7 @@ data HangulSyllableType =
   | TrailingJamo
   | LVSyllable
   | LVTSyllable
-    deriving (Eq, Enum, Show, Typeable)
+    deriving (Eq, Enum, Show)
 
 instance NFData HangulSyllableType where
     rnf !_ = ()
@@ -991,10 +990,10 @@ instance Property HangulSyllableType_ (Maybe HangulSyllableType) where
     fromNative _  = maybeEnum
     toUProperty _ = (#const UCHAR_HANGUL_SYLLABLE_TYPE)
 
-data NFCQuickCheck_ = NFCQuickCheck deriving (Show, Typeable)
-data NFDQuickCheck_ = NFDQuickCheck deriving (Show, Typeable)
-data NFKCQuickCheck_ = NFKCQuickCheck deriving (Show, Typeable)
-data NFKDQuickCheck_ = NFKDQuickCheck deriving (Show, Typeable)
+data NFCQuickCheck_ = NFCQuickCheck deriving (Show)
+data NFDQuickCheck_ = NFDQuickCheck deriving (Show)
+data NFKCQuickCheck_ = NFKCQuickCheck deriving (Show)
+data NFKDQuickCheck_ = NFKDQuickCheck deriving (Show)
 
 instance NFData NFCQuickCheck_ where
     rnf !_ = ()
@@ -1025,7 +1024,7 @@ instance Property NFKDQuickCheck_ (Maybe Bool) where
     toUProperty _ = (#const UCHAR_NFKD_QUICK_CHECK)
 
 data LeadCanonicalCombiningClass_ = LeadCanonicalCombiningClass
-                                    deriving (Show, Typeable)
+                                    deriving (Show)
 
 instance NFData LeadCanonicalCombiningClass_ where
     rnf !_ = ()
@@ -1035,7 +1034,7 @@ instance Property LeadCanonicalCombiningClass_ Int where
     toUProperty _ = (#const UCHAR_LEAD_CANONICAL_COMBINING_CLASS)
 
 data TrailingCanonicalCombiningClass_ = TrailingCanonicalCombiningClass
-                                   deriving (Show, Typeable)
+                                   deriving (Show)
 
 instance NFData TrailingCanonicalCombiningClass_ where
     rnf !_ = ()
@@ -1044,7 +1043,7 @@ instance Property TrailingCanonicalCombiningClass_ Int where
     fromNative  _ = fromIntegral
     toUProperty _ = (#const UCHAR_TRAIL_CANONICAL_COMBINING_CLASS)
 
-data GraphemeClusterBreak_ = GraphemeClusterBreak deriving (Show, Typeable)
+data GraphemeClusterBreak_ = GraphemeClusterBreak deriving (Show)
 
 instance NFData GraphemeClusterBreak_ where
     rnf !_ = ()
@@ -1067,7 +1066,7 @@ data GraphemeClusterBreak =
   | GCBEModifier
   | GCBGlueAfterZWJ
   | GCBZWJ
-    deriving (Eq, Enum, Show, Typeable)
+    deriving (Eq, Enum, Show)
 
 instance NFData GraphemeClusterBreak where
     rnf !_ = ()
@@ -1076,7 +1075,7 @@ instance Property GraphemeClusterBreak_ (Maybe GraphemeClusterBreak) where
     fromNative  _ = maybeEnum
     toUProperty _ = (#const UCHAR_GRAPHEME_CLUSTER_BREAK)
 
-data SentenceBreak_ = SentenceBreak deriving (Show, Typeable)
+data SentenceBreak_ = SentenceBreak deriving (Show)
 
 instance NFData SentenceBreak_ where
     rnf !_ = ()
@@ -1096,7 +1095,7 @@ data SentenceBreak =
   | SBExtend
   | SBLF
   | SBSContinue
-    deriving (Eq, Enum, Show, Typeable)
+    deriving (Eq, Enum, Show)
 
 instance NFData SentenceBreak where
     rnf !_ = ()
@@ -1105,7 +1104,7 @@ instance Property SentenceBreak_ (Maybe SentenceBreak) where
     fromNative  _ = maybeEnum
     toUProperty _ = (#const UCHAR_SENTENCE_BREAK)
 
-data WordBreak_ = WordBreak deriving (Show, Typeable)
+data WordBreak_ = WordBreak deriving (Show)
 
 instance NFData WordBreak_ where
     rnf !_ = ()
@@ -1127,7 +1126,7 @@ data WordBreak =
   | WBHebrewLetter
   | WBSingleQuote
   | WBDoubleQuote
-    deriving (Eq, Enum, Show, Typeable)
+    deriving (Eq, Enum, Show)
 
 instance NFData WordBreak where
     rnf !_ = ()
@@ -1136,7 +1135,7 @@ instance Property WordBreak_ (Maybe WordBreak) where
     fromNative  _ = maybeEnum
     toUProperty _ = (#const UCHAR_WORD_BREAK)
 
-data BidiPairedBracketType_ = BidiPairedBracketType deriving (Show, Typeable)
+data BidiPairedBracketType_ = BidiPairedBracketType deriving (Show)
 
 instance NFData BidiPairedBracketType_ where
     rnf !_ = ()
@@ -1145,7 +1144,7 @@ data BidiPairedBracketType =
     BPTNone
   | BPTOpen
   | BPTClose
-    deriving (Eq, Enum, Show, Typeable)
+    deriving (Eq, Enum, Show)
 
 instance NFData BidiPairedBracketType where
     rnf !_ = ()

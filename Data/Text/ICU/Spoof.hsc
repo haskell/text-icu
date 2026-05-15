@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns, CPP, DeriveDataTypeable, ForeignFunctionInterface,
+{-# LANGUAGE BangPatterns, CPP, ForeignFunctionInterface,
     OverloadedStrings, RecordWildCards, ScopedTypeVariables #-}
 -- |
 -- Module      : Data.Text.ICU.Spoof
@@ -72,7 +72,6 @@ import Data.Text.Foreign (fromPtr)
 import Data.Text.ICU.Internal (UChar)
 import Data.Text.ICU.Internal (fromUCharPtr)
 #endif
-import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Foreign.C.String (CString, peekCString, withCString)
 import Foreign.Marshal.Utils (with)
@@ -273,7 +272,7 @@ data OpenFromSourceParseError = OpenFromSourceParseError {
       errFile :: OpenFromSourceParseErrorFile
     -- | Parse error encountered opening a spoof checker from source.
     , parseError :: ParseError
-    } deriving (Show, Typeable)
+    } deriving (Show)
 
 instance NFData OpenFromSourceParseError where
     rnf OpenFromSourceParseError{..} = rnf parseError `seq` rnf errFile

@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, DeriveDataTypeable, ForeignFunctionInterface #-}
+{-# LANGUAGE CPP, ForeignFunctionInterface #-}
 -- |
 -- Module      : Data.Text.ICU.Number
 -- Copyright   : (c) 2020 Torsten Kemps-Benedix
@@ -37,7 +37,6 @@ import Data.Text.ICU.Error
 import Data.Text.ICU.Error.Internal (UErrorCode, UParseError, handleParseError, handleOverflowError)
 import Data.Text.ICU.Internal (UChar, useAsUCharPtr, fromUCharPtr)
 import Data.Text.ICU.Internal (LocaleName, withLocaleName)
-import Data.Typeable (Typeable)
 import Data.Int (Int32)
 import Foreign.C.Types (CInt(..), CDouble(..))
 import Foreign.Ptr (Ptr)
@@ -77,7 +76,7 @@ data NumberFormatStyle
     | NUM_FORMAT_STYLE_COUNT -- ^ One more than the highest normal UNumberFormatStyle value. Deprecated: ICU 58 The numeric value may change over time, see ICU ticket #12420.
     | NUM_DEFAULT -- ^ Default format.
     | NUM_IGNORE -- ^ Alias for NUM_PATTERN_DECIMAL.
-      deriving (Eq, Show, Typeable)
+      deriving (Eq, Show)
 
 type UNumberFormatStyle = CInt
 

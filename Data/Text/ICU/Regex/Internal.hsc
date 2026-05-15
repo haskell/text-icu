@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns, DeriveDataTypeable, EmptyDataDecls,
+{-# LANGUAGE BangPatterns, EmptyDataDecls,
     ForeignFunctionInterface, MagicHash, RecordWildCards,
     ScopedTypeVariables #-}
 
@@ -47,7 +47,6 @@ import Data.Text.ICU.Internal (UBool, UChar, UTextPtr, UText, useAsUCharPtr, wit
 import Data.Text.ICU.Error (isRegexError)
 import Data.Text.ICU.Error.Internal (UParseError, UErrorCode,
                                      handleError, handleParseError)
-import Data.Typeable (Typeable)
 import Data.Word (Word32)
 import Foreign.ForeignPtr (ForeignPtr)
 import Foreign.Ptr (FunPtr, Ptr)
@@ -119,7 +118,7 @@ data MatchOption
     -- A limit is desirable because a malicious or poorly designed
     -- pattern can use excessive memory, potentially crashing the
     -- process.  A limit is enabled by default.
-      deriving (Eq, Show, Typeable)
+      deriving (Eq, Show)
 
 -- | A compiled regular expression.
 --
