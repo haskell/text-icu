@@ -92,7 +92,7 @@ jobs:
       uses: actions/checkout@v7
 
     - name: Setup Haskell
-      uses: haskell-actions/setup@v2
+      uses: haskell-actions/setup@v2.11.0
       id: setup
       with:
         ghc-version: ${{ matrix.ghc }}
